@@ -1,0 +1,30 @@
+---
+slug: /
+sidebar_position: 1
+title: Introduction
+---
+
+
+# json-ui-react
+
+
+Compile server-form screens written with TSX and hooks into **static JSON UI** and a **server button layout module**. It has zero runtime dependencies, and the same input always produces byte-identical output.
+
+## Why compile at build time
+
+Bedrock JSON UI has no JS runtime, so a screen's structure is baked statically into the resource pack. Wiring up a router, radio tabs, fixed `collection_index` cells and the button index layout (`102 + 20k + 19`) by hand makes it easy for the JSON and the server code to drift apart. Generating both in a single build step means they cannot disagree.
+
+## Pipeline
+
+| Stage | What it does |
+| --- | --- |
+| TSX screen | Write the screen with components and hooks |
+| Built-in JSX runtime | Builds an element tree without React |
+| ControlNode tree | `render` and `toBody` lower it into JSON UI control shapes |
+| Pack | Collects the definitions per namespace into a set of `ui/*.json` files |
+| Slots | Assigns server button indices and generates the server module (JS) |
+| Lint | Checks the generated JSON and reports diagnostics tagged with rule IDs |
+
+## Next
+
+Install the add-on in [Getting started](getting-started), then browse the eight examples on the component pages.

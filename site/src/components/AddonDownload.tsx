@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import useBaseUrl from "@docusaurus/useBaseUrl";
+import { translate } from "@docusaurus/Translate";
 import addon from "../generated/addon.json";
-
-const LABEL = "통합 테스트 애드온 다운로드";
 
 const DownloadIcon = (): JSX.Element => (
   <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
@@ -20,12 +19,13 @@ const GithubIcon = (): JSX.Element => (
 );
 
 export function GithubLink({ mobile = false }: { mobile?: boolean }): JSX.Element {
+  const label = translate({ id: "jur.navbar.github", message: "GitHub 저장소" });
   const props = {
     href: "https://github.com/PresentKim/json-ui-react",
     target: "_blank",
     rel: "noopener noreferrer",
-    "aria-label": "GitHub 저장소",
-    title: "GitHub 저장소",
+    "aria-label": label,
+    title: label,
   };
   // 모바일에서도 상단바 아이콘이 항상 보이므로 사이드바에는 중복 항목을 두지 않는다.
   if (mobile) return <></>;
@@ -39,6 +39,15 @@ export function GithubLink({ mobile = false }: { mobile?: boolean }): JSX.Elemen
 // navbar 오른쪽 끝의 다운로드 아이콘 버튼과 팝오버. 모바일 사이드바에서는 직접 다운로드 링크.
 export default function AddonDownload({ mobile = false }: { mobile?: boolean }): JSX.Element {
   const href = useBaseUrl(`/downloads/${addon.file}`);
+  const label = translate({ id: "jur.addon.download", message: "통합 테스트 애드온 다운로드" });
+  const title = translate({ id: "jur.addon.title", message: "통합 테스트 애드온" });
+  const copyText = translate({ id: "jur.addon.copy", message: "복사" });
+  const copiedText = translate({ id: "jur.addon.copied", message: "복사됨" });
+  const hint = translate({
+    id: "jur.addon.hint",
+    message: "모든 예시가 들어 있는 애드온 하나. 게임의 팩 이름·설명 버전이 파일명과 같은지 확인",
+  });
+  const downloadText = translate({ id: "jur.addon.downloadButton", message: "다운로드" });
   const kb = Math.max(1, Math.round(addon.bytes / 1024));
   const meta = `${addon.label} · ${kb} KB`;
   const [open, setOpen] = useState(false);
@@ -77,8 +86,8 @@ export default function AddonDownload({ mobile = false }: { mobile?: boolean }):
         ref={btn}
         type="button"
         className="addon-pop__btn jur-navbar-icon"
-        aria-label={LABEL}
-        title={LABEL}
+        aria-label={label}
+        title={label}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls="addon-pop-panel"
@@ -89,18 +98,18 @@ export default function AddonDownload({ mobile = false }: { mobile?: boolean }):
       >
         <DownloadIcon />
       </button>
-      <div id="addon-pop-panel" className="addon-pop__panel" role="dialog" aria-label="통합 테스트 애드온" hidden={!open}>
-        <strong className="addon-pop__title">통합 테스트 애드온</strong>
+      <div id="addon-pop-panel" className="addon-pop__panel" role="dialog" aria-label={title} hidden={!open}>
+        <strong className="addon-pop__title">{title}</strong>
         <div className="addon-pop__file">
           <code>{addon.file}</code>
           <button type="button" className="button button--sm button--secondary" onClick={copy}>
-            {copied ? "복사됨" : "복사"}
+            {copied ? copiedText : copyText}
           </button>
         </div>
         <div className="addon-pop__meta">{meta}</div>
-        <p className="addon-pop__hint">모든 예시가 들어 있는 애드온 하나. 게임의 팩 이름·설명 버전이 파일명과 같은지 확인</p>
+        <p className="addon-pop__hint">{hint}</p>
         <a className="button button--primary button--block" href={href} download={addon.file}>
-          다운로드
+          {downloadText}
         </a>
       </div>
     </span>

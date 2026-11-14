@@ -1,0 +1,61 @@
+---
+sidebar_position: 3
+title: "Tabs: shown by toggle state (method C)"
+---
+
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/tabs-follow.source.json';
+import tabs_follow from '@site/src/generated/tabs-follow.json';
+
+# Tabs: shown by toggle state (method C)
+
+Method C: panels follow a toggle-state binding to show or hide
+
+
+A panel binds `#toggle_state` to `#visible`, so it follows the tab. A collection binding under the router needs `binding_condition: "always"`.
+
+## APIs used
+
+| Name | Description |
+| --- | --- |
+| `TabBar` | [API reference](../api) |
+| `SlotGrid` | [API reference](../api) |
+| `bind.view` | [API reference](../api) |
+
+## Writing it in JSX
+
+Uses `TabBar`, `SlotGrid` and `bind.view`. The panels show or hide by following a toggle-state binding.
+
+| JSX | Lowered JSON UI |
+| --- | --- |
+| `<TabBar>` | Horizontal `stack_panel` + radio `toggle` with 8 states |
+| `<SlotGrid>` | Row `stack_panel` + `collection_index` cells |
+| `useTabs().paneBinding` | `#toggle_state` -> `#visible` binding |
+
+<Source data={source} />
+
+## Lowered result
+
+An excerpt of the compiled JSON UI definition of the `jur:tf` screen. The prebuild step extracts it from `rp/ui`.
+
+<Excerpt data={tabs_follow} />
+
+## Rules
+
+INP-13, COL-47, BND-32
+
+## Running it in the integration add-on
+
+In the add-on you downloaded with "Download integration test add-on" at the top right, use the stick to pick the example in the picker, or run the command. In-game text is in English: the picker (`json-ui-react Examples`) lists this example as `Tabs: shown by toggle state`.
+
+Six buttons, form title `jur:tf`.
+
+```text
+/scriptevent jur:open tabs-follow
+```
+
+## Field photos
+
+<Photos id="tabs-follow" legacy />

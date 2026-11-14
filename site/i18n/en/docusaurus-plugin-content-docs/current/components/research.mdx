@@ -1,0 +1,63 @@
+---
+sidebar_position: 8
+title: Research screen (method E)
+---
+
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/research.source.json';
+import research from '@site/src/generated/research.json';
+
+# Research screen (method E)
+
+Research screen: 2 tabs, 96 items, 96 details (method E)
+
+
+Two tabs, 96 items and 96 details add up to 2022 buttons. Button indices are resolved with the layout that `serverModule` generates.
+
+## APIs used
+
+| Name | Description |
+| --- | --- |
+| `SlotGrid` | [API reference](../api) |
+| `TabBar` | [API reference](../api) |
+| `ScreenRouter` | [API reference](../api) |
+| `createSlots` | [API reference](../api) |
+| `serverModule` | [API reference](../api) |
+
+## Writing it in JSX
+
+Uses `SlotGrid`, `TabBar`, `ScreenRouter`, `createSlots` and `serverModule`. Below are the essentials of the screen definition (`defineResearch`) and the item definitions (`defineItems`).
+
+| JSX | Lowered JSON UI |
+| --- | --- |
+| `<ScreenRouter>` | `collection_panel` + `property_bag` title lookup |
+| `<TabBar>` | Horizontal `stack_panel` + radio `toggle` with 8 states |
+| `<SlotGrid>` | Row `stack_panel` + `collection_index` cells |
+
+<Source data={source} />
+
+## Lowered result
+
+An excerpt of the compiled JSON UI definition of the `jur:re` screen. The prebuild step extracts it from `rp/ui`.
+
+<Excerpt data={research} />
+
+## Rules
+
+COL-50, INP-13, COL-47, BND-32
+
+## Running it in the integration add-on
+
+In the add-on you downloaded with "Download integration test add-on" at the top right, use the stick to pick the example in the picker, or run the command. In-game text is in English: the picker (`json-ui-react Examples`) lists this example as `Research screen`. Until you pick an item, the detail area shows `Pick a research.`.
+
+2022 buttons, form title `jur:re`.
+
+```text
+/scriptevent jur:open research
+```
+
+## Field photos
+
+<Photos id="research" legacy />

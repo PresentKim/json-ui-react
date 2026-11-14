@@ -1,0 +1,57 @@
+---
+sidebar_position: 7
+title: Virtual list, 2000 cells
+---
+
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/virtual-list-2000.source.json';
+import virtual_list_2000 from '@site/src/generated/virtual-list-2000.json';
+
+# Virtual list, 2000 cells
+
+A two-column virtual list of 2000 cells (the COL-49 limit)
+
+
+2000 cells is the COL-49 limit. Going past it makes cells draw on top of each other, so the build reports an error.
+
+## APIs used
+
+| Name | Description |
+| --- | --- |
+| `VirtualList` | [API reference](../api) |
+
+## Writing it in JSX
+
+Uses `VirtualList`. 2000 cells is the COL-49 limit, and going past it is a build error unless you pass `allowLarge`. The two files below are the 2000-cell entry point and the shared definitions.
+
+| JSX | Lowered JSON UI |
+| --- | --- |
+| `<VirtualList>` | `grid` + `maximum_grid_items` bound to `#form_button_length` |
+
+<Source data={source} />
+
+## Lowered result
+
+An excerpt of the compiled JSON UI definition of the `jur:v2` screen. The prebuild step extracts it from `rp/ui`.
+
+<Excerpt data={virtual_list_2000} />
+
+## Rules
+
+COL-49
+
+## Running it in the integration add-on
+
+In the add-on you downloaded with "Download integration test add-on" at the top right, use the stick to pick the example in the picker, or run the command. In-game text is in English: the picker (`json-ui-react Examples`) lists this example as `Grid list (2000)`.
+
+2000 buttons, form title `jur:v2`.
+
+```text
+/scriptevent jur:open virtual-list-2000
+```
+
+## Field photos
+
+<Photos id="virtual-list-2000" legacy />

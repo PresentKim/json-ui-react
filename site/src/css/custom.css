@@ -18,3 +18,5 @@
 .jur-navbar-icon:hover{color:var(--ifm-color-primary);text-decoration:none}
 @media (max-width:996px){.jur-navbar-icon,.jur-navbar-icon-wrap{display:inline-flex!important}.jur-navbar-icon{padding:.5rem}}
 @media (max-width:480px){.addon-pop{position:static}.addon-pop__panel{position:fixed;left:.5rem;right:.5rem;top:3.75rem;width:auto;max-width:none}}
+.photo-note{font-size:.85rem;color:var(--ifm-color-emphasis-700)}
+@media (max-width:996px){.navbar__items--right>.navbar__item.dropdown{display:inline-flex!important;align-items:center}.jur-locale{padding:.5rem}}

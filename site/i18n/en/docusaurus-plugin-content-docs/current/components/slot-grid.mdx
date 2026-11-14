@@ -1,0 +1,59 @@
+---
+sidebar_position: 5
+title: Fixed-slot grid
+---
+
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/slot-grid.source.json';
+import slot_grid from '@site/src/generated/slot-grid.json';
+
+# Fixed-slot grid
+
+A fixed 3x8 slot grid with a selection detail
+
+
+Put the cells as direct children of horizontal rows inside a vertical `stack_panel`, and give each cell a fixed `collection_index`. If the parent is a `panel`, COL-50 makes every cell draw index 0.
+
+## APIs used
+
+| Name | Description |
+| --- | --- |
+| `SlotGrid` | [API reference](../api) |
+| `createSlots` | [API reference](../api) |
+
+## Writing it in JSX
+
+Uses `SlotGrid` and `createSlots`. It draws 3x8 fixed cells and a selection detail.
+
+| JSX | Lowered JSON UI |
+| --- | --- |
+| `<SlotGrid>` | Row `stack_panel` inside a vertical `stack_panel` + `collection_index` cells |
+| `slots.range` | A contiguous range of button indices |
+
+<Source data={source} />
+
+## Lowered result
+
+An excerpt of the compiled JSON UI definition of the `jur:sg` screen. The prebuild step extracts it from `rp/ui`.
+
+<Excerpt data={slot_grid} />
+
+## Rules
+
+COL-38, COL-50, INP-35, BND-32
+
+## Running it in the integration add-on
+
+In the add-on you downloaded with "Download integration test add-on" at the top right, use the stick to pick the example in the picker, or run the command. In-game text is in English: the picker (`json-ui-react Examples`) lists this example as `Slot grid with selection detail`. Until you pick a slot, the detail area shows `Pick a slot.`.
+
+24 buttons, form title `jur:sg`.
+
+```text
+/scriptevent jur:open slot-grid
+```
+
+## Field photos
+
+<Photos id="slot-grid" legacy />

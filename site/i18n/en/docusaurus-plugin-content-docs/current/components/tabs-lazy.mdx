@@ -1,0 +1,61 @@
+---
+sidebar_position: 4
+title: "Tabs: built on first select (method D)"
+---
+
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/tabs-lazy.source.json';
+import tabs_lazy from '@site/src/generated/tabs-lazy.json';
+
+# Tabs: built on first select (method D)
+
+Method D: build a panel with a factory only when its tab is selected
+
+
+Only the first tab is built up front. The rest are created by a factory bound to the toggle state when selected. You cannot use `lazyPane(0)` for the first tab.
+
+## APIs used
+
+| Name | Description |
+| --- | --- |
+| `TabBar` | [API reference](../api) |
+| `SlotGrid` | [API reference](../api) |
+| `bind.view` | [API reference](../api) |
+
+## Writing it in JSX
+
+Uses `TabBar`, `SlotGrid` and `bind.view`. A panel is created by a factory only when its tab is selected.
+
+| JSX | Lowered JSON UI |
+| --- | --- |
+| `<TabBar>` | Horizontal `stack_panel` + radio `toggle` with 8 states |
+| `<SlotGrid>` | Row `stack_panel` + `collection_index` cells |
+| `useTabs().lazyPane` | `factory` + `#collection_length` binding |
+
+<Source data={source} />
+
+## Lowered result
+
+An excerpt of the compiled JSON UI definition of the `jur:tl` screen. The prebuild step extracts it from `rp/ui`.
+
+<Excerpt data={tabs_lazy} />
+
+## Rules
+
+INP-13, COL-47
+
+## Running it in the integration add-on
+
+In the add-on you downloaded with "Download integration test add-on" at the top right, use the stick to pick the example in the picker, or run the command. In-game text is in English: the picker (`json-ui-react Examples`) lists this example as `Tabs: built on first select`.
+
+Six buttons, form title `jur:tl`.
+
+```text
+/scriptevent jur:open tabs-lazy
+```
+
+## Field photos
+
+<Photos id="tabs-lazy" legacy />

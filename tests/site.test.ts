@@ -84,4 +84,69 @@ describe("site", () => {
       }
     }
   });
+  it("test_en_build_exists", () => {
+    expect(existsSync(join(BUILD, "en", "index.html"))).toBe(true);
+    for (const id of ["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "research"]) {
+      expect(existsSync(join(BUILD, "en", "components", id, "index.html"))).toBe(true);
+    }
+    for (const page of ["api", "getting-started"]) expect(existsSync(join(BUILD, "en", page, "index.html"))).toBe(true);
+    const html = readFileSync(join(BUILD, "en", "components", "router", "index.html"), "utf8");
+    expect(html).toContain('<html lang="en"');
+    expect(html).toContain("Writing it in JSX");
+    expect(html.indexOf("Writing it in JSX")).toBeLessThan(html.indexOf("Lowered result"));
+    expect(readFileSync(join(BUILD, "index.html"), "utf8")).toContain('<html lang="ko"');
+  });
+  it("test_en_article_has_no_hangul", () => {
+    const pages = ["", "api", "getting-started", ...["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "research"].map((id) => `components/${id}`)];
+    for (const page of pages) {
+      const html = readFileSync(join(BUILD, "en", page, "index.html"), "utf8");
+      let article = /<article[\s\S]*?<\/article>/.exec(html)![0];
+      // 코드 블록(생성 소스와 JSON 발췌의 한글 주석)과 사진 태그(한국어 파일명)는 예외다.
+      article = article.replace(/<pre[\s\S]*?<\/pre>/g, "").replace(/<img[^>]*>/g, "");
+      expect(article.match(/[가-힣]+/g), page).toBeNull();
+    }
+    const gs = readFileSync(join(BUILD, "en", "getting-started", "index.html"), "utf8");
+    expect(gs).toContain("json-ui-react Examples BP vX.Y.Z");
+    const empty = readFileSync(join(BUILD, "en", "components", "router", "index.html"), "utf8");
+    expect(empty).toContain("Field photos coming soon");
+    expect(empty).toContain("Screen router");
+  });
+  it("test_ko_docs_quote_english_game_text", () => {
+    const research = readFileSync(join(BUILD, "components", "research", "index.html"), "utf8");
+    expect(research).toContain("Pick a research.");
+    expect(research).toContain("Research screen");
+    expect(research).not.toContain("연구를 고르세요");
+    const slot = readFileSync(join(BUILD, "components", "slot-grid", "index.html"), "utf8");
+    expect(slot).toContain("Pick a slot.");
+    expect(slot).toContain("이전 버전(한국어 글자)");
+  });
+  it("test_navbar_download_github_locale_in_both_locales", () => {
+    for (const [prefix, lang, dl, gh, other] of [
+      ["", "ko", "통합 테스트 애드온 다운로드", "GitHub 저장소", "/json-ui-react/en/"],
+      ["en", "en", "Download integration test add-on", "GitHub repository", "/json-ui-react/"],
+    ] as const) {
+      for (const page of ["", "components/router"]) {
+        const html = readFileSync(join(BUILD, prefix, page, "index.html"), "utf8");
+        const nav = /<nav[\s\S]*?<\/nav>/.exec(html)![0];
+        expect(nav).toContain(`aria-label="${dl}"`);
+        expect(nav).toContain(`aria-label="${gh}"`);
+        expect(nav).toContain('href="https://github.com/PresentKim/json-ui-react"');
+        expect(nav).toContain("dropdown");
+        expect(nav).toContain('lang="ko"');
+        expect(nav).toContain('lang="en"');
+        expect(nav).toContain("한국어");
+        expect(nav).toContain("English");
+        if (page === "") expect(nav).toContain(`href="${other}"`);
+        expect(html).toContain(`<html lang="${lang}"`);
+        // 모바일(996px 이하)에서도 언어 전환이 상단바에 남는다.
+        expect(html.match(/aria-label="GitHub (저장소|repository)"/g)?.length).toBe(1);
+      }
+    }
+    const css = readdirSync(join(BUILD, "assets", "css")).map((f) => readFileSync(join(BUILD, "assets", "css", f), "utf8")).join("\n");
+    expect(css).toContain(".navbar__items--right>.navbar__item.dropdown{align-items:center;display:inline-flex!important}");
+    // en 다운로드 링크 파일이 en 빌드에 있다.
+    const meta = JSON.parse(readFileSync(join(ROOT, "site", "src", "generated", "addon.json"), "utf8")) as { file: string };
+    expect(existsSync(join(BUILD, "en", "downloads", meta.file))).toBe(true);
+    expect(readFileSync(join(BUILD, "en", "index.html"), "utf8")).toContain(`href="/json-ui-react/en/downloads/${meta.file}"`);
+  });
 });

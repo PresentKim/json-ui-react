@@ -1,0 +1,57 @@
+---
+sidebar_position: 6
+title: Virtual list, 500 cells
+---
+
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/virtual-list-500.source.json';
+import virtual_list_500 from '@site/src/generated/virtual-list-500.json';
+
+# Virtual list, 500 cells
+
+A two-column virtual list of 500 cells
+
+
+A two-column virtual list: a `grid` whose `maximum_grid_items` is bound to `#form_button_length`.
+
+## APIs used
+
+| Name | Description |
+| --- | --- |
+| `VirtualList` | [API reference](../api) |
+
+## Writing it in JSX
+
+Uses `VirtualList`. Pass the cell definition and a count and you get a two-column list. The two files below are the 500-cell entry point and the shared definitions.
+
+| JSX | Lowered JSON UI |
+| --- | --- |
+| `<VirtualList>` | `grid` + `maximum_grid_items` bound to `#form_button_length` |
+
+<Source data={source} />
+
+## Lowered result
+
+An excerpt of the compiled JSON UI definition of the `jur:v5` screen. The prebuild step extracts it from `rp/ui`.
+
+<Excerpt data={virtual_list_500} />
+
+## Rules
+
+COL-49
+
+## Running it in the integration add-on
+
+In the add-on you downloaded with "Download integration test add-on" at the top right, use the stick to pick the example in the picker, or run the command. In-game text is in English: the picker (`json-ui-react Examples`) lists this example as `Grid list (500)`.
+
+500 buttons, form title `jur:v5`.
+
+```text
+/scriptevent jur:open virtual-list-500
+```
+
+## Field photos
+
+<Photos id="virtual-list-500" legacy />

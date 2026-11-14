@@ -1,0 +1,48 @@
+---
+sidebar_position: 2
+title: Getting started
+---
+
+
+# Getting started
+
+
+## Commands
+
+Node 22 or later is required.
+
+```bash
+npm install
+npm test
+npm run build:addon   # dist/json-ui-react-examples.mcaddon
+npm run site:build    # this documentation site
+```
+
+## Installing the add-on
+
+1. Use "Download integration test add-on" at the top right to get `json-ui-react-examples-v<version>-<commit>.mcaddon`. This one add-on contains every example.
+2. Open the file and Minecraft imports the behavior pack and the resource pack.
+3. The behavior pack is named like `json-ui-react Examples BP vX.Y.Z`. All in-game text is in English.
+4. Enable both packs in a world, and make sure the environment uses the beta API (`@minecraft/server` 2.0.0).
+5. Check that the version at the end of the in-game pack name (v1.1.0) and the second line of its description (version · commit · date) match the name of the file you downloaded.
+
+## Opening an example
+
+**Use the stick** (right-click on PC, long-press on mobile). The example picker (titled `json-ui-react Examples`) opens, and the example form you choose appears right away. If you enter a world without a stick, you get one.
+
+You can also open an example with a command. `/scriptevent jur:open` on its own opens the picker.
+
+```text
+/scriptevent jur:open <example-id>
+```
+
+| Example id | Form title | Buttons | Page |
+| --- | --- | --- | --- |
+| `router` | `jur:ro` | 4 | [Router](components/router) |
+| `tabs-inside` | `jur:ti` | 6 | [Tabs: content inside the toggle](components/tabs-inside) |
+| `tabs-follow` | `jur:tf` | 6 | [Tabs: shown by binding](components/tabs-follow) |
+| `tabs-lazy` | `jur:tl` | 6 | [Tabs: built on select](components/tabs-lazy) |
+| `slot-grid` | `jur:sg` | 24 | [Fixed-slot grid](components/slot-grid) |
+| `virtual-list-500` | `jur:v5` | 500 | [Virtual list, 500 cells](components/virtual-list-500) |
+| `virtual-list-2000` | `jur:v2` | 2000 | [Virtual list, 2000 cells](components/virtual-list-2000) |
+| `research` | `jur:re` | 2022 | [Research screen](components/research) |

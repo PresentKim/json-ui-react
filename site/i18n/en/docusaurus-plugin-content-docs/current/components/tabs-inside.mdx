@@ -1,0 +1,60 @@
+---
+sidebar_position: 2
+title: "Tabs: content inside the toggle (method B)"
+---
+
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/tabs-inside.source.json';
+import tabs_inside from '@site/src/generated/tabs-inside.json';
+
+# Tabs: content inside the toggle (method B)
+
+Method B: put the panel inside the toggle's checked face
+
+
+Each tab toggle holds its panel inside its checked face. The toggle state is the visibility state, so no binding is needed.
+
+## APIs used
+
+| Name | Description |
+| --- | --- |
+| `TabBar` | [API reference](../api) |
+| `radioToggleBody` | [API reference](../api) |
+| `SlotGrid` | [API reference](../api) |
+
+## Writing it in JSX
+
+Uses `TabBar`, `radioToggleBody` and `SlotGrid`. The panel goes inside the checked face of each tab.
+
+| JSX | Lowered JSON UI |
+| --- | --- |
+| `<TabBar>` | Horizontal `stack_panel` + radio `toggle` with 8 states |
+| `<SlotGrid>` | Row `stack_panel` + `collection_index` cells |
+
+<Source data={source} />
+
+## Lowered result
+
+An excerpt of the compiled JSON UI definition of the `jur:ti` screen. The prebuild step extracts it from `rp/ui`.
+
+<Excerpt data={tabs_inside} />
+
+## Rules
+
+INP-10, INP-11, INP-13
+
+## Running it in the integration add-on
+
+In the add-on you downloaded with "Download integration test add-on" at the top right, use the stick to pick the example in the picker, or run the command. In-game text is in English: the picker (`json-ui-react Examples`) lists this example as `Tabs: content inside the toggle`.
+
+Six buttons, form title `jur:ti`.
+
+```text
+/scriptevent jur:open tabs-inside
+```
+
+## Field photos
+
+<Photos id="tabs-inside" legacy />

@@ -1,0 +1,10 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.컴포넌트": {
+    "message": "Components",
+    "description": "The label for category '컴포넌트' in sidebar 'docs'"
+  }
+}
