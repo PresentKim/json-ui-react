@@ -21,7 +21,7 @@ export default {
     ],
   ],
   themeConfig: {
-    navbar: { title: "json-ui-react" },
+    navbar: { title: "json-ui-react", items: [{ type: "custom-addonDownload", position: "right" }] },
     prism: { theme: themes.github, darkTheme: themes.dracula },
     colorMode: { respectPrefersColorScheme: true },
   },

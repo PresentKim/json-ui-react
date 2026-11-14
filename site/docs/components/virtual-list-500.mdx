@@ -3,16 +3,16 @@ sidebar_position: 6
 title: 가상 목록 500칸
 ---
 
-import DownloadButton from '@site/src/components/DownloadButton';
 import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/virtual-list-500.source.json';
 import virtual_list_500 from '@site/src/generated/virtual-list-500.json';
 
 # 가상 목록 500칸
 
 2열 가상 목록 500칸
 
-<DownloadButton small />
 
 `grid`에 `maximum_grid_items`를 `#form_button_length`로 묶은 2열 가상 목록.
 
@@ -21,6 +21,16 @@ import virtual_list_500 from '@site/src/generated/virtual-list-500.json';
 | 이름 | 설명 |
 | --- | --- |
 | `VirtualList` | [API 레퍼런스](../api) |
+
+## JSX로 쓰기
+
+`VirtualList`를 쓴다. 칸 정의와 개수만 넘기면 2열 목록이 된다. 아래 두 파일은 500칸 진입점과 공통 정의다.
+
+| JSX | 낮춰진 JSON UI |
+| --- | --- |
+| `<VirtualList>` | `grid` + `maximum_grid_items`를 `#form_button_length`에 묶음 |
+
+<Source data={source} />
 
 ## 낮춤 결과
 
@@ -32,9 +42,9 @@ import virtual_list_500 from '@site/src/generated/virtual-list-500.json';
 
 COL-49
 
-## 게임에서 열기
+## 통합 애드온에서 실행 방법
 
-막대기를 써서 예시 고르기 창에서 고르거나, 명령을 실행한다.
+상단 오른쪽 "통합 테스트 애드온 다운로드"로 받은 애드온에서 막대기를 써서 예시 고르기 창에서 고르거나, 명령을 실행한다.
 
 버튼 500개, 폼 제목 `jur:v5`.
 

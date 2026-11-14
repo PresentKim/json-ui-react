@@ -3,16 +3,16 @@ sidebar_position: 4
 title: "탭: 고를 때 팩토리 (방식 D)"
 ---
 
-import DownloadButton from '@site/src/components/DownloadButton';
 import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/tabs-lazy.source.json';
 import tabs_lazy from '@site/src/generated/tabs-lazy.json';
 
 # 탭: 고를 때 팩토리 (방식 D)
 
 탭을 고를 때만 패널을 팩토리로 만드는 방식(D)
 
-<DownloadButton small />
 
 첫 탭만 미리 만들고 나머지는 토글 상태에 묶은 팩토리로 고를 때 만든다. 첫 탭에는 `lazyPane(0)`을 쓸 수 없다.
 
@@ -24,6 +24,18 @@ import tabs_lazy from '@site/src/generated/tabs-lazy.json';
 | `SlotGrid` | [API 레퍼런스](../api) |
 | `bind.view` | [API 레퍼런스](../api) |
 
+## JSX로 쓰기
+
+`TabBar`, `SlotGrid`, `bind.view`를 쓴다. 탭을 고를 때만 패널을 팩토리로 만든다.
+
+| JSX | 낮춰진 JSON UI |
+| --- | --- |
+| `<TabBar>` | 가로 `stack_panel` + 라디오 `toggle` 8상태 |
+| `<SlotGrid>` | 줄 `stack_panel` + `collection_index` 칸 |
+| `useTabs().lazyPane` | `factory` + `#collection_length` 바인딩 |
+
+<Source data={source} />
+
 ## 낮춤 결과
 
 `jur:tl` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
@@ -34,9 +46,9 @@ import tabs_lazy from '@site/src/generated/tabs-lazy.json';
 
 INP-13, COL-47
 
-## 게임에서 열기
+## 통합 애드온에서 실행 방법
 
-막대기를 써서 예시 고르기 창에서 고르거나, 명령을 실행한다.
+상단 오른쪽 "통합 테스트 애드온 다운로드"로 받은 애드온에서 막대기를 써서 예시 고르기 창에서 고르거나, 명령을 실행한다.
 
 버튼 6개, 폼 제목 `jur:tl`.
 

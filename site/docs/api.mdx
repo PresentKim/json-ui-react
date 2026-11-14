@@ -22,3 +22,99 @@ title: API 레퍼런스
 | `render`, `toBody`, `toEntry` (`src/render.ts`) | 요소 트리 → ControlNode → JSON 본문 | - |
 | `createPack` (`src/pack.ts`) | `ns`, `define`, `modify`, `files()`, `json()`으로 정의 묶음을 만든다 | - |
 | `lintFiles`, `countControls` (`src/lint.ts`) | 생성 JSON 검사기와 컨트롤 수 집계 | - |
+
+## 사용 예
+
+각 예는 `src`에 있는 시그니처의 prop만 쓴 최소 TSX다.
+
+### 컴포넌트
+
+```tsx
+import { ScreenRouter } from "json-ui-react/components/router";
+
+<ScreenRouter
+  name="router"
+  factory="router_factory"
+  prefixBytes={6}
+  routes={[{ title: "jur:ro", id: "ro", control: "jur.ro" }]}
+/>;
+```
+
+```tsx
+import { SlotGrid } from "json-ui-react/components/grid";
+
+<SlotGrid
+  name="grid"
+  size={[144, 54]}
+  rows={3}
+  cols={8}
+  rowHeight={18}
+  rowWidth={144}
+  cell={(pos) => <use name={`c${pos}`} def="ffr.slot" collection_index={pos} />}
+/>;
+```
+
+```tsx
+import { VirtualList } from "json-ui-react/components/grid";
+
+<VirtualList name="list" columns={2} cellSize={[72, 18]} cellDef="jur.cell" maxItems={500} />;
+```
+
+```tsx
+import { TabBar, radioToggleBody } from "json-ui-react/components/toggle";
+
+const body = radioToggleBody({ group: "t_tabs", size: [48, 18], forcedIndex: "$tab_index", defaultSelected: "$tab" });
+
+<TabBar
+  name="t_tabs"
+  size={[96, 18]}
+  toggleDef="jur.tab"
+  tabs={[{ name: "t_t0", index: 0 }, { name: "t_t1", index: 1 }]}
+/>;
+```
+
+### 훅과 슬롯
+
+```tsx
+import { createSlots, decode, serverModule } from "json-ui-react/slots";
+
+const slots = createSlots();
+const buttons = slots.range("buttons", 4);
+const index = buttons.at(2); // 서버 버튼 번호
+const hit = decode(slots.layout(), index); // { name: "buttons", index: 2 }
+const module = serverModule(slots.layout()); // 서버 모듈 문자열
+```
+
+```tsx
+import { useTabs, useSelection, useBinding } from "json-ui-react/hooks";
+
+const tabs = useTabs({ group: "t_tabs", mode: "follow", count: 2, firstIndex: 0 });
+const pane = tabs.paneBinding(1);
+const body = tabs.toggleBody({ size: [48, 18] });
+
+const sel = useSelection({ group: "item", slots: slots.range("items", 8) });
+const itemBody = sel.itemBody({ size: [18, 18], forcedIndex: "$index" });
+
+const binding = useBinding("(#toggle_state * 1)", "#visible", { condition: "always", control: "t_t0" });
+```
+
+```tsx
+import { lit, prefixEq } from "json-ui-react/expr";
+import { view } from "json-ui-react/bind";
+
+const expr = prefixEq("#form_text", "jur:ro");
+const text = lit("jur:ro");
+const b = view(expr, "#visible");
+```
+
+```tsx
+import { createPack } from "json-ui-react/pack";
+import { render, toBody, toEntry } from "json-ui-react/render";
+import { lintFiles, countControls } from "json-ui-react/lint";
+
+const pack = createPack();
+pack.ns("jur", "jur.json").define("panel", <panel name="panel" size={[144, 18]} />);
+const files = { "ui/jur.json": pack.json("jur.json") }; // 파일 경로 -> JSON 본문
+const diagnostics = lintFiles(files);
+const counts = countControls(files);
+```

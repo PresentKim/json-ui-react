@@ -3,16 +3,16 @@ sidebar_position: 7
 title: 가상 목록 2000칸
 ---
 
-import DownloadButton from '@site/src/components/DownloadButton';
 import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/virtual-list-2000.source.json';
 import virtual_list_2000 from '@site/src/generated/virtual-list-2000.json';
 
 # 가상 목록 2000칸
 
 2열 가상 목록 2000칸(COL-49 한계)
 
-<DownloadButton small />
 
 2000칸은 COL-49 한계다. 이를 넘으면 칸이 겹쳐 그려져 빌드가 오류를 낸다.
 
@@ -21,6 +21,16 @@ import virtual_list_2000 from '@site/src/generated/virtual-list-2000.json';
 | 이름 | 설명 |
 | --- | --- |
 | `VirtualList` | [API 레퍼런스](../api) |
+
+## JSX로 쓰기
+
+`VirtualList`를 쓴다. 2000칸은 COL-49 한계이고, 넘으면 `allowLarge` 없이는 빌드 오류다. 아래 두 파일은 2000칸 진입점과 공통 정의다.
+
+| JSX | 낮춰진 JSON UI |
+| --- | --- |
+| `<VirtualList>` | `grid` + `maximum_grid_items`를 `#form_button_length`에 묶음 |
+
+<Source data={source} />
 
 ## 낮춤 결과
 
@@ -32,9 +42,9 @@ import virtual_list_2000 from '@site/src/generated/virtual-list-2000.json';
 
 COL-49
 
-## 게임에서 열기
+## 통합 애드온에서 실행 방법
 
-막대기를 써서 예시 고르기 창에서 고르거나, 명령을 실행한다.
+상단 오른쪽 "통합 테스트 애드온 다운로드"로 받은 애드온에서 막대기를 써서 예시 고르기 창에서 고르거나, 명령을 실행한다.
 
 버튼 2000개, 폼 제목 `jur:v2`.
 

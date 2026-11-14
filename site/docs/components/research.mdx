@@ -3,16 +3,16 @@ sidebar_position: 8
 title: 연구 화면 (방식 E)
 ---
 
-import DownloadButton from '@site/src/components/DownloadButton';
 import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/research.source.json';
 import research from '@site/src/generated/research.json';
 
 # 연구 화면 (방식 E)
 
 연구 화면: 탭 2개, 항목 96개, 상세 96개(방식 E)
 
-<DownloadButton small />
 
 탭 2개, 항목 96개, 상세 96개를 합쳐 버튼 2022개를 만든다. 버튼 번호는 `serverModule`이 만든 배치로 해석한다.
 
@@ -26,6 +26,18 @@ import research from '@site/src/generated/research.json';
 | `createSlots` | [API 레퍼런스](../api) |
 | `serverModule` | [API 레퍼런스](../api) |
 
+## JSX로 쓰기
+
+`SlotGrid`, `TabBar`, `ScreenRouter`, `createSlots`, `serverModule`을 쓴다. 아래는 화면 정의(`defineResearch`)와 항목 정의(`defineItems`)의 핵심이다.
+
+| JSX | 낮춰진 JSON UI |
+| --- | --- |
+| `<ScreenRouter>` | `collection_panel` + `property_bag` 제목 조회 |
+| `<TabBar>` | 가로 `stack_panel` + 라디오 `toggle` 8상태 |
+| `<SlotGrid>` | 줄 `stack_panel` + `collection_index` 칸 |
+
+<Source data={source} />
+
 ## 낮춤 결과
 
 `jur:re` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
@@ -36,9 +48,9 @@ import research from '@site/src/generated/research.json';
 
 COL-50, INP-13, COL-47, BND-32
 
-## 게임에서 열기
+## 통합 애드온에서 실행 방법
 
-막대기를 써서 예시 고르기 창에서 고르거나, 명령을 실행한다.
+상단 오른쪽 "통합 테스트 애드온 다운로드"로 받은 애드온에서 막대기를 써서 예시 고르기 창에서 고르거나, 명령을 실행한다.
 
 버튼 2022개, 폼 제목 `jur:re`.
 
