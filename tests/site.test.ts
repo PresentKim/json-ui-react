@@ -353,7 +353,9 @@ describe("site", () => {
         expect(article, `${prefix}/${page}`).toContain('href="https://github.com/PresentKim/bedrock-research"');
         expect(article).toContain("COL-50");
         expect(article).toContain("server-form-research-screen.mdx");
-        expect(article).not.toContain("bedrock-json-ui-research");
+        // 공개 출처는 bedrock-research 하나: github.com/PresentKim/ 아래 다른 저장소 링크가 없어야 한다.
+        const repos = [...article.matchAll(/github\.com\/PresentKim\/([\w.-]+)/g)].map((m) => m[1]);
+        expect(repos.every((r) => r === "bedrock-research" || r === "json-ui-react"), repos.join(",")).toBe(true);
         expect(article).not.toContain("rules.json");
       }
     }
