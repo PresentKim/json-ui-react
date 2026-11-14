@@ -1,13 +1,13 @@
 // buildScreens: 고수준 화면들을 한 팩으로 묶는다(단일 라우터, server_form 훅, _ui_defs, 테마 정의, 서버 모듈).
 import { createPack, type Pack } from "../pack.ts";
-import { createSlots, type SlotLayout } from "../slots.ts";
+import type { SlotLayout } from "../slots.ts";
 import { render, toBody, toEntry } from "../render.ts";
 import { ScreenRouter } from "../components/router.tsx";
 import { global, view } from "../bind.ts";
 import { lit, prefixEq } from "../expr.ts";
 import { lintFiles, type Diagnostic } from "../lint.ts";
 import type { JsonObject, JuiNode } from "../types.ts";
-import { paneSize, ref, withScreen, type ScreenCtx, type ScreenLayout } from "./context.ts";
+import { footerBar, paneSize, plannedSlots, recordingSlots, ref, withScreen, type ScreenCtx, type ScreenLayout } from "./context.ts";
 import { isScreen, type ScreenProps } from "./components.tsx";
 import { defineTheme } from "./theme.ts";
 import { serverModuleSource, serverTypesSource, type ScreenInfo } from "./server.ts";
@@ -60,6 +60,8 @@ function bodyOf(el: JuiNode): JsonObject {
 /** 화면 하나를 낮추고 라우터가 만들 컨트롤 참조를 돌려준다. */
 function lowerScreen(ctx: ScreenCtx, p: ScreenProps): string {
   const children = render(p.children ?? null);
+  // 판 아래 줄(Pager 등): 판 맨 아래 한 줄로 묶어 판 내용 뒤에 둔다.
+  if (ctx.footer.length) children.push(footerBar(ctx, ctx.footer));
   const N = ctx.ns.name;
   if (ctx.listDef) {
     if (children.length || ctx.tabsDef || ctx.rightDef) throw new Error(`화면 "${ctx.id}": <VirtualList>는 화면의 유일한 자식이어야 합니다`);
@@ -117,14 +119,14 @@ export function buildScreens(screens: JuiNode[], opts: BuildScreensOptions = {})
   const infos: ScreenInfo[] = [];
   const routes: { title: string; id: string; control: string }[] = [];
   const ids = new Set<string>();
-  const addRoute = (id: string, control: string, layout: SlotLayout, defaults: ScreenInfo["defaults"]): void => {
+  const addRoute = (id: string, control: string, layout: SlotLayout, defaults: ScreenInfo["defaults"], records: ScreenInfo["records"]): void => {
     if (typeof id !== "string" || id === "") throw new Error("화면 id가 비어 있습니다");
     if (ids.has(id)) throw new Error(`화면 id 중복: "${id}"`);
     ids.add(id);
     const code = codeFor(id);
     const title = prefix + code;
     lit(title);
-    infos.push({ id, title, layout, defaults });
+    infos.push({ id, title, layout, defaults, records });
     routes.push({ title, id: code, control });
   };
 
@@ -138,13 +140,18 @@ export function buildScreens(screens: JuiNode[], opts: BuildScreensOptions = {})
     if (layout !== "single" && layout !== "split") throw new Error(`화면 "${p.id}": 알 수 없는 layout "${String(layout)}"`);
     const code = pinned.get(p.id) ?? codeFor(p.id);
     pinned.set(p.id, code); // addRoute가 같은 코드를 다시 쓰도록
-    const ctx: ScreenCtx = { pack, ns, id: p.id, code, layout, slots: createSlots(), defaults: {} };
+    // 두 번 낮춘다. 1차는 버리는 팩에서 번호 요청만 모으고, 2차는 종류 순서(PHASE)로 다시 배정한 번호로 진짜 팩에 쓴다.
+    const scratch = createPack();
+    const probe: ScreenCtx = { pack: scratch, ns: scratch.ns(N, `${N}.json`), id: p.id, code, layout, slots: recordingSlots(), defaults: {}, records: {}, footer: [] };
+    withScreen(probe, () => lowerScreen(probe, p));
+    const requests = (probe.slots as ReturnType<typeof recordingSlots>).requests;
+    const ctx: ScreenCtx = { pack, ns, id: p.id, code, layout, slots: plannedSlots(requests), defaults: {}, records: {}, footer: [] };
     const control = withScreen(ctx, () => lowerScreen(ctx, p));
     const sl = ctx.slots.layout();
     if (sl.total === 0) throw new Error(`화면 "${p.id}": 버튼이 하나도 없습니다`);
-    addRoute(p.id, control, sl, ctx.defaults);
+    addRoute(p.id, control, sl, ctx.defaults, ctx.records);
   }
-  for (const low of opts.lowLevel?.(pack) ?? []) addRoute(low.id, low.control, low.layout, {});
+  for (const low of opts.lowLevel?.(pack) ?? []) addRoute(low.id, low.control, low.layout, {}, {});
   if (routes.length === 0) throw new Error("buildScreens: 화면이 없습니다");
 
   // 단일 라우터: 제목 접두 + 2글자 코드(고정 바이트)로 화면을 고른다.

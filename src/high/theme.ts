@@ -1,4 +1,4 @@
-// 고수준 기본 테마: 창·버튼·탭·칸·목록 얼굴 정의와 텍스처(textures/ui/jur/*).
+// 고수준 기본 테마: 창·버튼·탭·칸·목록·상세 부품 얼굴 정의와 텍스처(textures/ui/jur/*).
 // example/screens/common.tsx와 연구 화면(faces.json)에서 고수준 컴포넌트가 쓰는 것만 옮겼다.
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -176,6 +176,88 @@ export function defineTheme(n: Namespace): void {
     type: "panel",
     size: ["100%", 10],
     controls: [{ [`label@${N}.text_label`]: { size: ["100%", "default"], anchor_from: "left_middle", anchor_to: "left_middle" } }],
+  });
+
+  // 상세 부품(DetailPanel 안): 머리글, 여러 줄 글, 아이콘 칸, 행동 버튼. FFR 연구 화면 faces.json에서 옮겼다.
+  d("header_label", { type: "label", layer: 3, localize: false, color: [0.35, 0.35, 0.35], font_scale_factor: 0.8, size: ["100%", 10] });
+  // 여러 줄 글: 높이가 글 줄 수를 따른다(100%c).
+  d("text_block", {
+    type: "panel",
+    size: ["100%", "100%c"],
+    controls: [{ [`label@${N}.text_label`]: { size: ["100%", "default"] } }],
+  });
+  // 아이콘 칸 얼굴: 아이콘 + 오른쪽 아래 숫자 + 표식(§0§s§r)이 있으면 노란 테두리.
+  d("icon_slot_face", {
+    type: "panel",
+    size: ["100%", "100%"],
+    "$slot_bg|default": "textures/ui/cell_image",
+    controls: [
+      { bg: { type: "image", texture: "$slot_bg", size: ["100%", "100%"] } },
+      { [`icon@${N}.icon_image`]: {} },
+      { [`count@${N}.text_label`]: { anchor_from: "bottom_right", anchor_to: "bottom_right", offset: [0, 1], "$text_color": [1, 1, 1], shadow: true } },
+      {
+        sel: {
+          type: "image", layer: 4, texture: "textures/ui/focus_border_white", size: ["100%", "100%"], color: [1, 0.85, 0.1],
+          bindings: [
+            { binding_type: "collection", binding_collection_name: "form_buttons", binding_name: "#form_button_text", binding_condition: "always" },
+            { binding_type: "view", binding_condition: "always", source_property_name: "(not ((#form_button_text - '§0§s§r') = #form_button_text))", target_property_name: "#visible" },
+          ],
+        },
+      },
+    ],
+  });
+  // 아이콘 칸(누를 수 없음, COL-19): 빈 칸 표식(§0§e§r)을 받은 칸은 문자열 빼기로 알아보고 숨긴다.
+  // 가로 스택은 숨긴 칸에 자리를 주지 않으므로(LAY-04) 있는 칸만 왼쪽부터 붙는다.
+  d("icon_slot", {
+    type: "panel",
+    size: [18, 18],
+    controls: [{ [`face@${N}.icon_slot_face`]: {} }],
+    bindings: [
+      { binding_type: "collection", binding_collection_name: "form_buttons", binding_name: "#form_button_text", binding_condition: "always" },
+      { binding_type: "view", binding_condition: "always", source_property_name: "((#form_button_text - '§0§e§r') = #form_button_text)", target_property_name: "#visible" },
+    ],
+  });
+  // 행동 버튼(ActionButton): 글자 버튼, 얼굴 3개(기본·hover·눌림).
+  d("action_face", {
+    type: "panel",
+    size: ["100%", "100%"],
+    "$slot_bg|default": tex("button"),
+    controls: [
+      { bg: { type: "image", texture: "$slot_bg", size: ["100%", "100%"] } },
+      { [`text@${N}.text_label`]: { "$text_color": [0.95, 0.95, 0.95] } },
+    ],
+  });
+  d("action_button@common.button", {
+    size: [150, 18],
+    "$focus_enabled": false,
+    "$pressed_button_name": "button.form_button_click",
+    bindings: [{ binding_type: "collection_details", binding_collection_name: "form_buttons", binding_condition: "always" }],
+    controls: [
+      { [`default@${N}.action_face`]: {} },
+      { [`hover@${N}.action_face`]: { "$slot_bg": tex("button_hover") } },
+      { [`pressed@${N}.action_face`]: { "$slot_bg": tex("button_pressed") } },
+    ],
+  });
+  // 페이지 화살표 버튼(Pager): $arrow_tex 화살표 그림.
+  d("arrow_face", {
+    type: "panel",
+    size: ["100%", "100%"],
+    "$slot_bg|default": tex("button"),
+    controls: [
+      { bg: { type: "image", texture: "$slot_bg", size: ["100%", "100%"] } },
+      { arrow: { type: "image", layer: 2, texture: "$arrow_tex", size: [10, 10] } },
+    ],
+  });
+  d("pager@common.button", {
+    size: [18, 18],
+    "$focus_enabled": false,
+    "$pressed_button_name": "button.form_button_click",
+    bindings: [{ binding_type: "collection_details", binding_collection_name: "form_buttons", binding_condition: "always" }],
+    controls: [
+      { [`default@${N}.arrow_face`]: {} },
+      { [`hover@${N}.arrow_face`]: { "$slot_bg": tex("button_hover") } },
+      { [`pressed@${N}.arrow_face`]: { "$slot_bg": tex("button_pressed") } },
+    ],
   });
 
   // 가상 목록: 칸 얼굴(이름 12자 + 설명 20자 + 진행 숫자), 칸 버튼, 스크롤 창

@@ -27,7 +27,8 @@ describe("pack-addon", () => {
     expect(gen).toContain("export function openScreen");
     expect(rp["textures/ui/jur/button.png"]).toBeDefined();
     expect(rp["textures/ui/jur/panel.json"]).toBeDefined();
-    expect(rp["textures/ui/ffr/panel.png"]).toBeDefined(); // research(저수준)는 그대로
+    // research도 테마 텍스처(textures/ui/jur)를 쓴다(F-HL-3). 같은 그림이던 textures/ui/ffr는 뺐다.
+    expect(Object.keys(rp).filter((k) => k.startsWith("textures/ui/ffr/"))).toEqual([]);
   });
   it("test_version_in_name_and_description", () => {
     process.env.JUR_COMMIT = "abc1234";

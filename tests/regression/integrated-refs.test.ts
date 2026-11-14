@@ -1,5 +1,5 @@
 // F-HL-1: 통합 애드온 RP 전체에서 정적 참조가 모두 정의돼 있다.
-// 통합 경로는 연구 화면의 ffr.root·list_gate(정의 없는 ffr.screen_router를 가리킴)와 거기서만 쓰던 정의를 뺀다.
+// F-HL-3부터 연구 화면도 고수준 화면이라 통합 애드온에는 ffr 네임스페이스가 없다(examples/research 단독 빌드에만 있다).
 import { describe, it, expect } from "vitest";
 import { buildExamples } from "../../example/build-rp.ts";
 import { buildResearch } from "../../examples/research/screen.tsx";
@@ -53,11 +53,11 @@ describe("통합 애드온 참조 (F-HL-1)", () => {
     expect(refs.filter(([, r]) => !defined.has(r))).toEqual([]);
   });
 
-  it("연구 화면의 root·list_gate와 거기서만 쓰던 list_content가 없다", () => {
-    const ffr = JSON.parse(built.files["ui/ffr.json"]!) as JsonObject;
-    for (const k of ["root", "list_gate", "list_content", "screen_router"]) expect(ffr[k], k).toBeUndefined();
-    // 다른 곳에서도 쓰는 정의는 남는다
-    for (const k of ["list_window", "list_grid", "research_ea@ffr.window"]) expect(ffr[k], k).toBeDefined();
+  it("연구 화면은 고수준(jur)으로 만들고 저수준 연구 정의(ffr)는 통합 애드온에 없다 (F-HL-3)", () => {
+    expect(built.files["ui/ffr.json"]).toBeUndefined();
+    expect(built.files["ui/ffr_items.json"]).toBeUndefined();
+    const jur = JSON.parse(built.files["ui/jur.json"]!) as JsonObject;
+    for (const k of ["re@jur.window_split", "re_panes", "re_right", "re_needed_detail_0", "re_done_body_47"]) expect(jur[k], k).toBeDefined();
   });
 
   it("examples/research 단독 빌드는 그대로 root·list_gate·screen_router를 갖는다", () => {

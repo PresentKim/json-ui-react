@@ -7,6 +7,7 @@ import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/research.source.json';
+import serverSource from '@site/src/generated/research.server.json';
 import research from '@site/src/generated/research.json';
 import layout from '@site/src/generated/research.layout.json';
 
@@ -14,109 +15,127 @@ import layout from '@site/src/generated/research.layout.json';
 
 Research screen: 2 tabs, 96 items, 96 details (method E)
 
-:::info Advanced example using the low-level API
-This screen is not written with the high-level API (`<Screen>`, `<ButtonList>` and so on). It is an **advanced example written directly with the low-level API**. The other seven examples are all high-level. A low-level screen can still go into the same `buildScreens` pack and the same router.
-:::
+This is the largest example, assembled only from high-level parts. It has two tabs (needs research, researched), a 6x8 grid of cells and pager buttons on each tab, and a detail prebuilt for every cell. Together they make 2022 buttons (96 cells, 2 tabs, 4 pager buttons, and 96 details x 20). The screen code has no button indices and no `slots`, and the server opens it with a single `openScreen` call.
 
-Two tabs, 96 items and 96 details add up to 2022 buttons. Button indices are resolved with the layout that `createSlots` builds.
+## How the screen is put together
 
-## Why it is not high-level
+| Part | Component | What it does |
+| --- | --- | --- |
+| Tabs | `<Tabs mode="follow">` + `<Tab>` | The tab row on top. Each tab has its own grid and pager buttons |
+| Cell grid | `<SelectGrid name rows cols detail>` | One cell is one record. Choosing a cell shows its detail in the right pane |
+| Pages | `<Pager name>` | Previous and next arrows on the bottom row of the left pane |
+| Hint | `<Placeholder text>` | The hint text in the right pane before you choose a cell |
+| Detail | `<DetailPanel>` holding `IconTitle`, `TextBlock`, `IconRow`, `Spacer`, `ActionButton` | The detail in the right pane. `ItemDetail` below stacks them |
 
-- **A special layout.** Each tab has a 48-cell list, and the screen prebuilds 96 detail blocks of 20 cells each (1920 of the 2022 buttons). The high-level `<SlotGrid>` is limited to one per screen, `<Tabs>` is also limited to one per screen, and `<SlotGrid detail>` shows only the icon and name of the chosen cell. A detail with eight materials, eight rewards and a progress button cannot be expressed with high-level elements.
-- **Reproducing the FFR original byte for byte.** The point of this screen is to keep the FFR original's UI definitions (`faces.json`) and its button layout (`102 + 20k + 19`) identical to the original server. It does not use the high-level theme; it assembles the definitions one by one.
-
-A screen that high-level elements cannot express is built with the low-level API like this. The sections below go through it in order.
+The screen uses `layout="split"`: tabs and the grid go in the left pane, and the detail goes in the right pane.
 
 ## APIs used
 
 | Name | Description |
 | --- | --- |
-| `SlotGrid` (`LowSlotGrid`) | The low-level grid of cells: [API reference](../api#low) |
-| `TabBar` | The tab row: [API reference](../api#low) |
-| `ScreenRouter` | A router that picks a screen by title: [API reference](../api#low) |
-| `createSlots` | Named ranges of button indices: [API reference](../api#low) |
-| `createPack` | A bundle of definitions: [API reference](../api#low) |
-| `buildScreens` | Its `lowLevel` option puts this screen into the same pack: [API reference](../api#high) |
+| `Screen` | One screen: [API reference](../api#high) |
+| `Tabs`, `Tab` | The tab row and tab content: [API reference](../api#high) |
+| `SelectGrid` | A cell grid with a detail per cell: [API reference](../api#high) |
+| `Pager` | Previous and next buttons: [API reference](../api#high) |
+| `Placeholder` | Hint text for the right pane: [API reference](../api#high) |
+| `DetailPanel` | The detail pane: [API reference](../api#high) |
+| `IconTitle`, `TextBlock`, `IconRow`, `Spacer`, `ActionButton` | Small parts that stack up a detail: [API reference](../api#high) |
+| `buildScreens` | Builds screens into one pack: [API reference](../api#high) |
 
 ## Writing it in JSX
 
-Uses `SlotGrid`, `TabBar`, `ScreenRouter` and `createSlots`. Below are the core of the screen definition (`defineResearch`) and the item definition (`defineItems`). Unlike the high-level API, you get the button indices from `createSlots` yourself, and you name the definitions and references (`ffr.…`) yourself.
+Below is the whole screen (`example/screens/research.tsx`). `ItemDetail` at the top is a component this screen defines itself; the rest repeats the same shape for each tab.
 
-| Low-level JSX | Lowered JSON UI | Rules |
+| High-level element | Lowered JSON UI | Rules |
 | --- | --- | --- |
-| `<ScreenRouter>` | `collection_panel` + `property_bag` title lookup | HOST-06, COL-22, COL-39 |
-| `<TabBar>` | Horizontal `stack_panel` + radio `toggle` with 8 states | INP-13 |
-| `<SlotGrid>` | Row `stack_panel` + `collection_index` cells | COL-50 |
+| `<Screen layout="split">` | A window definition + a router entry (form title `jur:re`) | HOST-06, COL-22, COL-39, COL-47 |
+| `<Tabs mode="follow">` | A tab row (radio `toggle` with 8 states) + content that follows the toggle state per tab (method C) | INP-13, COL-47 |
+| `<SelectGrid>` | Rows inside a vertical `stack_panel` + 48 `item_toggle` cells, each with its own detail definition | COL-38, COL-50, INP-35, INP-36 |
+| `<DetailPanel>` | A background `image` + `common.scrolling_panel` (the body) + a fixed button below | LAY-02, LAY-04 |
+| `<Pager>` | Two arrow buttons on the pane's bottom row | COL-38, BND-08 |
 
 <Source data={source} />
 
-## Working with the low-level API
+### ItemDetail: a custom component
 
-The research screen is built like this.
+`ItemDetail` is a function with no arguments that returns one `<DetailPanel>`. You build your own detail screen the same way.
 
-1. `createSlots()` decides the ranges. `range("tab0", 48)` and `range("tabs", 2)` make ranges of consecutive indices, and `blocks("detail", 96, [...fields])` makes blocks that share the same fields per item.
-2. `createPack()` makes the namespace (`ffr`), and `defineResearch(pack, slots, opts)` `define`s the rendered JSX definitions. `opts.routePrefix` is the title prefix, and `opts.text` changes the in-game text.
-3. To put the screen into the same pack as the high-level examples, add the definitions in the `lowLevel` option of `buildScreens` and return the screen. `buildScreens` owns the router, so turn the research screen's own router off with `router: false`.
+1. Wrap everything in `<DetailPanel footer={...}>`. The children are a scrolling body stacked top to bottom, and `footer` stays fixed below it.
+2. Stack small parts in the body. Each part points to one or more fields of the record by name. `<IconTitle name="name" subtitle="status" />` uses the record's `name`, `status` and `icon`, and `<TextBlock name="desc" />` uses `desc`.
+3. Put gaps between parts with `<Spacer h={...} />`.
+4. The fixed button at the bottom is `<ActionButton name="action" />`. Pressing it returns `{ name: <grid>, index: <cell>, field: "action" }`.
+5. Pass the detail to `<SelectGrid detail={<ItemDetail />}>`. The grid renders this element once per cell.
 
-```ts
-import { buildScreens } from "json-ui-react";
-import { createResearchSlots, defineResearch } from "../examples/research/screen.tsx";
+Part names must not repeat inside one detail (a repeated field name is a build error). Note that the names are the record keys: `IconRow name="mats"` spreads the record's `mats` array over `count` cells (8 here).
 
-const built = buildScreens(screens, {
-  codes: { research: "re" }, // form title jur:re
-  lowLevel: (pack) => {
-    const slots = createResearchSlots();
-    defineResearch(pack, slots, { routePrefix: "jur:", router: false });
-    return [{ id: "research", control: "ffr.research_ea", layout: slots.layout() }];
-  },
-});
+## Server data
+
+The data for `<SelectGrid name="needed">` is an array of records. One cell is one record, and the record keys match the names the detail parts use.
+
+```js
+// one record (one cell)
+{
+  icon: "textures/items/book_normal",          // the cell icon and the IconTitle icon
+  name: "§cItem 1",                            // IconTitle name
+  status: "§cNeeds research",                  // IconTitle subtitle
+  desc: "Description of Item 1. ...",          // TextBlock desc
+  mats: [["textures/items/coal", 3]],          // IconRow mats: [icon, count]
+  rewards: ["textures/items/apple"],           // IconRow rewards: icon only (badge "+1" in the count spot)
+  action: "Start research",                    // ActionButton action
+}
 ```
 
-The `{ id, control, layout }` that `lowLevel` returns goes straight into the router entries and into `LAYOUTS` of the generated module. So the behavior pack can handle this screen with `decode("research", selection)` and `screenTitle("research")` too.
+Tab text and icons are the `tabs` array. Pager buttons show no text, so they take no data.
 
 ## Opening it from the server
 
-High-level screens open with `openScreen`, but this example's behavior pack (`main.js`) sends the buttons itself. It takes only the title from the generated module, and the button order is the same as `createResearchSlots`: 48 cells x 2, 2 tabs, 2 x 2 pager buttons, then 96 detail blocks.
+The server builds the records and passes them to `openScreen`; to turn a page, it changes the data and opens the same screen again.
 
-```js
-import { screenTitle } from "./generated/screens.js";
+<Source data={serverSource} />
 
-const form = new ActionFormData().title(screenTitle("research")); // jur:re
-for (const list of pageItems) {
-  for (let k = 0; k < 48; k++) {
-    const i = list[k];
-    if (i === undefined) form.button("§r");
-    else form.button("§r", item(i).icon);
-  }
-}
-form.button(`Needed ${tabs[0].length}`, "textures/items/book_normal"); // 2 tabs
-form.button(`Done ${tabs[1].length}`, "textures/items/emerald");
-for (let k = 0; k < 4; k++) form.button("§r"); // 2 x 2 pager buttons
-for (const list of pageItems) for (let k = 0; k < 48; k++) addDetailBlock(form, list[k]); // 96 details x 20
-```
-
-Decode the response with the generated module's `decode`. A detail block also returns a `field`.
+The response is `{ name, index, field? }`. Pressing a cell gives `{ name: "needed", index: 5 }`, and a button inside a detail adds `field` (for `ActionButton`, the part's `name`, `"action"`). A pager button gives `{ name: "neededPages", index: 0 }` (previous) or `index: 1` (next).
 
 ```js
 import { decode } from "./generated/screens.js";
 
-decode("research", 102 + 20 * 3 + 19); // { name: "detail", index: 3, field: "progress" }
-decode("research", 99);                // { name: "pager0", index: 1 }
+decode("research", 102 + 20 * 3 + 19); // { name: "needed", index: 3, field: "action" }
+decode("research", 99);                // { name: "neededPages", index: 1 }
 ```
 
-`LAYOUTS["research"]` in the generated module looks like this (only the beginning is shown because it is long).
+`LAYOUTS["research"]` in the generated module shows how the indices were divided (only the beginning is shown because it is long). Cells, tabs and pager buttons come first, then the detail blocks (20 per cell).
 
 <Excerpt data={layout} />
 
-## Lowered result
+## Prebuilding a detail for every cell (method E)
 
-An excerpt of the compiled JSON UI definitions of the `jur:re` screen. The prebuild step extracts it from `rp/ui`.
+The point of the research screen is to switch between 96 details **without a server round trip**. Sending a response to the server each time you pick a cell would close the form. So a detail is prebuilt for every cell, and only the chosen cell's is visible.
+
+- The cells are radio toggles. The 96 cells of both grids share one `toggle_name`, so only one is on at a time (INP-12, INP-35).
+- Inside the `checked` face of the cell that is on sits that cell's detail definition (INP-36). Turning a cell on draws its detail, and turning another on switches this face off and the detail goes away.
+- The detail's position is shifted back by the cell's position so it lands on the right pane.
+- A fixed `collection_index` only works if the cell is a direct child of a horizontal `stack_panel` with a `collection_name` (COL-38, COL-50).
+- All text and icons in the detail are button data. Cells that cannot be pressed are still sent with `button()` (COL-19). The body reuses `common.scrolling_panel` (LAY-02, LAY-04).
+- Indices are handed out by kind: cell grids, then buttons (tabs and pagers), then detail blocks. So `buildScreens` lowers the screen twice (the first pass only fixes the numbering order and is discarded).
+
+## Lowered result
 
 <Excerpt data={research} />
 
+The excerpt above is the body of cell 0's detail (`re_needed_body_0`). The prebuild step extracts it from `rp/ui/jur.json`. The definitions the detail uses (`jur.detail_icon`, `jur.icon_slot` and so on) come from the theme.
+
+## Output equivalence test
+
+This screen began as a reproduction of the FFR original, written line by line with the low-level API. When it moved to the high-level API, the output was checked not to change, in three steps.
+
+1. **The FFR original**: the original UI definitions (`faces.json`) and button layout (`102 + 20k + 19`) the server uses.
+2. **The low-level reproduction**: a screen that carries those definitions over with `createSlots` and `createPack` (`tests/helpers/legacy-research.ts`).
+3. **The high-level assembly**: `research.tsx` above.
+
+The test (`tests/regression/research-high.test.tsx`) compares the **expanded trees** of the two. An expanded tree starts from the router root, resolves every inheritance (`@`), `$` variable and reference, and drops control names and definition names. If only the names differ, the trees count as equal. The difference is 0 (the allow list is empty), and a control case checks that the comparer catches a change to even one rendering property. The server side is compared too: the form that `openScreen` sends (title and 2022 buttons: text, icon and order) matches the original, and so does the handling of the pager and action-button responses.
+
 ## Rules
 
-COL-50, INP-13, COL-47, BND-32
+COL-38, COL-50, COL-19, INP-12, INP-13, INP-35, INP-36, LAY-02, LAY-04, COL-47
 
 ## Running it in the integration add-on
 

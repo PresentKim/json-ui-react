@@ -1,12 +1,13 @@
 // 고수준 컴포넌트: Screen, ButtonList, Tabs/Tab, SlotGrid, VirtualList.
-// 버튼 번호는 렌더 순서대로 문맥의 slots에서 자동으로 받는다. 저수준 컴포넌트(components/*)로 낮춘다.
+// 버튼 번호는 문맥의 slots에서 자동으로 받는다(종류 순서 PHASE, 같은 종류는 렌더 순서). 저수준 컴포넌트(components/*)로 낮춘다.
+// 상세가 딸린 칸 격자와 상세 부품은 record.tsx, 판 부품(Pager, Placeholder)은 pane.tsx.
 import type { ControlNode, JsonObject, JuiElement, JuiNode } from "../types.ts";
 import { render, toBody } from "../render.ts";
 import { SlotGrid as LowSlotGrid, VirtualList as LowVirtualList } from "../components/grid.tsx";
 import { TabBar } from "../components/toggle.tsx";
 import { useTabs, type TabMode } from "../hooks.ts";
 import { view } from "../bind.ts";
-import { GEOM, TOP_LEFT, key, paneSize, ref, useScreen, type ScreenLayout } from "./context.ts";
+import { GEOM, PHASE, TOP_LEFT, footerBar, key, paneSize, ref, useScreen, type ScreenLayout } from "./context.ts";
 
 /** buildScreens가 Screen 요소를 알아보는 표식(모듈 사본이 둘이어도 같은 값). */
 export const SCREEN = Symbol.for("json-ui-react.high.Screen");
@@ -45,12 +46,12 @@ export function fromNode(node: ControlNode): JuiElement {
 }
 
 /** 노드 여러 개를 판 하나로 묶는다. 하나면 그대로 둔다. */
-function onePane(nodes: ControlNode[], name: string, size: [number, number]): ControlNode {
+export function onePane(nodes: ControlNode[], name: string, size: [number, number]): ControlNode {
   if (nodes.length === 1) return nodes[0]!;
   return { name, props: { type: "panel", size, ...TOP_LEFT }, children: nodes };
 }
 
-function addBinding(node: ControlNode, b: JsonObject): ControlNode {
+export function addBinding(node: ControlNode, b: JsonObject): ControlNode {
   const prev = Array.isArray(node.props.bindings) ? node.props.bindings : [];
   return { ...node, props: { ...node.props, bindings: [...prev, b] } };
 }
@@ -72,7 +73,7 @@ export function ButtonList(p: ButtonListProps): JuiElement {
   if (!Number.isInteger(p.count) || p.count <= 0 || p.count > MAX_BUTTONS) {
     throw new Error(`ButtonList "${p.name}": count는 1..${MAX_BUTTONS}이어야 합니다(판 높이 ${GEOM.single[1]}). 긴 목록은 VirtualList를 쓰세요`);
   }
-  const range = ctx.slots.range(p.name, p.count);
+  const range = ctx.slots.range(p.name, p.count, PHASE.buttons);
   const [w] = GEOM.button;
   return (
     <LowSlotGrid
@@ -128,12 +129,24 @@ export function Tabs(p: TabsProps): JuiElement {
   const N = ctx.ns.name;
   // 탭 토글 이름은 `<ns>_t<i>`(테마 tab_toggle의 라디오 그룹 `<ns>_tabs`).
   const hook = useTabs({ group: `${N}_tabs`, mode: p.mode, count: n, firstIndex: 0 });
-  const range = ctx.slots.range(p.name, n);
+  const range = ctx.slots.range(p.name, n, PHASE.buttons);
   if (items.some((t) => t.props.label !== undefined)) ctx.defaults[p.name] = items.map((t) => t.props.label ?? null);
 
-  // 탭 순서대로 내용을 낮춘다(버튼 번호: 탭 버튼 다음에 탭 0 내용, 탭 1 내용, ...).
+  // 탭 순서대로 내용을 낮춘다(버튼 번호: 같은 종류 안에서 탭 버튼 다음에 탭 0 내용, 탭 1 내용, ...).
+  // 탭 안의 판 아래 줄(Pager 등)은 따로 모은다.
   const size = paneSize(ctx);
-  const panes = items.map((t, i) => onePane(render(t.props.children ?? null), `${p.name}_${i}`, size));
+  const outerFooter = ctx.footer;
+  const contents = items.map((t) => {
+    ctx.footer = [];
+    try {
+      return { nodes: render(t.props.children ?? null), footer: ctx.footer };
+    } finally {
+      ctx.footer = outerFooter;
+    }
+  });
+  // inside·lazy: 탭 내용은 탭마다 따로 만들어지므로 아래 줄도 그 판 안에 둔다.
+  const panes = contents.map((c, i) =>
+    onePane(c.footer.length ? [...c.nodes, footerBar(ctx, c.footer)] : c.nodes, `${p.name}_${i}`, size));
   const [tw, th] = GEOM.tab;
   const vars = (i: number): JsonObject | undefined => (p.mode === "inside" ? { $on_def: ref(ctx, key(ctx, `on_${i}`)) } : undefined);
 
@@ -153,7 +166,10 @@ export function Tabs(p: TabsProps): JuiElement {
       ));
     });
   } else if (p.mode === "follow") {
-    out = panes.map((pane, i) => fromNode(addBinding(pane, hook.paneBinding(i))));
+    // 탭 내용의 노드마다 그 탭 토글 상태를 따라 보이게 한다(BND-08). 아래 줄 내용도 각자 바인딩을 달고
+    // 화면의 판 아래 줄 하나에 겹친다(보이는 것은 켠 탭 것 하나).
+    out = contents.flatMap((c, i) => c.nodes.map((node) => fromNode(addBinding(node, hook.paneBinding(i)))));
+    contents.forEach((c, i) => outerFooter.push(...c.footer.map((node) => addBinding(node, hook.paneBinding(i)))));
   } else {
     // 첫 탭은 처음부터 열려 있으므로 미리 만들고 토글 상태로만 보인다(팩토리로 만들면 처음 열 때 빈다).
     const uses: JuiElement[] = [];
@@ -213,7 +229,8 @@ export function SlotGrid(p: SlotGridProps): JuiElement {
     throw new Error(`SlotGrid "${p.name}": rows 1..${Math.floor(ph / C)}, cols 1..${Math.floor(pw / C)}이어야 합니다(판 ${pw}x${ph}, 칸 ${C})`);
   }
   if (p.detail && ctx.layout !== "split") throw new Error(`SlotGrid "${p.name}": detail은 <Screen layout="split">에서만 쓸 수 있습니다`);
-  const cells = ctx.slots.range(p.name, p.rows * p.cols);
+  if (p.detail && ctx.rightDef) throw new Error(`화면 "${ctx.id}": 오른쪽 판은 하나만 쓸 수 있습니다(SlotGrid detail, Placeholder)`);
+  const cells = ctx.slots.range(p.name, p.rows * p.cols, PHASE.cells);
   let detailDef = ref(ctx, "panes_none");
   if (p.detail) {
     const rightKey = key(ctx, "right");
@@ -288,7 +305,7 @@ export function VirtualList(p: VirtualListProps): JuiElement {
   if (ctx.listDef) throw new Error(`화면 "${ctx.id}": <VirtualList>는 화면마다 하나만 쓸 수 있습니다`);
   const columns = p.columns ?? 2;
   if (!Number.isInteger(columns) || columns < 1 || columns > 2) throw new Error(`VirtualList "${p.name}": columns는 1 또는 2여야 합니다(목록 창 폭)`);
-  ctx.slots.range(p.name, p.count);
+  ctx.slots.range(p.name, p.count, PHASE.cells);
   const bodyKey = key(ctx, p.name);
   ctx.ns.define(bodyKey, <LowVirtualList name={bodyKey} columns={columns} cellSize={[100, 30]} cellDef={ref(ctx, "list_cell")} maxItems={p.count} />);
   ctx.listDef = ref(ctx, bodyKey);

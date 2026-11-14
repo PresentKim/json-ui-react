@@ -1,0 +1,111 @@
+---
+sidebar_position: 9
+title: Building your own component
+---
+
+import Excerpt from '@site/src/components/Excerpt';
+import Source from '@site/src/components/Source';
+import source from '@site/src/generated/custom-component.source.json';
+import lowered from '@site/src/generated/custom-component.json';
+
+# Building your own component
+
+A high-level component is just a function that assembles low-level API pieces (`render`, `createSlots`, `createPack`, and an element's `collection_index` and `$` variables). When a part you need does not exist, you build it the same way. This page walks through it step by step with the high-level component `IconRow` (a header plus one row of icon cells) as the example. The source is shown exactly as the build reads it from `src/high/record.tsx`.
+
+:::note Where to build it
+`IconRow` on this page lives inside the library (`src/high`), so it uses the screen-context helpers (`useScreen`, `useRecord`, `ref`, `GEOM`). Those helpers are not exported from the root `json-ui-react`. When you build a part of the same shape in an app, use only the public API (`createSlots`, `createPack`, `render`), as in [Building it without the helpers](#standalone) below. If you only need to stack parts that already exist (like `ItemDetail` in the research screen), see the [research screen](components/research).
+:::
+
+## What we are building
+
+Inside a detail pane, one header line followed by a horizontal row of icon cells. The cells cannot be pressed; each shows only an icon and a count at the bottom right.
+
+```tsx
+<IconRow name="mats" label="Required materials" count={8} />
+```
+
+## Step 1: Decide the props and the server data shape
+
+- `name` is the record key. The server sends `mats: [[icon, count], ...]`.
+- `label` is the static header above the row, `count` is the number of cells (the maximum), and `badge` is the text shown on a cell that has an icon but no count.
+
+<Source data={[source[0]]} />
+
+## Step 2: Decide what it lowers to
+
+In JSON UI the row looks like this. The header is a `label`, and the cells are direct children of a horizontal `stack_panel` that has a `collection_name`. Each cell needs its own fixed `collection_index` so that it reads a different button's data (COL-38, COL-50). The look of a cell comes from `icon_slot`, which the theme already defines, so the row just references it.
+
+## Step 3: Get button indices
+
+Every cell needs one server button. At the low level you get the indices from `createSlots()`. `slots.range(name, count)` makes a contiguous range of indices, and `slots.blocks(name, count, fields)` makes a block with the same list of fields for each cell (each record). `.at(i)` and `.at(index, field)` return the index.
+
+`IconRow` does not call these itself. Inside a detail, `useRecord().field(...)` declares a field (`{ field, kind: "icon", key, index }`) and returns the index inside that cell's block. The grid (`SelectGrid`) creates the `blocks` and collects each cell's list of fields. The generated server module reads the same field descriptions (`FieldSpec`), so the buttons the server sends and the indices on screen cannot drift apart.
+
+## Step 4: Write the elements
+
+At the low level an element is a JSON UI control as it is. You use lowercase tags such as `<stack_panel>` and `<use def=...>` and pass JSON UI properties (`size`, `collection_index`, `collection_name`) directly. `<use>` references a named definition as `name@definition`. `ref(ctx, "icon_slot")` returns the definition name with the screen's namespace in front.
+
+<Source data={[source[1]]} />
+
+Reading the code in order:
+
+1. `useScreen` and `useRecord` give you the screen context and the current cell's record. They throw if you use the part outside a detail.
+2. It checks `count`. If the cells do not fit in the detail width, the build fails with a readable error.
+3. `slots`: for each cell it gets an index with `rec.field(...)`.
+4. It returns the header (`<use ... def=header_label text=...>`) and the row of cells (`<stack_panel ...>`). Because it is a fragment (`<>...</>`), the two elements sit next to each other as siblings.
+
+## Step 5: Look at the lowered result
+
+`render` turns the elements into a control tree, and `toBody` turns that into a JSON body. Below is what the `IconRow` above lowers to in cell 0's detail of the research screen (the prebuild step extracts it from `rp/ui/jur.json`). Each cell gets a consecutive `collection_index` (starting at 105 here).
+
+<Excerpt data={lowered} />
+
+The cell definition (`jur.icon_slot`) hides the cell when the server sends the empty-cell mark (`§0§e§r`). So a cell with no data takes no room, and the cells that exist pack to the left (LAY-04).
+
+## Step 6: Use it and open it from the server
+
+Use the new part like any other high-level part. The server sends data under the same name as the record key.
+
+```tsx
+<DetailPanel>
+  <IconRow name="mats" label="Required materials" count={8} />
+</DetailPanel>
+```
+
+```js
+openScreen(player, "research", {
+  needed: [{ icon: "textures/items/book_normal", mats: [["textures/items/coal", 3]] }],
+});
+```
+
+## Building it without the helpers {#standalone}
+
+In app code you do the same thing with the public API only: `createSlots` for indices, `createPack` for definitions, and the elements written by hand.
+
+```tsx
+import { createPack, createSlots } from "json-ui-react";
+
+const slots = createSlots();
+const mats = slots.range("mats", 4); // 4 button indices (0..3)
+
+const pack = createPack();
+const ns = pack.ns("my", "my.json");
+
+// the cell definition
+ns.define("slot", <panel name="slot" size={[18, 18]} />);
+
+// a row of 4 cells: the parent is a horizontal stack_panel with a collection_name, and the cells are direct children (COL-38, COL-50)
+const MatsRow = () => (
+  <stack_panel name="mats" orientation="horizontal" size={["100%", 18]} collection_name="form_buttons">
+    {Array.from({ length: 4 }, (_, j) => (
+      <use name={`s${j}`} def="my.slot" collection_index={mats.at(j)} />
+    ))}
+  </stack_panel>
+);
+ns.define("mats_row", <MatsRow />);
+
+pack.files();    // { "ui/my.json": ..., "ui/_ui_defs.json": ... }
+slots.layout();  // { total: 4, ranges: [{ name: "mats", start: 0, count: 4 }], blocks: [] }
+```
+
+The server uses `slots.layout()` to line up its indices. `serverModule(layout)` (from `json-ui-react`) builds a server module that contains `decode`. The details of each function are in [the low-level part of the API reference](api#low).

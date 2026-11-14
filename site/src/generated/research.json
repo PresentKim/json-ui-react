@@ -1,11 +1,11 @@
 {
   "id": "research",
-  "file": "ui/ffr.json",
+  "file": "ui/jur.json",
   "keys": [
-    "research_ea@ffr.window",
-    "research_eb@ffr.window",
-    "research_fa@ffr.window",
-    "research_fb@ffr.window"
+    "re_needed_body_0",
+    "re_needed_detail_0",
+    "re_tabs",
+    "re_panes"
   ],
-  "text": "{\n  \"research_ea@ffr.window\": {\n    \"$mode_title\": \"E: selection by toggle, 96 details prebuilt\",\n    \"$tabs_def\": \"ffr.tabs_toggle\",\n    \"$panes_def\": \"ffri.items_e\",\n    \"$right_def\": \"ffr.placeholder\",\n    \"$tab\": 0\n  },\n  \"research_eb@ffr.window\": {\n    \"$mode_title\": \"E: selection by toggle, 96 details prebuilt\",\n    \"$tabs_def\": \"ffr.tabs_toggle\",\n    \"$panes_def\": \"ffri.items_e\",\n    \"$right_def\": \"ffr.placeholder\",\n    \"$tab\": 1\n  },\n  \"research_fa@ffr.window\": {\n    \"$mode_title\": \"F: selection by toggle, details on select\",\n    \"$tabs_def\": \"ffr.tabs_toggle\",\n    \"$panes_def\": \"ffri.items_f\",\n    \"$right_def\": \"ffr.placeholder\",\n    \"$tab\": 0\n  },\n  \"research_fb@ffr.window\": {\n    \"$mode_title\": \"F: selection by toggle, details on select\",\n    \"$tabs_def\": \"ffr.tabs_toggle\",\n    \"$panes_def\": \"ffri.items_f\",\n    \"$right_def\": \"ffr.placeholder\",\n    \"$tab\": 1\n  }\n}"
+  "text": "{\n  \"re_needed_body_0\": {\n    \"type\": \"stack_panel\",\n    \"orientation\": \"vertical\",\n    \"size\": [\n      \"100% - 4px\",\n      \"100%c\"\n    ],\n    \"controls\": [\n      {\n        \"card\": {\n          \"type\": \"stack_panel\",\n          \"orientation\": \"horizontal\",\n          \"size\": [\n            \"100%\",\n            28\n          ],\n          \"controls\": [\n            {\n              \"icon_row\": {\n                \"type\": \"stack_panel\",\n                \"orientation\": \"horizontal\",\n                \"size\": [\n                  28,\n                  28\n                ],\n                \"collection_name\": \"form_buttons\",\n                \"controls\": [\n                  {\n                    \"icon@jur.detail_icon\": {\n                      \"collection_index\": 102\n                    }\n                  }\n                ]\n              }\n            },\n            {\n              \"gap\": {\n                \"type\": \"panel\",\n                \"size\": [\n                  4,\n                  28\n                ]\n              }\n            },\n            {\n              \"info\": {\n                \"type\": \"stack_panel\",\n                \"orientation\": \"vertical\",\n                \"size\": [\n                  \"fill\",\n                  28\n                ],\n                \"collection_name\": \"form_buttons\",\n                \"controls\": [\n                  {\n                    \"pad\": {\n                      \"type\": \"panel\",\n                      \"size\": [\n                        \"100%\",\n                        3\n                      ]\n                    }\n                  },\n                  {\n                    \"title@jur.text_item\": {\n                      \"collection_index\": 102\n                    }\n                  },\n                  {\n  ... (이하 생략)"
 }

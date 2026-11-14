@@ -26,7 +26,7 @@ describe("example screens", () => {
       expect(built.serverModule).toContain(`"${e.id}": "${e.title}"`);
       expect(e.summary.length).toBeGreaterThan(0);
       expect(e.components.length).toBeGreaterThan(0);
-      expect(e.level).toBe(e.id === "research" ? "low" : "high");
+      expect(e).not.toHaveProperty("level"); // 모두 고수준(F-HL-3)
     }
   });
 
@@ -37,7 +37,7 @@ describe("example screens", () => {
       expect(Buffer.byteLength(e.title)).toBe(6);
       expect(bag[`#${e.title}`], e.title).toEqual([e.title.slice(4)]);
       const id = e.title.slice(4);
-      expect(router.factory.control_ids[id]).toMatch(/^@(jur|ffr)\./);
+      expect(router.factory.control_ids[id]).toMatch(/^@jur\./);
     }
     expect(Object.keys(bag)).toHaveLength(EXAMPLES.length);
     expect(router.bindings[1].source_property_name).toBe("('#' + ('%.6s' * #title_text))");
@@ -51,18 +51,19 @@ describe("example screens", () => {
     expect(root).toContain("jur.screen_router");
     const routers = Object.values(parsed).flatMap((f) => Object.keys(f).filter((k) => Object.keys((f[k] as any)?.property_bag ?? {}).some((b) => b.startsWith("#jur:"))));
     expect(routers).toEqual(["screen_router"]);
-    // research는 같은 라우터 아래: 라우트가 ffr.research_ea를 가리킨다.
-    expect((parsed["ui/jur.json"]!.screen_router as any).factory.control_ids.re).toBe("@ffr.research_ea");
+    // research도 고수준 화면: 라우트가 jur 창 정의를 가리킨다.
+    expect((parsed["ui/jur.json"]!.screen_router as any).factory.control_ids.re).toBe("@jur.re");
     expect(built.files["ui/_ui_defs.json"]).not.toContain("server_form");
   });
 
   it("고수준 예시 소스에는 저수준 이름(slots, ref, ns, define, TOP_LEFT, $ 변수)이 없다", () => {
-    for (const f of ["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "virtual-list"]) {
+    for (const f of ["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "virtual-list", "research"]) {
       const code = readFileSync(new URL(`../example/screens/${f}.tsx`, import.meta.url), "utf8")
         .split("\n").filter((l) => !l.trim().startsWith("//")).join("\n");
       expect(code, f).toMatch(/from "json-ui-react"|from "\.\/virtual-list\.tsx"/);
       expect(code, f).not.toMatch(/\b(slots|createSlots|ref|ns|define|TOP_LEFT|createPack)\b|\$[a-z_]/);
-      expect(code.split("\n").length, f).toBeLessThanOrEqual(25);
+      // research는 사용자 정의 상세(ItemDetail)까지 한 파일에 둔다(30~60줄).
+      expect(code.split("\n").length, f).toBeLessThanOrEqual(f === "research" ? 60 : 25);
     }
   });
 

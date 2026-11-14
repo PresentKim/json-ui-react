@@ -63,7 +63,7 @@ describe("example content (F-T11-1)", () => {
 
   const jur = JSON.parse(files.files["ui/jur.json"]!) as JsonObject;
 
-  it("research 외 예시 정의에는 ffr.placeholder가 없다", () => {
+  it("ffr 정의가 없고, 안내 글자는 research 오른쪽 판에만 있다", () => {
     expect(JSON.stringify(jur)).not.toContain("ffr.placeholder");
     for (const [k, v] of Object.entries(jur)) {
       if (!k.includes("@")) continue;
@@ -73,8 +73,9 @@ describe("example content (F-T11-1)", () => {
     expect(JSON.stringify(jur["window"])).not.toContain("right");
     expect(JSON.stringify(jur["window_split"])).toContain("right");
     for (const k of ["ro@jur.window", "ti@jur.window", "tf@jur.window", "tl@jur.window", "sg@jur.window_split"]) expect(jur[k], k).toBeDefined();
-    // research는 그대로 자리표시를 쓴다
-    expect(files.files["ui/ffr.json"]).toContain("ffr.placeholder");
+    // research는 Placeholder로 오른쪽 판 안내 글자를 쓴다(F-HL-3)
+    expect(jur["re_right"]).toMatchObject({ type: "label", text: "Pick a research." });
+    expect(jur["re@jur.window_split"]).toMatchObject({ $right_def: "jur.re_right" });
   });
 
   it("slot-grid 상세에 배경 image가 있고 칸 번호로 그 칸 버튼을 읽는다", () => {

@@ -6,15 +6,11 @@ import { LAYOUTS, openScreen, screenTitle } from "./generated/screens.js";
 // @examples: ["router","tabs-inside","tabs-follow","tabs-lazy","slot-grid","virtual-list-500","virtual-list-2000","research"]
 const EXAMPLES = ["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "research"];
 
-// research: 목록 96 + 탭 2 + 페이지 4 + 상세 96 x 20 (FFR 원본 서버와 같은 버튼 순서)
+// research: 항목 96개를 탭 2개(연구 필요·완료)로 나누고 탭마다 한 페이지 48칸. 칸마다 레코드 하나.
+// 버튼 번호(칸, 탭, 페이지, 상세 블록)는 openScreen이 화면 배치(LAYOUTS)대로 맞춘다.
 const RESEARCH_ITEMS = 96;
 const PAGE_SIZE = 48;
-const RESEARCH_PAGER = 98;
-const RESEARCH_DETAIL = 102;
-const RESEARCH_BLOCK = 20;
 const MAX_MATS = 8;
-const MAX_REWARDS = 8;
-const EMPTY = "§0§e§r";
 
 // 칸 아이콘으로 쓰는 바닐라 텍스처
 const ICONS = [
@@ -65,59 +61,40 @@ function tabItems() {
   return tabs;
 }
 
-// 상세 한 블록(20칸): 이름, 상태, 설명, 재료 8, 보상 8, 진행
-function addDetailBlock(form, i) {
-  if (i === undefined) {
-    for (let k = 0; k < RESEARCH_BLOCK; k++) form.button(EMPTY);
-    return;
-  }
+// 칸 하나의 레코드: 칸 아이콘, 상세(IconTitle name·status, TextBlock desc, IconRow mats·rewards, ActionButton action)
+function researchRecord(i) {
   const it = item(i);
-  form.button(`§c${it.name}`, it.icon);
-  form.button(it.done ? "§aResearched" : "§cNeeds research");
-  form.button(it.desc);
-  for (let j = 0; j < MAX_MATS; j++) {
-    const m = it.mats[j];
-    if (m) form.button(`§f${m[1]}`, m[0]);
-    else form.button(EMPTY);
-  }
-  for (let j = 0; j < MAX_REWARDS; j++) {
-    const r = it.rewards[j];
-    if (r) form.button("§f+1", r);
-    else form.button(EMPTY);
-  }
-  form.button(it.done ? "Researched" : "Start research");
+  return {
+    icon: it.icon,
+    name: `§c${it.name}`,
+    status: it.done ? "§aResearched" : "§cNeeds research",
+    desc: it.desc,
+    mats: it.mats, // [아이콘, 개수]
+    rewards: it.rewards, // 아이콘만(칸 글자는 IconRow badge "+1")
+    action: it.done ? "Researched" : "Start research",
+  };
 }
 
-// 연구 화면. 버튼 순서는 layouts의 createResearchSlots와 같다: 칸 48x2, 탭 2, 페이지 2x2, 상세 96 블록.
-function openResearch(player, id, state) {
+// 연구 화면. pages: 탭마다 보고 있는 페이지. 페이지 버튼을 누르면 데이터를 바꿔 다시 연다.
+function openResearch(player, id, pages) {
   const tabs = tabItems();
-  const pageItems = [0, 1].map((t) => tabs[t].slice(state.pages[t] * PAGE_SIZE, (state.pages[t] + 1) * PAGE_SIZE));
-  const form = new ActionFormData().title(screenTitle(id));
-  for (const list of pageItems) {
-    for (let k = 0; k < PAGE_SIZE; k++) {
-      const i = list[k];
-      if (i === undefined) form.button("§r");
-      else form.button("§r", item(i).icon);
-    }
-  }
-  form.button(`Needed ${tabs[0].length}`, "textures/items/book_normal");
-  form.button(`Done ${tabs[1].length}`, "textures/items/emerald");
-  for (let k = 0; k < 4; k++) form.button("§r");
-  for (const list of pageItems) for (let k = 0; k < PAGE_SIZE; k++) addDetailBlock(form, list[k]);
-
-  form.show(player).then((res) => {
-    if (res.canceled || res.selection === undefined) return;
-    const s = res.selection;
-    player.onScreenDisplay.setActionBar(`[jur] ${id} selection=${s}`);
-    if (s >= RESEARCH_PAGER && s < RESEARCH_DETAIL) {
-      const tab = s < RESEARCH_PAGER + 2 ? 0 : 1;
+  const shown = [0, 1].map((t) => tabs[t].slice(pages[t] * PAGE_SIZE, (pages[t] + 1) * PAGE_SIZE));
+  const data = {
+    tabs: [[`Needed ${tabs[0].length}`, "textures/items/book_normal"], [`Done ${tabs[1].length}`, "textures/items/emerald"]],
+    needed: shown[0].map(researchRecord),
+    done: shown[1].map(researchRecord),
+  };
+  openScreen(player, id, data).then((hit) => {
+    if (!hit) return;
+    player.onScreenDisplay.setActionBar(`[jur] ${id} selection=${hit.name}[${hit.index}]${hit.field ? `.${hit.field}` : ""}`);
+    const tab = ["neededPages", "donePages"].indexOf(hit.name);
+    if (tab >= 0) {
       const last = Math.max(0, Math.ceil(tabs[tab].length / PAGE_SIZE) - 1);
-      const step = s % 2 === 0 ? -1 : 1;
-      state.pages[tab] = Math.min(last, Math.max(0, state.pages[tab] + step));
-      openResearch(player, id, state);
-    } else if (s >= RESEARCH_DETAIL && (s - RESEARCH_DETAIL) % RESEARCH_BLOCK === RESEARCH_BLOCK - 1) {
-      const slot = Math.floor((s - RESEARCH_DETAIL) / RESEARCH_BLOCK);
-      const i = pageItems[slot < PAGE_SIZE ? 0 : 1][slot % PAGE_SIZE];
+      const next = [...pages];
+      next[tab] = Math.min(last, Math.max(0, pages[tab] + (hit.index === 0 ? -1 : 1)));
+      openResearch(player, id, next);
+    } else if (hit.field === "action") {
+      const i = shown[hit.name === "needed" ? 0 : 1][hit.index];
       if (i !== undefined) player.sendMessage(`[jur] Research requested: ${item(i).name}`);
     }
   });
@@ -158,7 +135,7 @@ const DATA = {
 
 function openExample(player, id) {
   if (id === "research") {
-    openResearch(player, id, { pages: [0, 0] });
+    openResearch(player, id, [0, 0]);
     return;
   }
   openScreen(player, id, DATA[id]()).then((hit) => {

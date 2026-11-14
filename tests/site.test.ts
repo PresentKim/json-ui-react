@@ -44,7 +44,7 @@ describe("site", () => {
   it("test_component_pages_jsx_and_run_section", () => {
     const files: Record<string, string> = {
       router: "router.tsx", "tabs-inside": "tabs-inside.tsx", "tabs-follow": "tabs-follow.tsx", "tabs-lazy": "tabs-lazy.tsx",
-      "slot-grid": "slot-grid.tsx", "virtual-list-500": "virtual-list-500.tsx", "virtual-list-2000": "virtual-list-2000.tsx", research: "screen.tsx",
+      "slot-grid": "slot-grid.tsx", "virtual-list-500": "virtual-list-500.tsx", "virtual-list-2000": "virtual-list-2000.tsx", research: "research.tsx",
     };
     for (const [id, tsx] of Object.entries(files)) {
       const html = readFileSync(join(BUILD, "components", id, "index.html"), "utf8");
@@ -66,13 +66,15 @@ describe("site", () => {
         expect(text, `${prefix || "ko"}/${id}`).toContain(server);
       }
     }
-    // research는 저수준 고급 예시임을 머리에 밝히고 lowLevel로 같은 팩에 올리는 법을 보인다.
-    const ko = textOf(readFileSync(join(BUILD, "components", "research", "index.html"), "utf8"));
-    expect(ko).toContain("저수준 고급 예시");
-    expect(ko).toContain("lowLevel");
-    const en = textOf(readFileSync(join(BUILD, "en", "components", "research", "index.html"), "utf8"));
-    expect(en).toContain("Advanced example using the low-level API");
-    expect(en).toContain("lowLevel");
+    // research는 고수준 예제다: 저수준 고급 예시 머리말이 없고, SelectGrid와 사용자 정의 ItemDetail, 서버 데이터, 동치 테스트를 보인다.
+    for (const [prefix, words, gone] of [
+      ["", ["<SelectGrid", "ItemDetail", "<Tabs", "<Pager", "openScreen", "출력 동치 테스트", "research-high.test.tsx", "펼친 트리"], ["저수준 고급 예시", "lowLevel", "createResearchSlots", "ffr."]],
+      ["en", ["<SelectGrid", "ItemDetail", "<Tabs", "<Pager", "openScreen", "Output equivalence test", "research-high.test.tsx", "expanded trees"], ["Advanced example using the low-level API", "lowLevel", "createResearchSlots", "ffr."]],
+    ] as const) {
+      const text = textOf(/<article[\s\S]*?<\/article>/.exec(readFileSync(join(BUILD, prefix, "components", "research", "index.html"), "utf8"))![0]);
+      for (const w of words) expect(text, `${prefix || "ko"}: ${w}`).toContain(w);
+      for (const w of gone) expect(text, `${prefix || "ko"}: ${w}`).not.toContain(w);
+    }
     // 고수준 예시 페이지에는 삭제된 common.tsx 참조가 없다.
     for (const id of IDS) {
       expect(readFileSync(join(BUILD, "components", id, "index.html"), "utf8")).not.toContain("common.tsx");
@@ -91,6 +93,44 @@ describe("site", () => {
       for (const word of ["buildScreens", "openScreen", "<ButtonList", "LowSlotGrid", "createPack"]) expect(text, word).toContain(word);
       // 이 페이지의 고수준 절 링크(#high, #low)가 실제 제목 id로 존재한다.
       for (const id of ["high", "server", "low"]) expect(html).toContain(`id="${id}"`);
+    }
+  });
+  it("test_api_page_lists_record_components", () => {
+    const names = ["SelectGrid", "DetailPanel", "IconTitle", "TextBlock", "IconRow", "Spacer", "ActionButton", "Pager", "Placeholder"];
+    for (const [prefix, server] of [["", "레코드형 데이터"], ["en", "Record data"]] as const) {
+      const html = readFileSync(join(BUILD, prefix, "api", "index.html"), "utf8");
+      const text = textOf(/<article[\s\S]*?<\/article>/.exec(html)![0]);
+      for (const n of names) expect(text, `${prefix || "ko"}: <${n}`).toContain(`<${n}`);
+      expect(text, prefix || "ko").toContain(server);
+      expect(html).toContain('id="records"');
+      // 레코드형 데이터 절은 2부(생성 서버 모듈) 안에 있다.
+      const part2 = text.indexOf(prefix ? "Part 2: Generated server module" : "2부: 생성 서버 모듈");
+      const part3 = text.indexOf(prefix ? "Part 3: Working with it yourself" : "3부: 직접 가공하기");
+      const at = text.indexOf(server, part2);
+      expect(at).toBeGreaterThan(part2);
+      expect(at).toBeLessThan(part3);
+    }
+  });
+  it("test_custom_component_page", () => {
+    for (const [prefix, title, words] of [
+      ["", "컴포넌트 직접 만들기", ["IconRow", "createSlots", "createPack", "collection_index", "src/high/record.tsx", "export function IconRow"]],
+      ["en", "Building your own component", ["IconRow", "createSlots", "createPack", "collection_index", "src/high/record.tsx", "export function IconRow"]],
+    ] as const) {
+      const file = join(BUILD, prefix, "custom-component", "index.html");
+      expect(existsSync(file), prefix || "ko").toBe(true);
+      const html = readFileSync(file, "utf8");
+      const text = textOf(/<article[\s\S]*?<\/article>/.exec(html)![0]);
+      expect(text).toContain(title);
+      for (const w of words) expect(text, `${prefix || "ko"}: ${w}`).toContain(w);
+      // 사이드바에서 컴포넌트 목록 뒤, API 앞에 온다.
+      const side = /<nav aria-label="[^"]*"[^>]*class="menu [\s\S]*?<\/nav>/.exec(html);
+      expect(side, `${prefix || "ko"}: sidebar`).not.toBeNull();
+      // 사이드바 글자 순서: 컴포넌트 목록 -> 이 페이지 -> API.
+      const sideText = textOf(side![0]);
+      const [cat, api] = prefix ? ["Components", "API reference"] : ["컴포넌트", "API 레퍼런스"];
+      expect(sideText.indexOf(cat), `${prefix || "ko"}: ${cat}`).toBeGreaterThanOrEqual(0);
+      expect(sideText.indexOf(title), `${prefix || "ko"}: ${title}`).toBeGreaterThan(sideText.indexOf(cat));
+      expect(sideText.indexOf(api), `${prefix || "ko"}: ${api}`).toBeGreaterThan(sideText.indexOf(title));
     }
   });
   it("test_quick_start_is_high_level", () => {
@@ -148,7 +188,7 @@ describe("site", () => {
     expect(readFileSync(join(BUILD, "index.html"), "utf8")).toContain('<html lang="ko"');
   });
   it("test_en_article_has_no_hangul", () => {
-    const pages = ["", "api", "getting-started", ...["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "research"].map((id) => `components/${id}`)];
+    const pages = ["", "api", "getting-started", "custom-component", ...["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "research"].map((id) => `components/${id}`)];
     for (const page of pages) {
       const html = readFileSync(join(BUILD, "en", page, "index.html"), "utf8");
       let article = /<article[\s\S]*?<\/article>/.exec(html)![0];

@@ -18,6 +18,15 @@ Everything is imported from `json-ui-react`. Use the high-level components only 
 | `<Tabs name mode>` + `<Tab label?>` | Client-side tabs. `mode` is `"inside"`, `"follow"` or `"lazy"`. Tab text and icons come from the server data array `name`, and `label` is the default text sent when that text is missing. One `<Tabs>` per screen, and its children are only `<Tab>` | A tab row (radio `toggle` with 8 states) + method B/C/D content. `lazy` builds the first tab up front automatically | INP-10, INP-11, INP-13, COL-47 |
 | `<SlotGrid name rows cols detail?>` | A grid of cells with radio selection. One per screen. `detail` works only with `<Screen layout="split">`; if it is a string, it is the hint shown before you choose | Rows inside a vertical `stack_panel` + `item_toggle` cells. `detail` is the icon and name shown in the `on` state | COL-38, COL-50, INP-13, INP-35 |
 | `<VirtualList name count columns?>` | A grid list. `columns` is 1 or 2 (default 2). It must be the only child of the screen, and `layout` must be `"single"`. A `count` over 2000 is a build error | `grid` + `maximum_grid_items` bound to `#form_button_length`, in a list window | COL-49 |
+| `<SelectGrid name rows cols detail?>` | A grid of record cells with radio selection. One cell is one record. `detail` is an element that returns one `<DetailPanel>`, and works only with `layout="split"`. A detail is prebuilt for every cell (method E). You can put several on one screen (one per tab, for example) | Rows inside a vertical `stack_panel` + `item_toggle` cells; the detail of a cell sits inside the face of that cell when it is on | COL-38, COL-50, INP-12, INP-35, INP-36, COL-19 |
+| `<DetailPanel footer?>` | The detail pane. The children are a scrolling body stacked top to bottom, and `footer` (usually an `<ActionButton>`) stays fixed below it. Use it only inside the `detail` of a `SelectGrid` | A background `image` > `common.scrolling_panel` (the body) + the footer | LAY-02, LAY-04 |
+| `<IconTitle name subtitle?>` | An icon + title (+ small subtitle) card. `name` is the record key that holds the title text, and the icon is the record's `icon`. `subtitle` is the record key of the subtitle text | A horizontal `stack_panel` (height 28): an icon cell + text lines | COL-38, BND-04 |
+| `<TextBlock name>` | Multi-line text whose height follows the number of lines. `name` is the record key that holds the text | A vertical collection `stack_panel` > `text_block` | COL-38, LAY-04, TXT-08 |
+| `<IconRow name label count badge?>` | A header + one row of icon cells (not pressable). `name` is the record key of the cell list, `label` is the header, `count` is the number of cells (at most what fits the detail width), and `badge` is the text shown on a cell that has an icon but no count | `header_label` + a horizontal collection `stack_panel` > `icon_slot` x `count` | COL-38, COL-50, COL-19, LAY-04 |
+| `<Spacer h>` | A vertical gap in pixels between parts of a detail body | An empty `panel` of width 100% | - |
+| `<ActionButton name>` | A text button fixed below the detail (the `footer` of a `DetailPanel`). `name` is the record key that holds the text. Pressing it returns `{ name: <grid>, index: <cell>, field: name }` | A horizontal collection `stack_panel` > `action_button` | COL-38, INP-32, COL-19 |
+| `<Pager name>` | One row with previous and next arrow buttons, placed on the pane's bottom row. In the response `{ name, index }`, `index` 0 is previous and 1 is next. The server turns the page by changing the data and opening the screen again | A collection `stack_panel` > `pager` x 2 on the pane's bottom row | COL-38, BND-08, INP-32 |
+| `<Placeholder text>` | With `layout="split"`, the hint text shown in the right pane before you choose a cell (static). It cannot be combined with the `detail` string of a `SlotGrid` | A `<code>_right` label hung on the window's `$right_def` | INP-36, FILE-33 |
 | `buildScreens(screens, opts?)` | Builds an array of screen elements into one pack | A single router, the `server_form` hook, theme definitions and the server module | HOST-06, COL-47 |
 | `themeTextures()` | Theme textures (`textures/ui/jur/*`) as path -> bytes. Copy them into the resource pack as they are | - | - |
 
@@ -40,7 +49,7 @@ buildScreens(screens: JuiNode[], opts?: {
 ```
 
 - A form title is `prefix` + a 2-letter code, and every title has the same byte length. Pinning titles with `codes` lets docs and in-game checks quote the same title.
-- `lowLevel` adds low-level definitions to the same pack and returns the screens to hang on the same router (`id`, the control reference `control`, and the button layout `layout`). The [research screen](components/research) uses it.
+- `lowLevel` adds low-level definitions to the same pack and returns the screens to hang on the same router (`id`, the control reference `control`, and the button layout `layout`). Use it to put a screen that high-level parts cannot express into the same pack.
 - It throws if screen ids repeat, if an item is not a `<Screen>`, or if a screen has no buttons.
 
 ### Usage examples
@@ -87,6 +96,28 @@ import { Screen, SlotGrid, VirtualList } from "json-ui-react";
 </Screen>;
 ```
 
+Here is how to use a record grid with detail parts. The detail (`ItemDetail`) is a custom component that stacks small parts. See the whole screen in the [research screen](components/research).
+
+```tsx
+import { Screen, SelectGrid, Pager, Placeholder, DetailPanel, IconTitle, TextBlock, IconRow, Spacer, ActionButton } from "json-ui-react";
+
+const ItemDetail = () => (
+  <DetailPanel footer={<ActionButton name="action" />}>
+    <IconTitle name="name" subtitle="status" />
+    <Spacer h={3} />
+    <TextBlock name="desc" />
+    <Spacer h={4} />
+    <IconRow name="mats" label="Required materials" count={8} />
+  </DetailPanel>
+);
+
+<Screen id="shop" title="Shop" layout="split">
+  <SelectGrid name="items" rows={6} cols={8} detail={<ItemDetail />} />
+  <Pager name="pages" />
+  <Placeholder text="Pick an item." />
+</Screen>;
+```
+
 ## Part 2: Generated server module {#server}
 
 The `serverModule` that `buildScreens` returns is a dependency-free ESM. Save it as the behavior pack's `scripts/generated/screens.js`, and put `serverTypes` next to it as `screens.d.ts`. It imports only `ActionFormData` from `@minecraft/server-ui`.
@@ -100,7 +131,7 @@ The `serverModule` that `buildScreens` returns is a dependency-free ESM. Save it
 | `TITLES`, `LAYOUTS` | Screen id -> form title, and screen id -> button layout (ranges, blocks, start index, count) |
 | `EMPTY` | The empty-cell mark `§0§e§r`. Sent for cells with no data; it is invisible on screen |
 
-`data` maps component `name`s to arrays of buttons. A button is a text `"Apple"`, `["Apple", "textures/items/apple"]` or `{ text, icon }`.
+`data` maps component `name`s to arrays of buttons. A button is a text `"Apple"`, `["Apple", "textures/items/apple"]` or `{ text, icon }`. A `<SelectGrid>` takes an array of records instead of buttons (see [record data](#records)).
 
 - A key that matches no component is an error, and so is sending more buttons than the component has.
 - A missing cell gets the `<Tab label>` text if there is one, otherwise `EMPTY`.
@@ -117,9 +148,36 @@ openScreen(player, "router", {
 });
 ```
 
+### Record data (a detail per cell) {#records}
+
+The `data.items` of `<SelectGrid name="items">` is an array of records. One record is one cell, and it also becomes that cell's detail block. The record keys are the same as the `name`s the detail parts use.
+
+| Part | Keys read from the record | Value |
+| --- | --- | --- |
+| (the cell grid) | `icon` | The icon path drawn in the cell. The cell text is not visible |
+| `IconTitle` | `name` (the part's `name`), the `subtitle` key, `icon` | A text string. The icon is the record's `icon` |
+| `TextBlock`, `ActionButton` | The part's `name` | A text string |
+| `IconRow` | The part's `name` | An array of `[icon, count]` or icon strings. With no count, the `badge` text is shown |
+
+- A key missing from a record, and the detail of a cell with no record, are filled with the empty-cell mark (`EMPTY`). A cell with no record shows as an empty cell with no icon. More records than cells is an error. `Pager` needs no data.
+- The response is `{ name: "items", index }` when you press a cell, and `{ name: "items", index, field }` for a button inside the detail. `field` is the name a detail part declared (`"action"` for `ActionButton name="action"`). `decode` also resolves detail-block indices to the grid name.
+- `serverTypes` narrows the types down to the record keys and `IconEntry` (`string | [icon, count?]`).
+- How the details switch without a server round trip (method E) is explained in the [research screen](components/research).
+
+```js
+openScreen(player, "shop", {
+  items: [
+    { icon: "textures/items/book_normal", name: "Book", status: "Ready", desc: "A book.", mats: [["textures/items/coal", 3]], action: "Start" },
+  ],
+}).then((hit) => {
+  if (hit?.name === "items" && hit.field === "action") { /* the button of cell hit.index */ }
+  if (hit?.name === "pages") { /* hit.index 0: previous, 1: next */ }
+});
+```
+
 ## Part 3: Working with it yourself: the low-level API {#low}
 
-These are the low-level components and tools that the high-level components lower to. Use them to build layouts the high-level API cannot express, as the research screen does, or to process the lowered output. The low-level API stays public.
+These are the low-level components and tools that the high-level components lower to. Use them to build a part the high-level API lacks (see [Building your own component](custom-component)) or to process the lowered output. The low-level API stays public.
 
 From the root `json-ui-react`, the high-level API owns the names `SlotGrid`, `VirtualList` and `Tabs`. The low-level ones are exported as `LowSlotGrid`, `LowVirtualList` and `LowTabs` (the type of the tabs hook), and the original names come from the subpaths (`json-ui-react/components/grid`, `json-ui-react/hooks`). In the table below, `SlotGrid` and `VirtualList` are the low-level ones. `createPack`, `createSlots`, `render` and `lintFiles` can also be imported from the root.
 
@@ -130,8 +188,8 @@ From the root `json-ui-react`, the high-level API owns the names `SlotGrid`, `Vi
 | `TabBar` (`src/components/toggle.tsx`) | Lays out toggle definitions in a horizontal row over a `form_buttons` collection and gives each tab a `$tab_index` | INP-13 |
 | `SlotGrid` (`src/components/grid.tsx`) | Horizontal rows inside a vertical `stack_panel`, with fixed `collection_index` cells | COL-38, COL-50, INP-35, BND-32 |
 | `VirtualList` (`src/components/grid.tsx`) | A `grid` with `maximum_grid_items` bound to `#form_button_length`. More than 2000 cells is a build error | COL-49 |
-| `createSlots` / `withSlots` / `useSlots` (`src/slots.ts`) | Assign named, contiguous button indices with `range` and `blocks` | Research screen, section 2 |
-| `decode`, `serverModule` (`src/slots.ts`) | Decode a button index into `{ name, index, field }` and generate the server module string | Research screen, section 2 |
+| `createSlots` / `withSlots` / `useSlots` (`src/slots.ts`) | Assign named, contiguous button indices with `range` and `blocks` | [Building your own component](custom-component) |
+| `decode`, `serverModule` (`src/slots.ts`) | Decode a button index into `{ name, index, field }` and generate the server module string | [Building your own component](custom-component) |
 | `useTabs` (`src/hooks.ts`) | Returns tab names, indices, pane bindings, the toggle body and lazy panes for each tab mode (`inside`, `follow`, `lazy`) | INP-13, COL-47 |
 | `useSelection` (`src/hooks.ts`) | Returns the selected-item toggle body (`itemBody`) and a lazy detail factory (`lazyDetail`) | INP-13 |
 | `useBinding` (`src/hooks.ts`) | Validates an expression (EXP-36) and builds a `view` binding | EXP-36 |

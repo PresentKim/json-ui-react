@@ -10,6 +10,7 @@ module.exports = {
         "components/slot-grid", "components/virtual-list-500", "components/virtual-list-2000", "components/research",
       ],
     },
+    "custom-component",
     "api",
   ],
 };

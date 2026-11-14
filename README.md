@@ -48,7 +48,7 @@ openScreen(player, "router", {
 
 TSX 화면(`<Screen>`) → `buildScreens` → 자체 JSX 런타임 → ControlNode 트리 → Pack(네임스페이스별 정의) → 결정적 JSON 파일 + 서버 모듈
 
-- 고수준 컴포넌트(`Screen`, `ButtonList`, `Tabs`/`Tab`, `SlotGrid`, `VirtualList`)가 저수준 컴포넌트로 낮춰지고, `buildScreens`가 화면들을 단일 라우터, 테마, `server_form` 훅과 함께 한 팩으로 묶는다.
+- 고수준 컴포넌트(`Screen`, `ButtonList`, `Tabs`/`Tab`, `SlotGrid`, `VirtualList`, 그리고 상세가 딸린 격자 `SelectGrid`와 상세 부품 `DetailPanel`, `IconTitle`, `TextBlock`, `IconRow`, `Spacer`, `ActionButton`, 판 부품 `Pager`, `Placeholder`)가 저수준 컴포넌트로 낮춰지고, `buildScreens`가 화면들을 단일 라우터, 테마, `server_form` 훅과 함께 한 팩으로 묶는다.
 - `render`가 JSX 요소 트리를 ControlNode 목록으로 바꾼다.
 - `toEntry`, `toBody`가 ControlNode를 JSON UI의 `controls` 항목 모양으로 낮춘다.
 - `Pack`이 네임스페이스(`jur`, `ffr` 등)별로 정의를 모아 `ui/*.json` 파일 묶음을 만든다.
@@ -74,13 +74,24 @@ TSX 화면(`<Screen>`) → `buildScreens` → 자체 JSX 런타임 → ControlNo
 | `<Tabs name mode>` + `<Tab label?>` | 클라이언트 탭. `mode`는 `"inside"`, `"follow"`, `"lazy"`. 화면마다 하나. 탭 글자·아이콘은 서버 데이터 `name`에서 온다 | 탭 줄(라디오 `toggle` 8상태) + 방식 B/C/D 내용 | INP-10, INP-11, INP-13, COL-47 |
 | `<SlotGrid name rows cols detail?>` | 칸 격자(라디오 선택). 화면마다 하나. `detail`은 `split`에서만 | 줄 `stack_panel` + `item_toggle` 칸, `detail`은 `on` 상태의 아이콘·이름 | COL-38, COL-50, INP-13, INP-35 |
 | `<VirtualList name count columns?>` | grid 목록. `columns`는 1 또는 2(기본 2). 화면의 유일한 자식. 2000 초과는 빌드 오류 | `grid` + `maximum_grid_items`를 `#form_button_length`에 묶음 | COL-49 |
+| `<SelectGrid name rows cols detail?>` | 레코드 칸 격자(라디오 선택). 칸 하나가 레코드 하나. `detail`은 `<DetailPanel>`을 돌려주는 요소(`split`에서만)이고 칸마다 미리 만든다(방식 E) | 줄 `stack_panel` + `item_toggle` 칸, 켠 칸 얼굴 안에 상세 | COL-38, COL-50, INP-12, INP-35, INP-36 |
+| `<DetailPanel footer?>` | 상세 판: 스크롤 본문 + 아래 고정 `footer`. `SelectGrid detail` 안에서만 | 배경 `image` + `common.scrolling_panel` | LAY-02, LAY-04 |
+| `<IconTitle name subtitle?>` | 아이콘 + 제목(+ 부제) 카드. 글자는 레코드 키 `name`, `subtitle`, 아이콘은 `icon` | 가로 `stack_panel`: 아이콘 칸 + 글자 줄 | COL-38, BND-04 |
+| `<TextBlock name>` | 여러 줄 글. 높이가 줄 수를 따른다 | 세로 collection `stack_panel` > `text_block` | COL-38, LAY-04, TXT-08 |
+| `<IconRow name label count badge?>` | 머리글 + 아이콘 칸 한 줄(누를 수 없음). 칸은 `[아이콘, 개수]` 또는 아이콘 | `header_label` + 가로 collection `stack_panel` > `icon_slot` x `count` | COL-38, COL-50, COL-19 |
+| `<Spacer h>` | 상세 본문 부품 사이 세로 간격(픽셀) | 빈 `panel` | - |
+| `<ActionButton name>` | 상세 아래 고정 글자 버튼. 응답은 `{ name: 격자, index: 칸, field: name }` | 가로 collection `stack_panel` > `action_button` | COL-38, INP-32, COL-19 |
+| `<Pager name>` | 판 아래 줄의 이전·다음 버튼. 응답 `index` 0이 이전, 1이 다음 | collection `stack_panel` > `pager` x 2 | COL-38, BND-08, INP-32 |
+| `<Placeholder text>` | `split`에서 칸을 고르기 전 오른쪽 판 안내 글자 | 창의 `$right_def`에 건 label | INP-36, FILE-33 |
 | `buildScreens(screens, opts?)` | 화면들을 한 팩으로. `opts`: `namespace`, `prefix`, `codes`, `lowLevel`. 결과: `{ files, serverModule, serverTypes, layouts, titles, diagnostics }` | 단일 라우터, `server_form` 훅, 테마, 서버 모듈 | HOST-06, COL-47 |
+
+`SelectGrid`의 `data`는 버튼 대신 레코드 배열이다(칸 하나 = 레코드 하나: `icon`과 상세 부품이 쓰는 키). 응답의 `field`는 상세 안에서 누른 부품이다. 연구 화면 사용법은 `site/`의 연구 화면 페이지와 `example/screens/research.tsx`에 있다.
 
 생성 서버 모듈은 `openScreen(player, id, data)`, `decode(id, selection)`, `buttons(id, data)`, `screenTitle(id)`, `TITLES`, `LAYOUTS`, `EMPTY`를 내보낸다. `serverTypes`가 화면별 `data` 모양과 응답 `name`을 타입으로 좁힌다.
 
 ### 저수준 API: 직접 가공하기
 
-고수준이 낮추는 저수준 컴포넌트와 도구다. 연구 화면처럼 고수준으로 못 쓰는 배치를 만들 때 쓴다.
+고수준이 낮추는 저수준 컴포넌트와 도구다. 고수준에 없는 부품을 직접 만들 때 쓴다(문서 사이트의 "컴포넌트 직접 만들기" 페이지가 `IconRow`를 예로 단계별로 보인다).
 
 | API (src 경로) | 낮춤 결과 | 근거 규칙 |
 | --- | --- | --- |
@@ -89,8 +100,8 @@ TSX 화면(`<Screen>`) → `buildScreens` → 자체 JSX 런타임 → ControlNo
 | `TabBar` (`src/components/toggle.tsx`) | `form_buttons` 컬렉션 위 가로 줄에 토글 정의를 늘어놓는다. 각 탭에 `$tab_index`를 붙인다 | INP-13 |
 | `LowSlotGrid` (`src/components/grid.tsx`) | 세로 `stack_panel` 안에 `collection_name`을 가진 가로 줄을 두고, 칸을 줄의 직속 자식으로 둔다. 칸마다 고정 `collection_index` | COL-38, COL-50, INP-35, BND-32 |
 | `LowVirtualList` (`src/components/grid.tsx`) | `grid` + `collection_name`, `maximum_grid_items`를 `#form_button_length`에 묶는다. 2000개를 넘으면 빌드 오류(`allowLarge`로만 허용) | COL-49 |
-| `createSlots` / `withSlots` / `useSlots` (`src/slots.ts`) | `range`, `blocks`로 이름 붙은 연속 버튼 번호를 배정한다. `useSlots`는 `withSlots` 안에서만 부를 수 있다 | 연구 화면 2절 |
-| `decode`, `serverModule` (`src/slots.ts`) | 버튼 번호를 `{ name, index, field }`로 풀고, `LAYOUT`과 `decode`를 담은 서버 모듈 문자열을 만든다 | 연구 화면 2절 |
+| `createSlots` / `withSlots` / `useSlots` (`src/slots.ts`) | `range`, `blocks`로 이름 붙은 연속 버튼 번호를 배정한다. `useSlots`는 `withSlots` 안에서만 부를 수 있다 | 컴포넌트 직접 만들기 페이지 |
+| `decode`, `serverModule` (`src/slots.ts`) | 버튼 번호를 `{ name, index, field }`로 풀고, `LAYOUT`과 `decode`를 담은 서버 모듈 문자열을 만든다 | 컴포넌트 직접 만들기 페이지 |
 | `useTabs`, `useSelection`, `useBinding` (`src/hooks.ts`) | 빌드 시 한 번 실행되는 순수 헬퍼. 탭 모드별 이름·패널 바인딩, 선택 토글, 식 검사가 든 `view` 바인딩 | INP-13, COL-47, EXP-36 |
 | `lit`, `prefixEq`, `lacks` (`src/expr.ts`) | 바닐라 식 문자열 조립. `lit`은 `'`, `*`, `@`를 리터럴에 넣으면 던진다 | EXP-36 |
 | `view`, `collection`, `details`, `global` (`src/bind.ts`) | 바인딩 객체 빌더. 키 순서 고정, `undefined` 키는 생략 | COL-47, BND-32 |
@@ -99,7 +110,7 @@ TSX 화면(`<Screen>`) → `buildScreens` → 자체 JSX 런타임 → ControlNo
 | `createPack` (`src/pack.ts`) | `ns(name, file)`, `define`, `modify`, `files()`, `json(file)`로 정의 묶음을 만든다 | - |
 | `lintFiles`, `countControls` (`src/lint.ts`) | 검사기(진단 목록)와 파일별 컨트롤 수 집계(생성량 리포트) | 아래 "검사 규칙" 참고 |
 
-고수준 화면에 저수준 정의를 같이 넣으려면 `buildScreens(screens, { lowLevel: (pack) => [{ id, control, layout }] })`를 쓴다. 연구 화면이 그 예다(`example/build-rp.ts`).
+고수준 화면에 저수준 정의를 같이 넣으려면 `buildScreens(screens, { lowLevel: (pack) => [{ id, control, layout }] })`를 쓴다.
 
 ## 검사 규칙
 
@@ -125,7 +136,7 @@ npm run typecheck        # tsc --noEmit
 npm run build:example    # tsx examples/research/build.ts
 ```
 
-`npm run build:example`은 연구 화면(FFR 방식 E, F와 탭 방식 B)을 만든다. 기본 출력 폴더는 저장소 루트의 `out/`이고, 인자로 다른 폴더를 줄 수 있다.
+`npm run build:example`은 저수준 API로 쓴 FFR 원본 재현(`examples/research`: 방식 E, F와 탭 방식 B)을 만든다. 통합 애드온의 연구 화면(`example/screens/research.tsx`)은 이것을 고수준 부품으로 다시 조립한 것이고, 둘의 출력(펼친 트리, 서버 폼)이 같다는 것을 `tests/regression/research-high.test.tsx`가 확인한다. 기본 출력 폴더는 저장소 루트의 `out/`이고, 인자로 다른 폴더를 줄 수 있다.
 
 - `out/rp/ui/*.json`: 리소스팩 UI 정의 파일
 - `out/bp/scripts/layout.js`: 서버 버튼 배치 모듈(`LAYOUT`, `decode`)
@@ -134,9 +145,9 @@ npm run build:example    # tsx examples/research/build.ts
 
 ## 예시 애드온과 문서
 
-- 예시 애드온: `example/`에 고수준 예시 화면 7개(`example/screens/*.tsx`)와 행동팩 스크립트를 둔다. 연구 화면은 저수준 고급 예시(`examples/research`)로 같은 팩에 올린다. 행동팩은 `buildScreens`가 만든 `scripts/generated/screens.js`의 `openScreen`으로 연다. 게임 안에서 막대기를 쓰면(모바일은 길게 누르기) 예시 고르기 창이 열린다. `/scriptevent jur:open <예시id>`로 바로 열 수도 있다(id 없이 쓰면 고르기 창). 처음 접속할 때 막대기가 없으면 하나 준다. 예시 id는 `router`, `tabs-inside`, `tabs-follow`, `tabs-lazy`, `slot-grid`, `virtual-list-500`, `virtual-list-2000`, `research`다.
+- 예시 애드온: `example/`에 고수준 예시 화면 8개(`example/screens/*.tsx`)와 행동팩 스크립트를 둔다. 연구 화면(`research.tsx`)은 `SelectGrid`, `Pager`, `Placeholder`와 상세 부품을 조립한 고수준 예제이고, 상세 `ItemDetail`을 사용자 정의 컴포넌트로 보인다. 행동팩은 `buildScreens`가 만든 `scripts/generated/screens.js`의 `openScreen`으로 연다. 게임 안에서 막대기를 쓰면(모바일은 길게 누르기) 예시 고르기 창이 열린다. `/scriptevent jur:open <예시id>`로 바로 열 수도 있다(id 없이 쓰면 고르기 창). 처음 접속할 때 막대기가 없으면 하나 준다. 예시 id는 `router`, `tabs-inside`, `tabs-follow`, `tabs-lazy`, `slot-grid`, `virtual-list-500`, `virtual-list-2000`, `research`다.
 - 애드온 빌드 `npm run build:addon`: `dist/json-ui-react-examples.mcaddon`(행동팩과 리소스팩 `.mcpack` 두 개를 담은 zip)을 만든다. 두 번 빌드해도 바이트가 같다. 팩 이름에 `v<package.json version>`, 설명에 `v버전 · 커밋 · 커밋 날짜`가 붙고, 매니페스트 버전도 package.json version을 따른다. 게임 안 예시 고르기 창 본문에도 같은 버전이 보인다. 애드온을 바꿔 다시 배포할 때는 package.json의 version을 올린다.
-- 문서 사이트: `site/`(Docusaurus)에 소개, 시작하기, 컴포넌트별 페이지 8개, API 레퍼런스를 둔다. `npm run site:build`가 mcaddon을 만들어 `downloads/`에 넣고 사이트를 빌드한다(`site/build`). 소개·시작하기·각 컴포넌트 페이지에 mcaddon 다운로드 버튼이 있다. 개발 서버는 `npm run site:start`.
+- 문서 사이트: `site/`(Docusaurus)에 소개, 시작하기, 컴포넌트별 페이지 8개, 컴포넌트 직접 만들기, API 레퍼런스를 둔다. `npm run site:build`가 mcaddon을 만들어 `downloads/`에 넣고 사이트를 빌드한다(`site/build`). 소개·시작하기·각 컴포넌트 페이지에 mcaddon 다운로드 버튼이 있다. 개발 서버는 `npm run site:start`.
 - 실측 사진: `site/static/img/components/<예시id>/01-설명.png` 형식으로 넣으면 그 컴포넌트 페이지에 표시된다. 없으면 "실측 사진 준비 중" 상자가 보인다.
 
 ## 한계
