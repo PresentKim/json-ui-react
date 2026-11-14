@@ -1,0 +1,53 @@
+---
+title: json-ui-react docs
+description: Start page of the json-ui-react docs, which compile Bedrock server-form screens written in TSX into JSON UI and a behavior pack server module. Reading order by reader, section map, finding a rule ID in the bedrock-research wiki, sources and licenses.
+sidebar_position: 0
+sources:
+  - json-ui-react
+  - bedrock-research
+---
+
+# json-ui-react docs
+
+json-ui-react compiles Minecraft Bedrock server-form screens written in TSX, at build time, into **static JSON UI** (resource pack `ui/*.json`) and a **behavior pack server module** (`scripts/generated/screens.js`). This site is a wiki of how to use it, examples of its eight components, and the API. The table at the bottom of each page lists the sources that page relies on and their licenses.
+
+The tool is built on the JSON UI rules (rule IDs) and in-game measurements of the [bedrock-research](https://github.com/PresentKim/bedrock-research) repository (the Bedrock development wiki). The rule IDs in these docs and in lint diagnostics (`COL-50`, `INP-35` and so on) are the same as in that wiki. [Finding a rule ID in the wiki](#rule-ids) below tells you which wiki page to open for a rule ID.
+
+## Where to start
+
+| Reader | Reading order |
+| --- | --- |
+| Building screens with the library | [Introduction](./basics/intro.mdx) → [Quick start](./basics/quick-start.mdx) → [Router](./components/router.mdx) → the component pages you need → [API part 1: High-level API](./reference/api.mdx) → [API part 2: Generated server module](./reference/server-module.mdx) |
+| Trying the example add-on in the game first | [Getting started](./basics/getting-started.mdx) → "Running it in the integration add-on" and "Field photos" on each component page |
+| Building a part that does not exist yet | [Building your own component](./components/custom-component.mdx) → [API part 3: Low-level API](./reference/low-level.mdx) → [Research screen](./components/research.mdx) |
+
+## Section map
+
+| Section | What it covers |
+| --- | --- |
+| Basics | [Introduction](./basics/intro.mdx), [Getting started](./basics/getting-started.mdx) (commands, installing the add-on, opening examples), [Quick start](./basics/quick-start.mdx) (a first screen in four steps) |
+| Components | [Router](./components/router.mdx), [Tabs B](./components/tabs-inside.mdx), [Tabs C](./components/tabs-follow.mdx), [Tabs D](./components/tabs-lazy.mdx), [Fixed-slot grid](./components/slot-grid.mdx), [Virtual list 500](./components/virtual-list-500.mdx), [Virtual list 2000](./components/virtual-list-2000.mdx), [Research screen](./components/research.mdx), [Building your own component](./components/custom-component.mdx) |
+| Reference | [API part 1: High-level API](./reference/api.mdx), [API part 2: Generated server module](./reference/server-module.mdx), [API part 3: Low-level API](./reference/low-level.mdx), [Sources](./reference/sources.mdx), [How licenses are applied](./reference/license.mdx) |
+
+Every component page has the same order: APIs used, writing it in JSX, opening it from the server, lowered result, rules, running it in the integration add-on, field photos.
+
+## Finding a rule ID in the wiki {#rule-ids}
+
+The prefix of a rule ID points to a page in the JSON UI chapters of the bedrock-research wiki. These docs use the following prefixes.
+
+| Prefix | Wiki page | Where these docs use it |
+| --- | --- | --- |
+| `COL-*` | [Collections and factories](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/collections-and-factory.mdx) | Fixed `collection_index` cells, row stacks, the router factory, grid limits |
+| `INP-*` | [Input, buttons, toggles](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/input-buttons-toggles.mdx) | Radio toggle tabs, cell selection, a detail inside the checked face |
+| `BND-*` | [Bindings](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/bindings.mdx) | Which control owns a binding, reading another control's property, factories built when visible |
+| `EXP-*` | [Expressions and operators](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/expressions.mdx) | Checking for characters that split expression tokens |
+| `LAY-*` | [Controls and layout](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/controls-and-layout.mdx) | The scrolling panel (`common.scrolling_panel`), stacks that give hidden children no space |
+| `HOST-*` | [Screen hosts and data channels](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/screen-hosts-and-data.mdx) | Dictionary lookup routing that builds only the chosen screen |
+| `TXT-*` | [Text and localization](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/text-and-localization.mdx) | `§` color codes in bound text |
+| `FILE-*` | [Files and definitions](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/files-and-definitions.mdx) | The lookup order of `$` variables |
+
+The techniques and measurements (FFR) behind the [research screen](./components/research.mdx) are collected on the wiki's [server form research screen page](https://github.com/PresentKim/bedrock-research/blob/main/docs/design/server-form-research-screen.mdx).
+
+## Sources and licenses
+
+The table at the bottom of each page shows that page's sources. The full list is in [Sources](./reference/sources.mdx), and how each source is handled is in [How licenses are applied](./reference/license.mdx). These docs are unofficial and not affiliated with Mojang or Microsoft.

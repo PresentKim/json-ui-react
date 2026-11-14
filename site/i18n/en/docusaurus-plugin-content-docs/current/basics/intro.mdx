@@ -1,9 +1,11 @@
 ---
-slug: /
+title: "Introduction"
+description: "What json-ui-react is, why it compiles at build time, the pipeline stages, and the bedrock-research wiki rules and measurements it is built on."
 sidebar_position: 1
-title: Introduction
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
-
 
 # json-ui-react
 
@@ -44,8 +46,14 @@ Bedrock JSON UI has no JS runtime, so a screen's structure is baked statically i
 | Lint | Checks the generated JSON and reports diagnostics tagged with rule IDs |
 | Behavior pack | The generated `openScreen` sends the form with its buttons in the right order and decodes the response into `{ name, index }` |
 
-When a part you need is missing, you can build it directly with the low-level API. [Building your own component](custom-component) shows how, and the [API reference](api#low) covers the low-level API. The [research screen](components/research) is a large example assembled only from high-level parts.
+When a part you need is missing, you can build it directly with the low-level API. [Building your own component](../components/custom-component.mdx) shows how, and [part 3 of the API reference](../reference/low-level.mdx) covers the low-level API. The [research screen](../components/research.mdx) is a large example assembled only from high-level parts.
+
+## Built on the bedrock-research wiki
+
+json-ui-react is built on the JSON UI rules (rule IDs) and in-game measurements of the [bedrock-research](https://github.com/PresentKim/bedrock-research) repository (the Bedrock development wiki). The JSON UI techniques the components lower to (a single router, radio tabs, fixed `collection_index` cells, grid lists) and the rule IDs in these docs and in lint diagnostics (such as `COL-50`) use the same IDs as the JSON UI chapters of that wiki. The [research screen](../components/research.mdx) example reproduces the measured screen (FFR) described on the wiki's [server form research screen page](https://github.com/PresentKim/bedrock-research/blob/main/docs/design/server-form-research-screen.mdx).
+
+The prefix of a rule ID tells you which wiki chapter to open: `COL-*` is collections and factories, `INP-*` is input, buttons and toggles, `BND-*` is bindings and `EXP-*` is expressions and operators. The full table is on the [start page](../index.mdx#rule-ids).
 
 ## Next
 
-Make your first screen in [Getting started](getting-started), then browse the eight examples on the component pages.
+Make your first screen in [Quick start](./quick-start.mdx), then browse the eight examples on the component pages. To see the example add-on in the game first, read [Getting started](./getting-started.mdx).

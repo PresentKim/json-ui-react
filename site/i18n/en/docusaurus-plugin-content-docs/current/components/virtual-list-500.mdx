@@ -1,10 +1,14 @@
 ---
+title: "Virtual list, 500 cells"
+description: "A two-column virtual list of 500 cells drawn with a grid (VirtualList): JSX, opening from the server, lowered result and rules."
 sidebar_position: 6
-title: Virtual list, 500 cells
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/virtual-list-500.source.json';
 import lowered from '@site/src/generated/virtual-list-500.json';
@@ -21,8 +25,8 @@ A two-column virtual list of 500 cells
 
 | Name | Description |
 | --- | --- |
-| `Screen` | One screen: [API reference](../api#high) |
-| `VirtualList` | A scrolling grid list: [API reference](../api#high) |
+| `Screen` | One screen: [API reference](../reference/api.mdx) |
+| `VirtualList` | A scrolling grid list: [API reference](../reference/api.mdx) |
 
 ## Writing it in JSX
 
@@ -59,13 +63,13 @@ openScreen(player, "virtual-list-500", {
 
 `LAYOUTS["virtual-list-500"]` in the generated module shows how the component ranges split the button indices. The excerpt below is extracted from the generated module by the prebuild step.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## Lowered result
 
 An excerpt of the compiled JSON UI definitions of the `jur:v5` screen: the list (`v5_list`) and the list window (`v5@jur.list_window`). The prebuild step extracts it from `rp/ui`.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 ## Rules
 

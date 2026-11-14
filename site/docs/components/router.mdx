@@ -1,10 +1,14 @@
 ---
+title: "라우터"
+description: "제목 접두 6바이트로 화면을 고르는 단일 라우터와 버튼 4개 목록(ButtonList)의 JSX, 서버에서 여는 법, 낮춤 결과, 근거 규칙."
 sidebar_position: 1
-title: 라우터
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/router.source.json';
 import lowered from '@site/src/generated/router.json';
@@ -21,9 +25,9 @@ import layout from '@site/src/generated/router.layout.json';
 
 | 이름 | 설명 |
 | --- | --- |
-| `Screen` | 화면 하나: [API 레퍼런스](../api#high) |
-| `ButtonList` | 아이콘 + 글자 버튼 세로 목록: [API 레퍼런스](../api#high) |
-| `buildScreens` | 화면들을 한 팩으로: [API 레퍼런스](../api#high) |
+| `Screen` | 화면 하나: [API 레퍼런스](../reference/api.mdx) |
+| `ButtonList` | 아이콘 + 글자 버튼 세로 목록: [API 레퍼런스](../reference/api.mdx) |
+| `buildScreens` | 화면들을 한 팩으로: [API 레퍼런스](../reference/api.mdx) |
 
 ## JSX로 쓰기
 
@@ -58,13 +62,13 @@ openScreen(player, "router", {
 
 생성 모듈의 `LAYOUTS["router"]`는 컴포넌트가 버튼 번호를 어떻게 나눠 받았는지 보여 준다. 아래는 prebuild가 생성 모듈에서 뽑은 것이다.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## 낮춤 결과
 
 `jur:ro` 화면이 컴파일된 JSON UI 정의의 일부다. 창 정의(`ro@jur.window`)와 판 안의 버튼 목록(`ro_panes`)이다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 ## 근거 규칙
 

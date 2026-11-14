@@ -1,9 +1,13 @@
 ---
+title: "Building your own component"
+description: "The steps to build your own component, using the high-level IconRow as the example: props, the lowered shape, button indices, elements and opening it from the server."
 sidebar_position: 9
-title: Building your own component
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/custom-component.source.json';
 import lowered from '@site/src/generated/custom-component.json';
@@ -13,7 +17,7 @@ import lowered from '@site/src/generated/custom-component.json';
 A high-level component is just a function that assembles low-level API pieces (`render`, `createSlots`, `createPack`, and an element's `collection_index` and `$` variables). When a part you need does not exist, you build it the same way. This page walks through it step by step with the high-level component `IconRow` (a header plus one row of icon cells) as the example. The source is shown exactly as the build reads it from `src/high/record.tsx`.
 
 :::note Where to build it
-`IconRow` on this page lives inside the library (`src/high`), so it uses the screen-context helpers (`useScreen`, `useRecord`, `ref`, `GEOM`). Those helpers are not exported from the root `json-ui-react`. When you build a part of the same shape in an app, use only the public API (`createSlots`, `createPack`, `render`), as in [Building it without the helpers](#standalone) below. If you only need to stack parts that already exist (like `ItemDetail` in the research screen), see the [research screen](components/research).
+`IconRow` on this page lives inside the library (`src/high`), so it uses the screen-context helpers (`useScreen`, `useRecord`, `ref`, `GEOM`). Those helpers are not exported from the root `json-ui-react`. When you build a part of the same shape in an app, use only the public API (`createSlots`, `createPack`, `render`), as in [Building it without the helpers](#standalone) below. If you only need to stack parts that already exist (like `ItemDetail` in the research screen), see the [research screen](./research.mdx).
 :::
 
 ## What we are building
@@ -58,7 +62,7 @@ Reading the code in order:
 
 `render` turns the elements into a control tree, and `toBody` turns that into a JSON body. Below is what the `IconRow` above lowers to in cell 0's detail of the research screen (the prebuild step extracts it from `rp/ui/jur.json`). Each cell gets a consecutive `collection_index` (starting at 105 here).
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 The cell definition (`jur.icon_slot`) hides the cell when the server sends the empty-cell mark (`§0§e§r`). So a cell with no data takes no room, and the cells that exist pack to the left (LAY-04).
 
@@ -108,4 +112,4 @@ pack.files();    // { "ui/my.json": ..., "ui/_ui_defs.json": ... }
 slots.layout();  // { total: 4, ranges: [{ name: "mats", start: 0, count: 4 }], blocks: [] }
 ```
 
-The server uses `slots.layout()` to line up its indices. `serverModule(layout)` (from `json-ui-react`) builds a server module that contains `decode`. The details of each function are in [the low-level part of the API reference](api#low).
+The server uses `slots.layout()` to line up its indices. `serverModule(layout)` (from `json-ui-react`) builds a server module that contains `decode`. The details of each function are in [the low-level part of the API reference](../reference/low-level.mdx).

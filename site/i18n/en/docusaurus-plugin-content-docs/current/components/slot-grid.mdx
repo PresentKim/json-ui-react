@@ -1,10 +1,14 @@
 ---
+title: "Fixed-slot grid"
+description: "A 3x8 grid of fixed collection_index cells with a selection detail (SlotGrid): JSX, opening from the server, lowered result and rules."
 sidebar_position: 5
-title: Fixed-slot grid
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/slot-grid.source.json';
 import lowered from '@site/src/generated/slot-grid.json';
@@ -21,9 +25,9 @@ A fixed 3x8 slot grid with a selection detail
 
 | Name | Description |
 | --- | --- |
-| `Screen` | One screen: [API reference](../api#high) |
-| `SlotGrid` | A grid of cells: [API reference](../api#high) |
-| `buildScreens` | Builds the screens into one pack: [API reference](../api#high) |
+| `Screen` | One screen: [API reference](../reference/api.mdx) |
+| `SlotGrid` | A grid of cells: [API reference](../reference/api.mdx) |
+| `buildScreens` | Builds the screens into one pack: [API reference](../reference/api.mdx) |
 
 ## Writing it in JSX
 
@@ -58,13 +62,13 @@ openScreen(player, "slot-grid", {
 
 `LAYOUTS["slot-grid"]` in the generated module shows how the component ranges split the button indices. The excerpt below is extracted from the generated module by the prebuild step.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## Lowered result
 
 An excerpt of the compiled JSON UI definitions of the `jur:sg` screen: the right pane (`sg_right`), the detail (`sg_detail`) and the pane that holds the cells (`sg_panes`). The prebuild step extracts it from `rp/ui`.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 ## Rules
 

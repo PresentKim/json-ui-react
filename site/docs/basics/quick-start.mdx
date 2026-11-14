@@ -1,0 +1,81 @@
+---
+title: "빠른 시작"
+description: "tsconfig 연결, TSX로 화면 쓰기, buildScreens로 팩 만들기, 행동팩에서 openScreen으로 열기까지 네 단계로 첫 화면을 만든다."
+sidebar_position: 3
+sources:
+  - json-ui-react
+---
+
+# 빠른 시작
+
+요구 사항은 Node 22 이상이다. 화면 하나를 만들어 게임에서 열기까지 네 단계다. 아래 코드는 [라우터 예시](../components/router.mdx)와 같다.
+
+**1. `tsconfig.json`에 JSX 런타임을 연결한다.**
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "json-ui-react"
+  }
+}
+```
+
+**2. TSX로 화면을 쓴다.** 화면 하나가 `<Screen>` 하나다. `id`는 행동팩이 화면을 부르는 이름이고, `<ButtonList>`의 `name`은 서버 데이터의 키다.
+
+```tsx
+// screens/router.tsx
+import { Screen, ButtonList } from "json-ui-react";
+
+export default (
+  <Screen id="router" title="Router: screen picked by title prefix">
+    <ButtonList name="buttons" count={4} />
+  </Screen>
+);
+```
+
+**3. `buildScreens`로 팩을 만든다.** 결과의 `files`는 리소스팩의 `ui/*.json`이고, `serverModule`은 행동팩에 넣는 생성 모듈이다. 테마 텍스처(`themeTextures()`)도 리소스팩에 복사한다.
+
+```ts
+// build.ts: npx tsx build.ts
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { buildScreens, themeTextures } from "json-ui-react";
+import router from "./screens/router.tsx";
+
+const built = buildScreens([router], { namespace: "jur", prefix: "jur:" });
+
+const write = (path: string, data: string | Uint8Array) => {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, data);
+};
+for (const [file, text] of Object.entries(built.files)) write(join("rp", file), text); // ui/*.json
+for (const [file, bytes] of Object.entries(themeTextures())) write(join("rp", file), bytes); // textures/ui/jur/*
+write(join("bp", "scripts", "generated", "screens.js"), built.serverModule);
+write(join("bp", "scripts", "generated", "screens.d.ts"), built.serverTypes);
+```
+
+**4. 행동팩에서 연다.** 생성 모듈 `scripts/generated/screens.js`의 `openScreen(player, id, data)`를 쓴다. `data`의 키는 컴포넌트 `name`이고 값은 `[글자, 아이콘]` 버튼 목록이다. 버튼 번호는 신경 쓰지 않아도 된다. 모듈이 화면 배치대로 보낸다.
+
+```js
+// bp/scripts/main.js
+import { openScreen } from "./generated/screens.js";
+
+function openRouter(player) {
+  openScreen(player, "router", {
+    buttons: [
+      ["Title prefix jur:", "textures/items/apple"],
+      ["Lookup by 6 bytes", "textures/items/bread"],
+      ["Pick one screen", "textures/items/diamond"],
+      ["4 buttons in a row", "textures/items/emerald"],
+    ],
+  }).then((hit) => {
+    if (!hit) return; // 취소
+    // hit: { name: "buttons", index: 0..3 }
+  });
+}
+```
+
+`openScreen`은 `Promise<null | { name, index }>`를 돌려준다. 창을 닫으면 `null`이고, 버튼을 누르면 어느 컴포넌트(`name`)의 몇 번째 버튼(`index`)인지 알려 준다. 칸 수보다 적게 보내면 모자란 칸은 빈 칸 표식(`§0§e§r`)으로 채워지고, 많이 보내면 오류다. 자세한 내용은 [API 레퍼런스 2부](../reference/server-module.mdx)에 있다.
+
+탭, 칸 격자, 긴 목록은 [컴포넌트 페이지](../components/router.mdx)에서 같은 방식으로 본다.

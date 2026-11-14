@@ -1,9 +1,13 @@
 ---
+title: "컴포넌트 직접 만들기"
+description: "고수준 컴포넌트 IconRow를 예로 props 정하기, 낮출 모양 정하기, 버튼 번호 받기, 요소 쓰기, 서버에서 열기까지 직접 컴포넌트를 만드는 단계."
 sidebar_position: 9
-title: 컴포넌트 직접 만들기
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/custom-component.source.json';
 import lowered from '@site/src/generated/custom-component.json';
@@ -13,7 +17,7 @@ import lowered from '@site/src/generated/custom-component.json';
 고수준 컴포넌트는 저수준 API(`render`, `createSlots`, `createPack`, 요소의 `collection_index`와 `$` 변수)를 조립한 함수일 뿐이다. 필요한 부품이 없으면 같은 방법으로 직접 만든다. 이 페이지는 고수준 컴포넌트 `IconRow`(머리글 + 아이콘 칸 한 줄)를 예로 들어 단계별로 따라간다. 소스는 빌드할 때 `src/high/record.tsx`에서 읽은 그대로다.
 
 :::note 어디서 만드나
-이 페이지의 `IconRow`는 라이브러리 안(`src/high`)의 부품이라서 화면 문맥 도우미(`useScreen`, `useRecord`, `ref`, `GEOM`)를 쓴다. 이 도우미는 `json-ui-react` 루트로 내보내지 않는다. 앱에서 같은 모양의 부품을 만들 때는 아래 [도우미 없이 만들기](#standalone)처럼 공개 API(`createSlots`, `createPack`, `render`)만 쓴다. 이미 있는 부품을 쌓기만 하면 되는 경우(예: 연구 화면의 `ItemDetail`)는 [연구 화면](components/research)을 본다.
+이 페이지의 `IconRow`는 라이브러리 안(`src/high`)의 부품이라서 화면 문맥 도우미(`useScreen`, `useRecord`, `ref`, `GEOM`)를 쓴다. 이 도우미는 `json-ui-react` 루트로 내보내지 않는다. 앱에서 같은 모양의 부품을 만들 때는 아래 [도우미 없이 만들기](#standalone)처럼 공개 API(`createSlots`, `createPack`, `render`)만 쓴다. 이미 있는 부품을 쌓기만 하면 되는 경우(예: 연구 화면의 `ItemDetail`)는 [연구 화면](./research.mdx)을 본다.
 :::
 
 ## 만들 것
@@ -58,7 +62,7 @@ JSON UI에서 줄은 이렇게 된다. 머리글은 `label`로, 칸은 `collecti
 
 `render`가 요소를 컨트롤 트리로, `toBody`가 JSON 본문으로 바꾼다. 위 `IconRow`가 연구 화면의 칸 0 상세에서 낮춰진 결과는 아래와 같다(prebuild가 `rp/ui/jur.json`에서 뽑는다). 칸마다 `collection_index`가 연속 번호(여기서는 105부터)다.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 칸 정의(`jur.icon_slot`)는 서버가 빈 칸 표식(`§0§e§r`)을 보내면 칸을 숨긴다. 그래서 데이터가 모자란 칸은 자리를 차지하지 않고 있는 칸만 왼쪽부터 붙는다(LAY-04).
 
@@ -108,4 +112,4 @@ pack.files();    // { "ui/my.json": ..., "ui/_ui_defs.json": ... }
 slots.layout();  // { total: 4, ranges: [{ name: "mats", start: 0, count: 4 }], blocks: [] }
 ```
 
-`slots.layout()`은 서버가 번호를 맞추는 데 쓴다. `serverModule(layout)`(`json-ui-react`)로 `decode`가 든 서버 모듈을 만들 수 있다. 자세한 API는 [API 레퍼런스의 저수준 부](api#low)에 있다.
+`slots.layout()`은 서버가 번호를 맞추는 데 쓴다. `serverModule(layout)`(`json-ui-react`)로 `decode`가 든 서버 모듈을 만들 수 있다. 자세한 API는 [API 레퍼런스의 저수준 부](../reference/low-level.mdx)에 있다.

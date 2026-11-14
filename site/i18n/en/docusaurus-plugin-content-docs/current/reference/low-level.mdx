@@ -1,0 +1,130 @@
+---
+title: "Part 3: Working with it yourself: the low-level API"
+description: "API reference part 3: low-level APIs such as ScreenRouter, toggles, SlotGrid, VirtualList, createSlots, hooks, expression and binding builders, render, createPack and lint, with examples."
+sidebar_label: "Low-level API"
+sidebar_position: 3
+sources:
+  - json-ui-react
+  - bedrock-research
+  - bedrock-samples
+---
+
+# Part 3: Working with it yourself: the low-level API
+
+These are the low-level components and tools that the high-level components lower to. Use them to build a part the high-level API lacks (see [Building your own component](../components/custom-component.mdx)) or to process the lowered output. The low-level API stays public.
+
+From the root `json-ui-react`, the high-level API owns the names `SlotGrid`, `VirtualList` and `Tabs`. The low-level ones are exported as `LowSlotGrid`, `LowVirtualList` and `LowTabs` (the type of the tabs hook), and the original names come from the subpaths (`json-ui-react/components/grid`, `json-ui-react/hooks`). In the table below, `SlotGrid` and `VirtualList` are the low-level ones. `createPack`, `createSlots`, `render` and `lintFiles` can also be imported from the root.
+
+| API (src path) | Lowered result | Rules |
+| --- | --- | --- |
+| `ScreenRouter` (`src/components/router.tsx`) | `collection_panel` + factory + a `property_bag` title lookup (compared by prefix byte length). Duplicate titles and duplicate ids are build errors | HOST-06, COL-22, COL-39, COL-47 |
+| `radioToggleBody` (`src/components/toggle.tsx`) | The body of a raw `toggle` radio group. Fills in the eight state keys | INP-10, INP-11, INP-13 |
+| `TabBar` (`src/components/toggle.tsx`) | Lays out toggle definitions in a horizontal row over a `form_buttons` collection and gives each tab a `$tab_index` | INP-13 |
+| `SlotGrid` (`src/components/grid.tsx`) | Horizontal rows inside a vertical `stack_panel`, with fixed `collection_index` cells | COL-38, COL-50, INP-35, BND-32 |
+| `VirtualList` (`src/components/grid.tsx`) | A `grid` with `maximum_grid_items` bound to `#form_button_length`. More than 2000 cells is a build error | COL-49 |
+| `createSlots` / `withSlots` / `useSlots` (`src/slots.ts`) | Assign named, contiguous button indices with `range` and `blocks` | [Building your own component](../components/custom-component.mdx) |
+| `decode`, `serverModule` (`src/slots.ts`) | Decode a button index into `{ name, index, field }` and generate the server module string | [Building your own component](../components/custom-component.mdx) |
+| `useTabs` (`src/hooks.ts`) | Returns tab names, indices, pane bindings, the toggle body and lazy panes for each tab mode (`inside`, `follow`, `lazy`) | INP-13, COL-47 |
+| `useSelection` (`src/hooks.ts`) | Returns the selected-item toggle body (`itemBody`) and a lazy detail factory (`lazyDetail`) | INP-13 |
+| `useBinding` (`src/hooks.ts`) | Validates an expression (EXP-36) and builds a `view` binding | EXP-36 |
+| `lit`, `prefixEq`, `lacks` (`src/expr.ts`) | Assemble vanilla expression strings. `lit` throws on `'`, `*` and `@` | EXP-36 |
+| `view`, `collection`, `details`, `global` (`src/bind.ts`) | Binding object builders. Key order is fixed, and `undefined` keys are omitted | COL-47, BND-32 |
+| `render`, `toBody`, `toEntry` (`src/render.ts`) | Element tree → ControlNode → JSON body | - |
+| `createPack` (`src/pack.ts`) | Builds a bundle of definitions with `ns`, `define`, `modify`, `files()` and `json()` | - |
+| `lintFiles`, `countControls` (`src/lint.ts`) | The generated-JSON linter and a control counter | - |
+
+## Usage examples
+
+Each example is minimal TSX that uses only props from the signatures in `src`.
+
+### Components
+
+```tsx
+import { ScreenRouter } from "json-ui-react/components/router";
+
+<ScreenRouter
+  name="router"
+  factory="router_factory"
+  prefixBytes={6}
+  routes={[{ title: "jur:ro", id: "ro", control: "jur.ro" }]}
+/>;
+```
+
+```tsx
+import { SlotGrid } from "json-ui-react/components/grid";
+
+<SlotGrid
+  name="grid"
+  size={[144, 54]}
+  rows={3}
+  cols={8}
+  rowHeight={18}
+  rowWidth={144}
+  cell={(pos) => <use name={`c${pos}`} def="ffr.slot" collection_index={pos} />}
+/>;
+```
+
+```tsx
+import { VirtualList } from "json-ui-react/components/grid";
+
+<VirtualList name="list" columns={2} cellSize={[72, 18]} cellDef="jur.cell" maxItems={500} />;
+```
+
+```tsx
+import { TabBar, radioToggleBody } from "json-ui-react/components/toggle";
+
+const body = radioToggleBody({ group: "t_tabs", size: [48, 18], forcedIndex: "$tab_index", defaultSelected: "$tab" });
+
+<TabBar
+  name="t_tabs"
+  size={[96, 18]}
+  toggleDef="jur.tab"
+  tabs={[{ name: "t_t0", index: 0 }, { name: "t_t1", index: 1 }]}
+/>;
+```
+
+### Hooks and slots
+
+```tsx
+import { createSlots, decode, serverModule } from "json-ui-react/slots";
+
+const slots = createSlots();
+const buttons = slots.range("buttons", 4);
+const index = buttons.at(2); // server button index
+const hit = decode(slots.layout(), index); // { name: "buttons", index: 2 }
+const module = serverModule(slots.layout()); // server module string
+```
+
+```tsx
+import { useTabs, useSelection, useBinding } from "json-ui-react/hooks";
+
+const tabs = useTabs({ group: "t_tabs", mode: "follow", count: 2, firstIndex: 0 });
+const pane = tabs.paneBinding(1);
+const body = tabs.toggleBody({ size: [48, 18] });
+
+const sel = useSelection({ group: "item", slots: slots.range("items", 8) });
+const itemBody = sel.itemBody({ size: [18, 18], forcedIndex: "$index" });
+
+const binding = useBinding("(#toggle_state * 1)", "#visible", { condition: "always", control: "t_t0" });
+```
+
+```tsx
+import { lit, prefixEq } from "json-ui-react/expr";
+import { view } from "json-ui-react/bind";
+
+const expr = prefixEq("#form_text", "jur:ro");
+const text = lit("jur:ro");
+const b = view(expr, "#visible");
+```
+
+```tsx
+import { createPack } from "json-ui-react/pack";
+import { render, toBody, toEntry } from "json-ui-react/render";
+import { lintFiles, countControls } from "json-ui-react/lint";
+
+const pack = createPack();
+pack.ns("jur", "jur.json").define("panel", <panel name="panel" size={[144, 18]} />);
+const files = { "ui/jur.json": pack.json("jur.json") }; // file path -> JSON body
+const diagnostics = lintFiles(files);
+const counts = countControls(files);
+```

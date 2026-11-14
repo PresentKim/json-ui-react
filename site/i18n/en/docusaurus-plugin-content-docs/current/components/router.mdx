@@ -1,10 +1,14 @@
 ---
+title: "Router"
+description: "The single router that picks a screen by a 6-byte title prefix and a four-button ButtonList: JSX, opening from the server, lowered result and rules."
 sidebar_position: 1
-title: Router
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/router.source.json';
 import lowered from '@site/src/generated/router.json';
@@ -21,9 +25,9 @@ One `<Screen>` and one `<ButtonList>` make a four-button screen. Picking the scr
 
 | Name | Description |
 | --- | --- |
-| `Screen` | One screen: [API reference](../api#high) |
-| `ButtonList` | A vertical list of icon + text buttons: [API reference](../api#high) |
-| `buildScreens` | Builds the screens into one pack: [API reference](../api#high) |
+| `Screen` | One screen: [API reference](../reference/api.mdx) |
+| `ButtonList` | A vertical list of icon + text buttons: [API reference](../reference/api.mdx) |
+| `buildScreens` | Builds the screens into one pack: [API reference](../reference/api.mdx) |
 
 ## Writing it in JSX
 
@@ -58,13 +62,13 @@ openScreen(player, "router", {
 
 `LAYOUTS["router"]` in the generated module shows how the component ranges split the button indices. The excerpt below is extracted from the generated module by the prebuild step.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## Lowered result
 
 An excerpt of the compiled JSON UI definitions of the `jur:ro` screen: the window (`ro@jur.window`) and the button list inside its pane (`ro_panes`). The prebuild step extracts it from `rp/ui`.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 ## Rules
 

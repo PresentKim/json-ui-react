@@ -1,0 +1,66 @@
+---
+title: "2부: 생성 서버 모듈"
+description: "API 레퍼런스 2부. buildScreens가 만드는 행동팩 모듈(openScreen, decode, buttons, TITLES, LAYOUTS, EMPTY)과 데이터 모양, 레코드형 데이터."
+sidebar_label: "생성 서버 모듈"
+sidebar_position: 2
+sources:
+  - json-ui-react
+  - ms-learn
+---
+
+# 2부: 생성 서버 모듈
+
+`buildScreens`가 돌려주는 `serverModule`은 의존 없는 ESM이다. 행동팩 `scripts/generated/screens.js`로 저장하고 `serverTypes`는 옆에 `screens.d.ts`로 둔다. `@minecraft/server-ui`의 `ActionFormData`만 가져온다.
+
+| 내보내기 | 뜻 |
+| --- | --- |
+| `openScreen(player, id, data?)` | 제목을 붙이고 버튼을 화면 배치 순서로 보낸 뒤 응답을 푼다. `Promise<null \| { name, index }>`. 창을 닫으면 `null` |
+| `decode(id, selection)` | 버튼 번호를 `{ name, index }`로 푼다. 블록이면 `field`도 있다. 범위 밖이면 `null` |
+| `buttons(id, data?)` | 배치 순서대로 `[글자, 아이콘?]` 목록을 만든다(`openScreen`이 쓴다) |
+| `screenTitle(id)` | 화면의 폼 제목 |
+| `TITLES`, `LAYOUTS` | 화면 id -> 폼 제목, 버튼 배치(구간, 블록, 시작 번호, 개수) |
+| `EMPTY` | 빈 칸 표식 `§0§e§r`. 데이터가 모자란 칸에 보내며 화면에는 보이지 않는다 |
+
+`data`는 컴포넌트 `name`을 키로, 버튼 배열을 값으로 갖는다. 버튼은 글자 `"Apple"`, `["Apple", "textures/items/apple"]`, `{ text, icon }` 중 하나다. `<SelectGrid>`는 버튼 대신 레코드 배열을 받는다([레코드형 데이터](#records)).
+
+- 컴포넌트에 없는 키는 오류다. 컴포넌트의 칸 수보다 많이 보내도 오류다.
+- 모자란 칸은 `<Tab label>`이 있으면 그 글자, 아니면 `EMPTY`로 채운다.
+- `serverTypes`는 화면 id마다 `data` 모양(`ScreenData`)과 응답 `name`(`ScreenHitNames`)을 좁힌다. 화면 id나 키를 잘못 쓰면 타입 오류가 난다.
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+openScreen(player, "router", {
+  buttons: [["Apple", "textures/items/apple"], ["Bread", "textures/items/bread"]],
+}).then((hit) => {
+  if (!hit) return; // 취소
+  // hit: { name: "buttons", index: 0..3 }
+});
+```
+
+## 레코드형 데이터(칸마다 상세) {#records}
+
+`<SelectGrid name="items">`의 `data.items`는 레코드 배열이다. 레코드 하나가 칸 하나이고, 그 칸의 상세 블록 하나가 된다. 레코드 키는 상세 부품이 쓰는 `name`과 같다.
+
+| 부품 | 레코드에서 읽는 키 | 값 |
+| --- | --- | --- |
+| (칸 격자) | `icon` | 칸에 그릴 아이콘 경로. 칸 글자는 보이지 않는다 |
+| `IconTitle` | `name`(= 부품 `name`), `subtitle`의 키, `icon` | 글자 문자열. 아이콘은 레코드의 `icon` |
+| `TextBlock`, `ActionButton` | 부품 `name` | 글자 문자열 |
+| `IconRow` | 부품 `name` | `[아이콘, 개수]` 또는 아이콘 문자열의 배열. 개수가 없으면 `badge` 글자 |
+
+- 레코드에 없는 키와 레코드가 없는 칸의 상세는 빈 칸 표식(`EMPTY`)으로 채워진다. 레코드가 없는 칸은 아이콘 없는 빈 칸으로 보인다. 레코드가 칸 수보다 많으면 오류다. `Pager`는 데이터가 필요 없다.
+- 응답은 칸을 누르면 `{ name: "items", index }`, 상세의 버튼이면 `{ name: "items", index, field }`다. `field`는 상세 부품이 밝힌 이름이다(`ActionButton name="action"`이면 `"action"`). 상세 블록의 번호도 `decode`가 격자 이름으로 푼다.
+- `serverTypes`는 레코드 키와 `IconEntry`(`string | [icon, count?]`)까지 타입으로 좁힌다.
+- 칸마다 상세가 서버를 거치지 않고 바뀌는 방식(E)은 [연구 화면](../components/research.mdx)이 설명한다.
+
+```js
+openScreen(player, "shop", {
+  items: [
+    { icon: "textures/items/book_normal", name: "Book", status: "Ready", desc: "A book.", mats: [["textures/items/coal", 3]], action: "Start" },
+  ],
+}).then((hit) => {
+  if (hit?.name === "items" && hit.field === "action") { /* hit.index번 칸의 버튼 */ }
+  if (hit?.name === "pages") { /* hit.index 0: 이전, 1: 다음 */ }
+});
+```

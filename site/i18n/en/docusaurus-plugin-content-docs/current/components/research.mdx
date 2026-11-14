@@ -1,10 +1,15 @@
 ---
+title: "Research screen (method E)"
+description: "The research screen with two tabs, 96 cells and a prebuilt detail per cell (method E), assembled only from high-level parts: server data, output equivalence test and rules."
 sidebar_position: 8
-title: Research screen (method E)
+sources:
+  - json-ui-react
+  - bedrock-research
+  - bedrock-samples
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/research.source.json';
 import serverSource from '@site/src/generated/research.server.json';
@@ -33,14 +38,14 @@ The screen uses `layout="split"`: tabs and the grid go in the left pane, and the
 
 | Name | Description |
 | --- | --- |
-| `Screen` | One screen: [API reference](../api#high) |
-| `Tabs`, `Tab` | The tab row and tab content: [API reference](../api#high) |
-| `SelectGrid` | A cell grid with a detail per cell: [API reference](../api#high) |
-| `Pager` | Previous and next buttons: [API reference](../api#high) |
-| `Placeholder` | Hint text for the right pane: [API reference](../api#high) |
-| `DetailPanel` | The detail pane: [API reference](../api#high) |
-| `IconTitle`, `TextBlock`, `IconRow`, `Spacer`, `ActionButton` | Small parts that stack up a detail: [API reference](../api#high) |
-| `buildScreens` | Builds screens into one pack: [API reference](../api#high) |
+| `Screen` | One screen: [API reference](../reference/api.mdx) |
+| `Tabs`, `Tab` | The tab row and tab content: [API reference](../reference/api.mdx) |
+| `SelectGrid` | A cell grid with a detail per cell: [API reference](../reference/api.mdx) |
+| `Pager` | Previous and next buttons: [API reference](../reference/api.mdx) |
+| `Placeholder` | Hint text for the right pane: [API reference](../reference/api.mdx) |
+| `DetailPanel` | The detail pane: [API reference](../reference/api.mdx) |
+| `IconTitle`, `TextBlock`, `IconRow`, `Spacer`, `ActionButton` | Small parts that stack up a detail: [API reference](../reference/api.mdx) |
+| `buildScreens` | Builds screens into one pack: [API reference](../reference/api.mdx) |
 
 ## Writing it in JSX
 
@@ -104,7 +109,7 @@ decode("research", 99);                // { name: "neededPages", index: 1 }
 
 `LAYOUTS["research"]` in the generated module shows how the indices were divided (only the beginning is shown because it is long). Cells, tabs and pager buttons come first, then the detail blocks (20 per cell).
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## Prebuilding a detail for every cell (method E)
 
@@ -119,7 +124,7 @@ The point of the research screen is to switch between 96 details **without a ser
 
 ## Lowered result
 
-<Excerpt data={research} />
+<JsonExcerpt data={research} />
 
 The excerpt above is the body of cell 0's detail (`re_needed_body_0`). The prebuild step extracts it from `rp/ui/jur.json`. The definitions the detail uses (`jur.detail_icon`, `jur.icon_slot` and so on) come from the theme.
 

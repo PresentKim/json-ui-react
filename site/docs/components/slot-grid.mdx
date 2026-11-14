@@ -1,10 +1,14 @@
 ---
+title: "고정 칸 그리드"
+description: "고정 collection_index 칸 3x8 격자와 선택 상세(SlotGrid)의 JSX, 서버에서 여는 법, 낮춤 결과, 근거 규칙."
 sidebar_position: 5
-title: 고정 칸 그리드
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/slot-grid.source.json';
 import lowered from '@site/src/generated/slot-grid.json';
@@ -21,9 +25,9 @@ import layout from '@site/src/generated/slot-grid.layout.json';
 
 | 이름 | 설명 |
 | --- | --- |
-| `Screen` | 화면 하나: [API 레퍼런스](../api#high) |
-| `SlotGrid` | 칸 격자: [API 레퍼런스](../api#high) |
-| `buildScreens` | 화면들을 한 팩으로: [API 레퍼런스](../api#high) |
+| `Screen` | 화면 하나: [API 레퍼런스](../reference/api.mdx) |
+| `SlotGrid` | 칸 격자: [API 레퍼런스](../reference/api.mdx) |
+| `buildScreens` | 화면들을 한 팩으로: [API 레퍼런스](../reference/api.mdx) |
 
 ## JSX로 쓰기
 
@@ -58,13 +62,13 @@ openScreen(player, "slot-grid", {
 
 생성 모듈의 `LAYOUTS["slot-grid"]`는 컴포넌트가 버튼 번호를 어떻게 나눠 받았는지 보여 준다. 아래는 prebuild가 생성 모듈에서 뽑은 것이다.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## 낮춤 결과
 
 `jur:sg` 화면이 컴파일된 JSON UI 정의의 일부다. 오른쪽 판(`sg_right`), 상세(`sg_detail`), 칸이 든 판(`sg_panes`)이다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 ## 근거 규칙
 

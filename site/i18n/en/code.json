@@ -29,6 +29,30 @@
   "jur.photos.legacy": {
     "message": "Photos were taken with the previous version (Korean in-game text)."
   },
+  "jur.sources.caption": {
+    "message": "Sources"
+  },
+  "jur.sources.source": {
+    "message": "Source"
+  },
+  "jur.sources.license": {
+    "message": "License"
+  },
+  "jur.sources.commit": {
+    "message": "Commit"
+  },
+  "jur.sources.accessed": {
+    "message": "Accessed"
+  },
+  "jur.excerpt.label": {
+    "message": "Excerpt"
+  },
+  "jur.excerpt.license": {
+    "message": "License"
+  },
+  "jur.excerpt.commit": {
+    "message": "commit"
+  },
   "theme.ErrorPageContent.title": {
     "message": "This page crashed.",
     "description": "The title of the fallback page when the page crashed"

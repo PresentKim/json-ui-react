@@ -1,0 +1,40 @@
+---
+title: How licenses are applied
+description: How this documentation site handles the license of each source (this repository's code, the bedrock-research wiki, Microsoft Learn, Mojang bedrock-samples) and what readers should keep.
+sidebar_position: 5
+sources:
+  - json-ui-react
+  - bedrock-research
+  - ms-learn
+  - bedrock-samples
+---
+
+# How licenses are applied
+
+This site explains the code and examples of the json-ui-react repository, and relies on the bedrock-research wiki for JSON UI rules and measurements. The table at the bottom of each page lists the sources that page uses, and [Sources](./sources.mdx) collects all of them by license.
+
+## Excerpts and rewriting
+
+The `redistribute` value in the source registry (`site/sources/*.json`) decides.
+
+- A source with `redistribute: true` may be quoted in an `<Excerpt>` box. The box header gives the source title, the original path, the license and the commit.
+- A source with `redistribute: false` is never quoted; only facts are rewritten. The check script (`npm run site:check`) reports an error if such a source is used in an `<Excerpt>`.
+
+The code boxes under "Writing it in JSX", "Opening it from the server" and "Lowered result" on the component pages are read at build time, unchanged, from this repository's sources (`example/`, `src/`) and their build output.
+
+## Handling by source
+
+| Source | Handling |
+| --- | --- |
+| This repository (`json-ui-react`) | Code and examples are shown as they are. The repository has no LICENSE file, so its license is not decided yet and the rights stay with the repository owner |
+| bedrock-research wiki (`bedrock-research`) | Only rule IDs and measured facts are cited; no text is copied. The wiki repository has no LICENSE file, and the wiki text follows a noncommercial-use condition (the wiki's README and NOTICE.md) |
+| Microsoft Learn (`ms-learn`) | Docs are CC BY 4.0 and code is MIT. This site uses only API names and facts about behavior, such as `@minecraft/server-ui` and `@minecraft/server`, and quotes nothing |
+| Mojang bedrock-samples (`bedrock-samples`) | All rights are reserved by Mojang. Only vanilla definition names (such as `common.scrolling_panel`) and facts about behavior are used |
+
+## What readers should keep
+
+1. **Keep the sources**: when you copy content from this site, copy the source table of that page with it.
+2. **Repository license**: until json-ui-react has a license, ask the repository owner before redistributing the code.
+3. **Trademarks**: Minecraft is a trademark of Mojang AB and Microsoft. This site is unofficial and not affiliated with Mojang or Microsoft.
+
+This page is not legal advice. When in doubt, read the license file of the original repository and decide for yourself.

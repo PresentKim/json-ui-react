@@ -1,0 +1,123 @@
+---
+title: "Part 1: High-level API"
+description: "API reference part 1: Screen, ButtonList, Tabs, SlotGrid, VirtualList, SelectGrid and the detail parts, buildScreens and themeTextures, with lowered results, rules and examples."
+sidebar_label: "High-level API"
+sidebar_position: 1
+sources:
+  - json-ui-react
+  - bedrock-research
+  - bedrock-samples
+---
+
+# Part 1: High-level API
+
+The API reference has three parts. Part 1 (this page) is the **high-level API** for writing screens, part 2, the [Generated server module](./server-module.mdx), is the **behavior pack module** that `buildScreens` produces, and part 3, the [Low-level API](./low-level.mdx), is the **low-level API** for processing the lowered output yourself. To start, you only need parts 1 and 2.
+
+Everything is imported from `json-ui-react`. Use the high-level components only inside a `<Screen>` that you pass to `buildScreens`. Button indices are assigned automatically in render order, so no `slots`, `ref` or `$` variables appear in your code.
+
+| API | Meaning | Lowered result | Rules |
+| --- | --- | --- | --- |
+| `<Screen id title layout?>` | One screen. `id` is the name the behavior pack passes to `openScreen`, and `title` is the title shown at the top of the window. `layout` is `"single"` (default, one pane) or `"split"` (a left list plus a right detail pane). Use it only as a top-level element passed to `buildScreens` | A window definition + a router entry (form title `prefix + 2-letter code`) | HOST-06, COL-22, COL-39, COL-47 |
+| `<ButtonList name count>` | A vertical list of icon + text buttons. `count` is 1 to 5 (it must fit the pane height of 128) | Rows of a vertical `stack_panel` + buttons with fixed `collection_index` | COL-38, COL-50 |
+| `<Tabs name mode>` + `<Tab label?>` | Client-side tabs. `mode` is `"inside"`, `"follow"` or `"lazy"`. Tab text and icons come from the server data array `name`, and `label` is the default text sent when that text is missing. One `<Tabs>` per screen, and its children are only `<Tab>` | A tab row (radio `toggle` with 8 states) + method B/C/D content. `lazy` builds the first tab up front automatically | INP-10, INP-11, INP-13, COL-47 |
+| `<SlotGrid name rows cols detail?>` | A grid of cells with radio selection. One per screen. `detail` works only with `<Screen layout="split">`; if it is a string, it is the hint shown before you choose | Rows inside a vertical `stack_panel` + `item_toggle` cells. `detail` is the icon and name shown in the `on` state | COL-38, COL-50, INP-13, INP-35 |
+| `<VirtualList name count columns?>` | A grid list. `columns` is 1 or 2 (default 2). It must be the only child of the screen, and `layout` must be `"single"`. A `count` over 2000 is a build error | `grid` + `maximum_grid_items` bound to `#form_button_length`, in a list window | COL-49 |
+| `<SelectGrid name rows cols detail?>` | A grid of record cells with radio selection. One cell is one record. `detail` is an element that returns one `<DetailPanel>`, and works only with `layout="split"`. A detail is prebuilt for every cell (method E). You can put several on one screen (one per tab, for example) | Rows inside a vertical `stack_panel` + `item_toggle` cells; the detail of a cell sits inside the face of that cell when it is on | COL-38, COL-50, INP-12, INP-35, INP-36, COL-19 |
+| `<DetailPanel footer?>` | The detail pane. The children are a scrolling body stacked top to bottom, and `footer` (usually an `<ActionButton>`) stays fixed below it. Use it only inside the `detail` of a `SelectGrid` | A background `image` > `common.scrolling_panel` (the body) + the footer | LAY-02, LAY-04 |
+| `<IconTitle name subtitle?>` | An icon + title (+ small subtitle) card. `name` is the record key that holds the title text, and the icon is the record's `icon`. `subtitle` is the record key of the subtitle text | A horizontal `stack_panel` (height 28): an icon cell + text lines | COL-38, BND-04 |
+| `<TextBlock name>` | Multi-line text whose height follows the number of lines. `name` is the record key that holds the text | A vertical collection `stack_panel` > `text_block` | COL-38, LAY-04, TXT-08 |
+| `<IconRow name label count badge?>` | A header + one row of icon cells (not pressable). `name` is the record key of the cell list, `label` is the header, `count` is the number of cells (at most what fits the detail width), and `badge` is the text shown on a cell that has an icon but no count | `header_label` + a horizontal collection `stack_panel` > `icon_slot` x `count` | COL-38, COL-50, COL-19, LAY-04 |
+| `<Spacer h>` | A vertical gap in pixels between parts of a detail body | An empty `panel` of width 100% | - |
+| `<ActionButton name>` | A text button fixed below the detail (the `footer` of a `DetailPanel`). `name` is the record key that holds the text. Pressing it returns `{ name: <grid>, index: <cell>, field: name }` | A horizontal collection `stack_panel` > `action_button` | COL-38, INP-32, COL-19 |
+| `<Pager name>` | One row with previous and next arrow buttons, placed on the pane's bottom row. In the response `{ name, index }`, `index` 0 is previous and 1 is next. The server turns the page by changing the data and opening the screen again | A collection `stack_panel` > `pager` x 2 on the pane's bottom row | COL-38, BND-08, INP-32 |
+| `<Placeholder text>` | With `layout="split"`, the hint text shown in the right pane before you choose a cell (static). It cannot be combined with the `detail` string of a `SlotGrid` | A `<code>_right` label hung on the window's `$right_def` | INP-36, FILE-33 |
+| `buildScreens(screens, opts?)` | Builds an array of screen elements into one pack | A single router, the `server_form` hook, theme definitions and the server module | HOST-06, COL-47 |
+| `themeTextures()` | Theme textures (`textures/ui/jur/*`) as path -> bytes. Copy them into the resource pack as they are | - | - |
+
+## buildScreens
+
+```ts
+buildScreens(screens: JuiNode[], opts?: {
+  namespace?: string; // definition namespace (ui/<namespace>.json). Default "jur"
+  prefix?: string;    // form title prefix. Default "jur:"
+  codes?: Record<string, string>; // screen id -> 2-letter code. Default a0, a1, ...
+  lowLevel?: (pack: Pack) => { id: string; control: string; layout: SlotLayout }[];
+}): {
+  files: Record<string, string>; // RP-relative path -> JSON text (ui/*.json, ui/_ui_defs.json)
+  serverModule: string;          // the behavior pack's scripts/generated/screens.js
+  serverTypes: string;           // its .d.ts
+  layouts: Record<string, SlotLayout>; // screen id -> button layout
+  titles: Record<string, string>;      // screen id -> form title
+  diagnostics: Diagnostic[];     // lint warnings (errors throw)
+};
+```
+
+- A form title is `prefix` + a 2-letter code, and every title has the same byte length. Pinning titles with `codes` lets docs and in-game checks quote the same title.
+- `lowLevel` adds low-level definitions to the same pack and returns the screens to hang on the same router (`id`, the control reference `control`, and the button layout `layout`). Use it to put a screen that high-level parts cannot express into the same pack.
+- It throws if screen ids repeat, if an item is not a `<Screen>`, or if a screen has no buttons.
+
+## Usage examples
+
+```tsx
+import { Screen, ButtonList, buildScreens, themeTextures } from "json-ui-react";
+
+const screen = (
+  <Screen id="router" title="Router: screen picked by title prefix">
+    <ButtonList name="buttons" count={4} />
+  </Screen>
+);
+
+const built = buildScreens([screen], { namespace: "jur", prefix: "jur:" });
+// built.files        -> rp/ui/*.json
+// built.serverModule -> bp/scripts/generated/screens.js
+// themeTextures()    -> rp/textures/ui/jur/*
+```
+
+```tsx
+import { Screen, Tabs, Tab, ButtonList } from "json-ui-react";
+
+<Screen id="tabs-lazy" title="Tabs: built by factory on select (D)">
+  <Tabs name="tabs" mode="lazy">
+    <Tab label="Tab 1">
+      <ButtonList name="tab1" count={2} />
+    </Tab>
+    <Tab label="Tab 2">
+      <ButtonList name="tab2" count={2} />
+    </Tab>
+  </Tabs>
+</Screen>;
+```
+
+```tsx
+import { Screen, SlotGrid, VirtualList } from "json-ui-react";
+
+<Screen id="slot-grid" title="Fixed slot grid with selection detail" layout="split">
+  <SlotGrid name="cells" rows={3} cols={8} detail="Pick a slot." />
+</Screen>;
+
+<Screen id="list" title="Grid list: 500 cells (2 columns)">
+  <VirtualList name="list" count={500} />
+</Screen>;
+```
+
+Here is how to use a record grid with detail parts. The detail (`ItemDetail`) is a custom component that stacks small parts. See the whole screen in the [research screen](../components/research.mdx).
+
+```tsx
+import { Screen, SelectGrid, Pager, Placeholder, DetailPanel, IconTitle, TextBlock, IconRow, Spacer, ActionButton } from "json-ui-react";
+
+const ItemDetail = () => (
+  <DetailPanel footer={<ActionButton name="action" />}>
+    <IconTitle name="name" subtitle="status" />
+    <Spacer h={3} />
+    <TextBlock name="desc" />
+    <Spacer h={4} />
+    <IconRow name="mats" label="Required materials" count={8} />
+  </DetailPanel>
+);
+
+<Screen id="shop" title="Shop" layout="split">
+  <SelectGrid name="items" rows={6} cols={8} detail={<ItemDetail />} />
+  <Pager name="pages" />
+  <Placeholder text="Pick an item." />
+</Screen>;
+```

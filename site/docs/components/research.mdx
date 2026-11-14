@@ -1,10 +1,15 @@
 ---
+title: "연구 화면 (방식 E)"
+description: "탭 2개, 칸 96개, 칸마다 미리 만든 상세(방식 E)를 고수준 부품만으로 조립한 연구 화면. 서버 데이터, 출력 동치 테스트, 근거 규칙."
 sidebar_position: 8
-title: 연구 화면 (방식 E)
+sources:
+  - json-ui-react
+  - bedrock-research
+  - bedrock-samples
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/research.source.json';
 import serverSource from '@site/src/generated/research.server.json';
@@ -33,14 +38,14 @@ import layout from '@site/src/generated/research.layout.json';
 
 | 이름 | 설명 |
 | --- | --- |
-| `Screen` | 화면 하나: [API 레퍼런스](../api#high) |
-| `Tabs`, `Tab` | 탭 줄과 탭 내용: [API 레퍼런스](../api#high) |
-| `SelectGrid` | 상세가 딸린 칸 격자: [API 레퍼런스](../api#high) |
-| `Pager` | 이전·다음 버튼: [API 레퍼런스](../api#high) |
-| `Placeholder` | 오른쪽 판 안내 글자: [API 레퍼런스](../api#high) |
-| `DetailPanel` | 상세 판: [API 레퍼런스](../api#high) |
-| `IconTitle`, `TextBlock`, `IconRow`, `Spacer`, `ActionButton` | 상세를 쌓는 작은 부품: [API 레퍼런스](../api#high) |
-| `buildScreens` | 화면들을 한 팩으로: [API 레퍼런스](../api#high) |
+| `Screen` | 화면 하나: [API 레퍼런스](../reference/api.mdx) |
+| `Tabs`, `Tab` | 탭 줄과 탭 내용: [API 레퍼런스](../reference/api.mdx) |
+| `SelectGrid` | 상세가 딸린 칸 격자: [API 레퍼런스](../reference/api.mdx) |
+| `Pager` | 이전·다음 버튼: [API 레퍼런스](../reference/api.mdx) |
+| `Placeholder` | 오른쪽 판 안내 글자: [API 레퍼런스](../reference/api.mdx) |
+| `DetailPanel` | 상세 판: [API 레퍼런스](../reference/api.mdx) |
+| `IconTitle`, `TextBlock`, `IconRow`, `Spacer`, `ActionButton` | 상세를 쌓는 작은 부품: [API 레퍼런스](../reference/api.mdx) |
+| `buildScreens` | 화면들을 한 팩으로: [API 레퍼런스](../reference/api.mdx) |
 
 ## JSX로 쓰기
 
@@ -104,7 +109,7 @@ decode("research", 99);                // { name: "neededPages", index: 1 }
 
 생성 모듈의 `LAYOUTS["research"]`는 번호가 어떻게 나뉘었는지 보여 준다(길어서 앞부분만 보인다). 칸, 탭, 페이지 버튼이 먼저이고 상세 블록(칸마다 20개)이 뒤에 온다.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## 칸마다 상세를 미리 만든다 (방식 E)
 
@@ -119,7 +124,7 @@ decode("research", 99);                // { name: "neededPages", index: 1 }
 
 ## 낮춤 결과
 
-<Excerpt data={research} />
+<JsonExcerpt data={research} />
 
 위는 칸 0의 상세 본문(`re_needed_body_0`)이다. prebuild가 `rp/ui/jur.json`에서 뽑는다. 상세가 쓰는 정의(`jur.detail_icon`, `jur.icon_slot` 등)는 테마가 제공한다.
 

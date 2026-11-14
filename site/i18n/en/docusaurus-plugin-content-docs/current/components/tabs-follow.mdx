@@ -1,10 +1,14 @@
 ---
-sidebar_position: 3
 title: "Tabs: shown by toggle state (method C)"
+description: "Tab method C (Tabs mode=\"follow\"), where panes follow the toggle state binding: JSX, opening from the server, lowered result and rules."
+sidebar_position: 3
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/tabs-follow.source.json';
 import lowered from '@site/src/generated/tabs-follow.json';
@@ -21,10 +25,10 @@ Method C: panels follow a toggle-state binding to show or hide
 
 | Name | Description |
 | --- | --- |
-| `Screen` | One screen: [API reference](../api#high) |
-| `Tabs` | Client-side tabs: [API reference](../api#high) |
-| `Tab` | One tab: [API reference](../api#high) |
-| `ButtonList` | A vertical list of icon + text buttons: [API reference](../api#high) |
+| `Screen` | One screen: [API reference](../reference/api.mdx) |
+| `Tabs` | Client-side tabs: [API reference](../reference/api.mdx) |
+| `Tab` | One tab: [API reference](../reference/api.mdx) |
+| `ButtonList` | A vertical list of icon + text buttons: [API reference](../reference/api.mdx) |
 
 ## Writing it in JSX
 
@@ -60,13 +64,13 @@ openScreen(player, "tabs-follow", {
 
 `LAYOUTS["tabs-follow"]` in the generated module shows how the component ranges split the button indices. The excerpt below is extracted from the generated module by the prebuild step.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## Lowered result
 
 An excerpt of the compiled JSON UI definitions of the `jur:tf` screen: the tab row (`tf_tabs`), the pane that holds the tab contents (`tf_panes`) and the window (`tf@jur.window`). The prebuild step extracts it from `rp/ui`.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 ## Rules
 

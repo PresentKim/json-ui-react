@@ -1,10 +1,14 @@
 ---
+title: "가상 목록 500칸"
+description: "grid로 그리는 2열 가상 목록 500칸(VirtualList)의 JSX, 서버에서 여는 법, 낮춤 결과, 근거 규칙."
 sidebar_position: 6
-title: 가상 목록 500칸
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/virtual-list-500.source.json';
 import lowered from '@site/src/generated/virtual-list-500.json';
@@ -21,8 +25,8 @@ import layout from '@site/src/generated/virtual-list-500.layout.json';
 
 | 이름 | 설명 |
 | --- | --- |
-| `Screen` | 화면 하나: [API 레퍼런스](../api#high) |
-| `VirtualList` | 스크롤 grid 목록: [API 레퍼런스](../api#high) |
+| `Screen` | 화면 하나: [API 레퍼런스](../reference/api.mdx) |
+| `VirtualList` | 스크롤 grid 목록: [API 레퍼런스](../reference/api.mdx) |
 
 ## JSX로 쓰기
 
@@ -59,13 +63,13 @@ openScreen(player, "virtual-list-500", {
 
 생성 모듈의 `LAYOUTS["virtual-list-500"]`는 컴포넌트가 버튼 번호를 어떻게 나눠 받았는지 보여 준다. 아래는 prebuild가 생성 모듈에서 뽑은 것이다.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## 낮춤 결과
 
 `jur:v5` 화면이 컴파일된 JSON UI 정의의 일부다. 목록(`v5_list`)과 목록 창(`v5@jur.list_window`)이다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 ## 근거 규칙
 

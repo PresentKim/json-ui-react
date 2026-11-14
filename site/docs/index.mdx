@@ -1,0 +1,53 @@
+---
+title: json-ui-react 문서
+description: TSX로 쓴 배드락 서버 폼 화면을 JSON UI와 행동팩 서버 모듈로 컴파일하는 json-ui-react 문서의 시작 페이지다. 독자별 읽는 순서, 섹션 지도, 규칙 ID로 bedrock-research 위키 찾기, 출처와 라이선스를 담는다.
+sidebar_position: 0
+sources:
+  - json-ui-react
+  - bedrock-research
+---
+
+# json-ui-react 문서
+
+json-ui-react는 TSX로 쓴 마인크래프트 배드락 서버 폼 화면을 빌드 시점에 **정적 JSON UI**(리소스팩 `ui/*.json`)와 **행동팩 서버 모듈**(`scripts/generated/screens.js`)로 컴파일한다. 이 사이트는 그 사용법, 컴포넌트 8개의 예시, API를 정리한 위키다. 각 페이지 하단 표에 그 페이지가 기댄 출처와 라이선스를 적는다.
+
+이 도구는 [bedrock-research](https://github.com/PresentKim/bedrock-research) 저장소(Bedrock 개발 위키)의 JSON UI 규칙(규칙 ID)과 실측 결과를 기반으로 만들었다. 문서와 lint 진단에 나오는 규칙 ID(`COL-50`, `INP-35` 등)는 그 위키와 같은 값이다. 규칙 ID로 위키의 어느 페이지를 보면 되는지는 아래 [규칙 ID로 위키 찾기](#rule-ids)에 있다.
+
+## 누가 어디서 시작하나
+
+| 독자 | 읽는 순서 |
+| --- | --- |
+| 라이브러리로 화면을 만드는 사람 | [소개](./basics/intro.mdx) → [빠른 시작](./basics/quick-start.mdx) → [라우터](./components/router.mdx) → 필요한 컴포넌트 페이지 → [API 1부: 고수준 API](./reference/api.mdx) → [API 2부: 생성 서버 모듈](./reference/server-module.mdx) |
+| 예시 애드온을 게임에서 먼저 보는 사람 | [시작하기](./basics/getting-started.mdx) → 각 컴포넌트 페이지의 "통합 애드온에서 실행 방법"과 "실측 사진" |
+| 없는 부품을 직접 만드는 사람 | [컴포넌트 직접 만들기](./components/custom-component.mdx) → [API 3부: 저수준 API](./reference/low-level.mdx) → [연구 화면](./components/research.mdx) |
+
+## 섹션 지도
+
+| 섹션 | 다루는 것 |
+| --- | --- |
+| 기초 | [소개](./basics/intro.mdx), [시작하기](./basics/getting-started.mdx)(명령어, 애드온 설치, 예시 열기), [빠른 시작](./basics/quick-start.mdx)(첫 화면 네 단계) |
+| 컴포넌트 | [라우터](./components/router.mdx), [탭 B](./components/tabs-inside.mdx), [탭 C](./components/tabs-follow.mdx), [탭 D](./components/tabs-lazy.mdx), [고정 칸 그리드](./components/slot-grid.mdx), [가상 목록 500칸](./components/virtual-list-500.mdx), [가상 목록 2000칸](./components/virtual-list-2000.mdx), [연구 화면](./components/research.mdx), [컴포넌트 직접 만들기](./components/custom-component.mdx) |
+| 참고 자료 | [API 1부: 고수준 API](./reference/api.mdx), [API 2부: 생성 서버 모듈](./reference/server-module.mdx), [API 3부: 저수준 API](./reference/low-level.mdx), [출처 목록](./reference/sources.mdx), [라이선스 적용 방법](./reference/license.mdx) |
+
+컴포넌트 페이지는 모두 같은 순서다. 쓰는 API, JSX로 쓰기, 서버에서 열기, 낮춤 결과, 근거 규칙, 통합 애드온에서 실행 방법, 실측 사진.
+
+## 규칙 ID로 위키 찾기 {#rule-ids}
+
+규칙 ID의 앞부분이 bedrock-research 위키 JSON UI 장의 페이지를 가리킨다. 이 문서가 쓰는 앞부분은 다음과 같다.
+
+| 앞부분 | 위키 페이지 | 이 문서에서 쓰는 곳 |
+| --- | --- | --- |
+| `COL-*` | [컬렉션과 팩토리](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/collections-and-factory.mdx) | 고정 `collection_index` 칸, 줄 스택, 라우터 팩토리, grid 한계 |
+| `INP-*` | [입력, 버튼, 토글](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/input-buttons-toggles.mdx) | 라디오 토글 탭, 칸 선택, 켠 얼굴 안의 상세 |
+| `BND-*` | [바인딩](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/bindings.mdx) | 바인딩을 가진 컨트롤, 다른 컨트롤의 속성 읽기, 보일 때 만드는 팩토리 |
+| `EXP-*` | [식과 연산자](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/expressions.mdx) | 식 토큰을 끊는 글자 검사 |
+| `LAY-*` | [컨트롤과 레이아웃](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/controls-and-layout.mdx) | 스크롤 판(`common.scrolling_panel`), 숨은 자식에게 공간을 주지 않는 스택 |
+| `HOST-*` | [화면 호스트와 데이터 채널](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/screen-hosts-and-data.mdx) | 고른 화면만 만드는 사전 조회 라우팅 |
+| `TXT-*` | [텍스트와 현지화](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/text-and-localization.mdx) | 바인딩된 글의 `§` 색 코드 |
+| `FILE-*` | [파일과 정의](https://github.com/PresentKim/bedrock-research/blob/main/docs/json-ui/files-and-definitions.mdx) | `$` 변수 조회 순서 |
+
+[연구 화면](./components/research.mdx)이 쓰는 기법과 실측(FFR)은 위키의 [서버 폼 연구 화면 페이지](https://github.com/PresentKim/bedrock-research/blob/main/docs/design/server-form-research-screen.mdx)에 한곳에 모여 있다.
+
+## 출처와 라이선스
+
+페이지마다 하단 표가 그 페이지의 출처를 보여 준다. 전체 목록은 [출처 목록](./reference/sources.mdx)에, 출처별 처리 원칙은 [라이선스 적용 방법](./reference/license.mdx)에 있다. 이 문서는 Mojang, Microsoft와 관계가 없는 비공식 자료다.

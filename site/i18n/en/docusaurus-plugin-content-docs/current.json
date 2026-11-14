@@ -3,8 +3,16 @@
     "message": "Next",
     "description": "The label for version current"
   },
-  "sidebar.docs.category.컴포넌트": {
+  "sidebar.wiki.category.기초": {
+    "message": "Basics",
+    "description": "The label for category '기초' in sidebar 'wiki'"
+  },
+  "sidebar.wiki.category.컴포넌트": {
     "message": "Components",
-    "description": "The label for category '컴포넌트' in sidebar 'docs'"
+    "description": "The label for category '컴포넌트' in sidebar 'wiki'"
+  },
+  "sidebar.wiki.category.참고 자료": {
+    "message": "Reference",
+    "description": "The label for category '참고 자료' in sidebar 'wiki'"
   }
 }

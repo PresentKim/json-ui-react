@@ -1,0 +1,66 @@
+---
+title: "Part 2: Generated server module"
+description: "API reference part 2: the behavior pack module that buildScreens generates (openScreen, decode, buttons, TITLES, LAYOUTS, EMPTY), its data shape and record data."
+sidebar_label: "Generated server module"
+sidebar_position: 2
+sources:
+  - json-ui-react
+  - ms-learn
+---
+
+# Part 2: Generated server module
+
+The `serverModule` that `buildScreens` returns is a dependency-free ESM. Save it as the behavior pack's `scripts/generated/screens.js`, and put `serverTypes` next to it as `screens.d.ts`. It imports only `ActionFormData` from `@minecraft/server-ui`.
+
+| Export | Meaning |
+| --- | --- |
+| `openScreen(player, id, data?)` | Attaches the title, sends the buttons in the screen's layout order and decodes the response. Returns `Promise<null \| { name, index }>`; `null` if the window is closed |
+| `decode(id, selection)` | Decodes a button index into `{ name, index }`, plus `field` for a block. `null` if it is out of range |
+| `buttons(id, data?)` | Builds the `[text, icon?]` list in layout order (what `openScreen` uses) |
+| `screenTitle(id)` | The form title of a screen |
+| `TITLES`, `LAYOUTS` | Screen id -> form title, and screen id -> button layout (ranges, blocks, start index, count) |
+| `EMPTY` | The empty-cell mark `§0§e§r`. Sent for cells with no data; it is invisible on screen |
+
+`data` maps component `name`s to arrays of buttons. A button is a text `"Apple"`, `["Apple", "textures/items/apple"]` or `{ text, icon }`. A `<SelectGrid>` takes an array of records instead of buttons (see [record data](#records)).
+
+- A key that matches no component is an error, and so is sending more buttons than the component has.
+- A missing cell gets the `<Tab label>` text if there is one, otherwise `EMPTY`.
+- `serverTypes` narrows the `data` shape (`ScreenData`) and the response `name` (`ScreenHitNames`) per screen id. A wrong screen id or key is a type error.
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+openScreen(player, "router", {
+  buttons: [["Apple", "textures/items/apple"], ["Bread", "textures/items/bread"]],
+}).then((hit) => {
+  if (!hit) return; // canceled
+  // hit: { name: "buttons", index: 0..3 }
+});
+```
+
+## Record data (a detail per cell) {#records}
+
+The `data.items` of `<SelectGrid name="items">` is an array of records. One record is one cell, and it also becomes that cell's detail block. The record keys are the same as the `name`s the detail parts use.
+
+| Part | Keys read from the record | Value |
+| --- | --- | --- |
+| (the cell grid) | `icon` | The icon path drawn in the cell. The cell text is not visible |
+| `IconTitle` | `name` (the part's `name`), the `subtitle` key, `icon` | A text string. The icon is the record's `icon` |
+| `TextBlock`, `ActionButton` | The part's `name` | A text string |
+| `IconRow` | The part's `name` | An array of `[icon, count]` or icon strings. With no count, the `badge` text is shown |
+
+- A key missing from a record, and the detail of a cell with no record, are filled with the empty-cell mark (`EMPTY`). A cell with no record shows as an empty cell with no icon. More records than cells is an error. `Pager` needs no data.
+- The response is `{ name: "items", index }` when you press a cell, and `{ name: "items", index, field }` for a button inside the detail. `field` is the name a detail part declared (`"action"` for `ActionButton name="action"`). `decode` also resolves detail-block indices to the grid name.
+- `serverTypes` narrows the types down to the record keys and `IconEntry` (`string | [icon, count?]`).
+- How the details switch without a server round trip (method E) is explained in the [research screen](../components/research.mdx).
+
+```js
+openScreen(player, "shop", {
+  items: [
+    { icon: "textures/items/book_normal", name: "Book", status: "Ready", desc: "A book.", mats: [["textures/items/coal", 3]], action: "Start" },
+  ],
+}).then((hit) => {
+  if (hit?.name === "items" && hit.field === "action") { /* the button of cell hit.index */ }
+  if (hit?.name === "pages") { /* hit.index 0: previous, 1: next */ }
+});
+```

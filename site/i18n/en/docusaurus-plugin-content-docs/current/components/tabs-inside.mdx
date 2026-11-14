@@ -1,10 +1,14 @@
 ---
-sidebar_position: 2
 title: "Tabs: content inside the toggle (method B)"
+description: "Tab method B (Tabs mode=\"inside\"), which puts the pane inside the checked toggle face: JSX, opening from the server, lowered result and rules."
+sidebar_position: 2
+sources:
+  - json-ui-react
+  - bedrock-research
 ---
 
 import Photos from '@site/src/components/Photos';
-import Excerpt from '@site/src/components/Excerpt';
+import JsonExcerpt from '@site/src/components/JsonExcerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/tabs-inside.source.json';
 import lowered from '@site/src/generated/tabs-inside.json';
@@ -21,10 +25,10 @@ Method B: put the panel inside the toggle's checked face
 
 | Name | Description |
 | --- | --- |
-| `Screen` | One screen: [API reference](../api#high) |
-| `Tabs` | Client-side tabs: [API reference](../api#high) |
-| `Tab` | One tab: [API reference](../api#high) |
-| `ButtonList` | A vertical list of icon + text buttons: [API reference](../api#high) |
+| `Screen` | One screen: [API reference](../reference/api.mdx) |
+| `Tabs` | Client-side tabs: [API reference](../reference/api.mdx) |
+| `Tab` | One tab: [API reference](../reference/api.mdx) |
+| `ButtonList` | A vertical list of icon + text buttons: [API reference](../reference/api.mdx) |
 
 ## Writing it in JSX
 
@@ -60,13 +64,13 @@ openScreen(player, "tabs-inside", {
 
 `LAYOUTS["tabs-inside"]` in the generated module shows how the component ranges split the button indices. The excerpt below is extracted from the generated module by the prebuild step.
 
-<Excerpt data={layout} />
+<JsonExcerpt data={layout} />
 
 ## Lowered result
 
 An excerpt of the compiled JSON UI definitions of the `jur:ti` screen: the tab row (`ti_tabs`), the checked face (`ti_on_0`) and the window (`ti@jur.window`). The prebuild step extracts it from `rp/ui`.
 
-<Excerpt data={lowered} />
+<JsonExcerpt data={lowered} />
 
 ## Rules
 

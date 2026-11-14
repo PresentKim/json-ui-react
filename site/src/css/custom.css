@@ -27,3 +27,8 @@
 .jur-locale__link:hover{background:var(--ifm-hover-overlay);color:var(--ifm-font-color-base);text-decoration:none}
 .jur-locale__link--active{color:var(--ifm-color-primary);font-weight:var(--ifm-font-weight-bold)}
 .jur-locale .jur-navbar-icon:hover{color:var(--ifm-color-primary)}
+.excerpt{border-left:4px solid var(--ifm-color-primary);background:var(--ifm-background-surface-color);padding:.5rem 1rem;margin:1rem 0;border-radius:4px}
+.excerpt__head{font-size:.85rem;color:var(--ifm-color-emphasis-700);margin-bottom:.5rem}
+.sources-table{margin-top:2rem;font-size:.85rem}
+/* 996px 이하에서 테마는 검색 상자를 상단바 오른쪽 끝에 absolute로 붙여 언어 아이콘을 가린다. 아이콘 줄 끝에 이어 놓는다. */
+@media (max-width:996px){.navbar__items--right [class^="navbarSearchContainer"]{position:static;margin-left:.25rem}}

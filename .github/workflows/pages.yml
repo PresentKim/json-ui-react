@@ -1,6 +1,7 @@
 # 문서 사이트(site/)를 빌드해 GitHub Pages에 올린다.
 # site:build가 예시 mcaddon을 먼저 만들어 site/static/downloads/에 넣으므로
 # 사이트의 다운로드 버튼은 같은 커밋에서 만든 mcaddon을 가리킨다.
+# 빌드 전에 문서 검사 스크립트 시험(site:test)과 문서 검사(site:check)를 돌린다.
 name: pages
 
 on:
@@ -29,8 +30,15 @@ jobs:
       - run: npm ci
       - name: 단위 시험
         run: npx vitest run --exclude tests/site.test.ts
+      - name: 문서 검사 스크립트 시험
+        run: npm run site:test
+      - name: 문서 검사(머리말, 출처 id, 링크, 라이선스, MDX, ko/en 짝)
+        run: npm run site:check
       - name: mcaddon과 문서 사이트 빌드
         run: npm run site:build
+        env:
+          BASE_URL: /${{ github.event.repository.name }}/
+          SITE_URL: https://${{ github.repository_owner }}.github.io
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
