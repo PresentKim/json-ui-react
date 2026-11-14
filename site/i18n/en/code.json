@@ -1,4 +1,7 @@
 {
+  "jur.locale.label": {
+    "message": "Language"
+  },
   "jur.navbar.github": {
     "message": "GitHub repository"
   },

@@ -121,9 +121,9 @@ describe("site", () => {
     expect(slot).toContain("이전 버전(한국어 글자)");
   });
   it("test_navbar_download_github_locale_in_both_locales", () => {
-    for (const [prefix, lang, dl, gh, other] of [
-      ["", "ko", "통합 테스트 애드온 다운로드", "GitHub 저장소", "/json-ui-react/en/"],
-      ["en", "en", "Download integration test add-on", "GitHub repository", "/json-ui-react/"],
+    for (const [prefix, lang, dl, gh, loc, other] of [
+      ["", "ko", "통합 테스트 애드온 다운로드", "GitHub 저장소", "언어 선택", "/json-ui-react/en/"],
+      ["en", "en", "Download integration test add-on", "GitHub repository", "Language", "/json-ui-react/"],
     ] as const) {
       for (const page of ["", "components/router"]) {
         const html = readFileSync(join(BUILD, prefix, page, "index.html"), "utf8");
@@ -131,7 +131,10 @@ describe("site", () => {
         expect(nav).toContain(`aria-label="${dl}"`);
         expect(nav).toContain(`aria-label="${gh}"`);
         expect(nav).toContain('href="https://github.com/PresentKim/json-ui-react"');
-        expect(nav).toContain("dropdown");
+        // 언어 메뉴는 글자 없이 아이콘 버튼이다(다운로드·GitHub와 같은 jur-navbar-icon).
+        expect(nav).toMatch(new RegExp(`<button[^>]*class="[^"]*jur-navbar-icon[^"]*"[^>]*aria-label="${loc}"|<button[^>]*aria-label="${loc}"[^>]*class="[^"]*jur-navbar-icon`));
+        expect(nav).toContain(`title="${loc}"`);
+        expect(nav).not.toContain("navbar__link");
         expect(nav).toContain('lang="ko"');
         expect(nav).toContain('lang="en"');
         expect(nav).toContain("한국어");
@@ -143,7 +146,7 @@ describe("site", () => {
       }
     }
     const css = readdirSync(join(BUILD, "assets", "css")).map((f) => readFileSync(join(BUILD, "assets", "css", f), "utf8")).join("\n");
-    expect(css).toContain(".navbar__items--right>.navbar__item.dropdown{align-items:center;display:inline-flex!important}");
+    expect(css).toContain(".jur-locale__menu");
     // en 다운로드 링크 파일이 en 빌드에 있다.
     const meta = JSON.parse(readFileSync(join(ROOT, "site", "src", "generated", "addon.json"), "utf8")) as { file: string };
     expect(existsSync(join(BUILD, "en", "downloads", meta.file))).toBe(true);

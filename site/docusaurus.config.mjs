@@ -31,8 +31,7 @@ export default {
     navbar: { title: "json-ui-react", items: [
         { type: "custom-addonDownload", position: "right" },
         { type: "custom-githubLink", position: "right" },
-        // 모바일 상단바에서도 보이도록 custom.css가 .navbar__item.dropdown을 다시 보인다.
-        { type: "localeDropdown", position: "right", className: "jur-locale" },
+        { type: "custom-localeSwitch", position: "right" },
       ],
     },
     prism: { theme: themes.github, darkTheme: themes.dracula },
