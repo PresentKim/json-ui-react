@@ -9,6 +9,7 @@ import { ScreenRouter } from "../src/components/router.tsx";
 import { render, toBody } from "../src/render.ts";
 import { defineResearch, defineServerForm, createResearchSlots } from "../examples/research/screen.tsx";
 import { EXAMPLES, TITLE_BYTES, TITLE_PREFIX } from "./catalog.ts";
+import { defineCommon } from "./screens/common.tsx";
 import { defineRouter } from "./screens/router.tsx";
 import { defineTabsInside } from "./screens/tabs-inside.tsx";
 import { defineTabsFollow } from "./screens/tabs-follow.tsx";
@@ -32,6 +33,7 @@ export function buildExamples(): { files: Record<string, string>; layouts: Recor
   const pack = createPack();
   const layouts: Record<string, SlotLayout> = {};
   const controls: Record<string, string> = {};
+  defineCommon(pack);
 
   // research는 examples/research의 정의를 재사용하고 라우터만 이쪽에 맡긴다.
   const researchSlots = createResearchSlots();

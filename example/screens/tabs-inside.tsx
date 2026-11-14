@@ -2,16 +2,16 @@
 import type { Pack } from "../../src/pack.ts";
 import type { Slots } from "../../src/slots.ts";
 import { TabBar } from "../../src/components/toggle.tsx";
-import { ButtonRow, defineWindow, ns, ref } from "./common.tsx";
+import { ButtonList, defineWindow, ns, ref } from "./common.tsx";
 
 export function defineTabsInside(pack: Pack, slots: Slots): string {
   const tabs = slots.range("tabs", 2);
   const panes = [slots.range("pane0", 2), slots.range("pane1", 2)];
   const n = ns(pack);
-  // 탭 1은 탭 0보다 96px 오른쪽이라 패널 오프셋을 -94로 보정한다.
+  // 탭 1은 탭 0보다 96px 오른쪽이라 패널 오프셋을 -94로 보정한다. 판(왼쪽 6,22 + 안쪽 4,4)이 시작하는 자리에 맞춘다.
   const offsets = [[2, 48], [-94, 48]];
   panes.forEach((r, i) => {
-    n.define(`ti_pane_${i}`, <ButtonRow name={`ti_pane_${i}`} range={r} />);
+    n.define(`ti_pane_${i}`, <ButtonList name={`ti_pane_${i}`} range={r} />);
     n.define(`ti_on_${i}`, (
       <panel name={`ti_on_${i}`} size={["100%", "100%"]}>
         <use name="face" def="ffr.tab_face_on" />

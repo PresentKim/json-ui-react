@@ -3,7 +3,7 @@ import type { Pack } from "../../src/pack.ts";
 import type { Slots } from "../../src/slots.ts";
 import { TabBar } from "../../src/components/toggle.tsx";
 import { view } from "../../src/bind.ts";
-import { ButtonRow, defineWindow, ns, ref } from "./common.tsx";
+import { ButtonList, defineWindow, ns, ref } from "./common.tsx";
 
 export function defineTabsLazy(pack: Pack, slots: Slots): string {
   const tabs = slots.range("tabs", 2);
@@ -18,18 +18,18 @@ export function defineTabsLazy(pack: Pack, slots: Slots): string {
     />
   ));
   panes.forEach((r, i) => {
-    n.define(`tl_pane_${i}`, <ButtonRow name={`tl_pane_${i}`} range={r} />);
+    n.define(`tl_pane_${i}`, <ButtonList name={`tl_pane_${i}`} range={r} />);
     n.define(`tl_lazy_${i}`, (
       <stack_panel
         name={`tl_lazy_${i}`}
-        size={[144, 128]}
+        size={[180, 128]}
         factory={{ name: `jur_tl${i}`, control_name: ref(`tl_pane_${i}`) }}
         bindings={[view("(#toggle_state * 1)", "#collection_length", { condition: "always", control: `jur_t${i}` })]}
       />
     ));
   });
   n.define("tl_panes", (
-    <panel name="tl_panes" size={[144, 128]}>
+    <panel name="tl_panes" size={[180, 128]}>
       {[0, 1].map((i) => <use name={`g${i}`} def={ref(`tl_lazy_${i}`)} />)}
     </panel>
   ));
