@@ -8,3 +8,8 @@ node_modules/
 dist/
 coverage/
 *.tsbuildinfo
+out/
+examples/research/out/
+site/build/
+site/.docusaurus/
+site/static/downloads/
