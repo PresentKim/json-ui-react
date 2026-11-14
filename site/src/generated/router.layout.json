@@ -1,0 +1,4 @@
+{
+  "id": "router",
+  "text": "{\n  \"router\": {\n    \"total\": 4,\n    \"ranges\": [\n      {\n        \"name\": \"buttons\",\n        \"start\": 0,\n        \"count\": 4\n      }\n    ],\n    \"blocks\": []\n  }\n}"
+}

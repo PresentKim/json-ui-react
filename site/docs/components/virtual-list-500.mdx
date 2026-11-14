@@ -7,40 +7,69 @@ import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/virtual-list-500.source.json';
-import virtual_list_500 from '@site/src/generated/virtual-list-500.json';
+import lowered from '@site/src/generated/virtual-list-500.json';
+import layout from '@site/src/generated/virtual-list-500.layout.json';
 
 # 가상 목록 500칸
 
 2열 가상 목록 500칸
 
 
-`grid`에 `maximum_grid_items`를 `#form_button_length`로 묶은 2열 가상 목록.
+`<VirtualList>`는 `grid`에 `maximum_grid_items`를 `#form_button_length`로 묶은 2열 가상 목록을 만든다.
 
 ## 쓰는 API
 
 | 이름 | 설명 |
 | --- | --- |
-| `VirtualList` | [API 레퍼런스](../api) |
+| `Screen` | 화면 하나: [API 레퍼런스](../api#high) |
+| `VirtualList` | 스크롤 grid 목록: [API 레퍼런스](../api#high) |
 
 ## JSX로 쓰기
 
-`VirtualList`를 쓴다. 칸 정의와 개수만 넘기면 2열 목록이 된다. 아래 두 파일은 500칸 진입점과 공통 정의다.
+`<VirtualList>`는 화면의 유일한 자식이다. `count`가 칸 수이고 `columns`는 기본 2다. `<Screen>` 아래에 아무것도 더 둘 수 없고 `layout`은 `single`이어야 한다. 아래 두 파일은 500칸 진입점과 공통 정의다.
 
-| JSX | 낮춰진 JSON UI |
-| --- | --- |
-| `<VirtualList>` | `grid` + `maximum_grid_items`를 `#form_button_length`에 묶음 |
+| 고수준 요소 | 낮춰진 JSON UI | 근거 규칙 |
+| --- | --- | --- |
+| `<Screen>` | 목록 창 `v5@jur.list_window` + 라우터 항목(폼 제목 `jur:v5`) | HOST-06, COL-22, COL-39, COL-47 |
+| `<VirtualList name="list" count={500} />` | `v5_list`: `grid` + `maximum_grid_items`를 `#form_button_length`에 묶음. 칸은 `list_cell` 버튼 | COL-49 |
 
 <Source data={source} />
 
+## 서버에서 열기
+
+행동팩은 `buildScreens`가 만든 `scripts/generated/screens.js`의 `openScreen(player, id, data)`로 화면을 연다. `data`의 키는 컴포넌트의 `name`이고, 값은 버튼 목록이다. 버튼은 `[글자, 아이콘]`이다. 반환값은 `Promise<null | { name, index }>`로, 창을 닫으면 `null`이고 버튼을 누르면 어느 컴포넌트(`name`)의 몇 번째(`index`)인지 돌려준다. 컴포넌트의 칸 수보다 많이 보내면 오류이고, 모자라면 빈 칸 표식(`§0§e§r`)으로 채운다.
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+const ICONS = ["textures/items/diamond", "textures/items/apple" /* ... */]; // 예시는 10개를 돌려 쓴다
+const pad = (text, width) => (text + " ".repeat(width)).slice(0, width);
+
+openScreen(player, "virtual-list-500", {
+  // 칸마다 [글자, 아이콘]. 글자는 이름 12자 + 설명 20자 + 숫자
+  list: Array.from({ length: 500 }, (_, i) => [
+    pad(`Item ${i + 1}`, 12) + pad(`Description ${i + 1}`, 20) + String((i * 7) % 101),
+    ICONS[i % ICONS.length],
+  ]),
+}).then((hit) => {
+  if (!hit) return; // 취소
+  // hit: { name: "list", index: 0..499 }
+});
+```
+
+생성 모듈의 `LAYOUTS["virtual-list-500"]`는 컴포넌트가 버튼 번호를 어떻게 나눠 받았는지 보여 준다. 아래는 prebuild가 생성 모듈에서 뽑은 것이다.
+
+<Excerpt data={layout} />
+
 ## 낮춤 결과
 
-`jur:v5` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+`jur:v5` 화면이 컴파일된 JSON UI 정의의 일부다. 목록(`v5_list`)과 목록 창(`v5@jur.list_window`)이다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
 
-<Excerpt data={virtual_list_500} />
+<Excerpt data={lowered} />
 
 ## 근거 규칙
 
-COL-49
+HOST-06, COL-22, COL-39, COL-47, COL-49
 
 ## 통합 애드온에서 실행 방법
 

@@ -8,35 +8,105 @@ import Excerpt from '@site/src/components/Excerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/research.source.json';
 import research from '@site/src/generated/research.json';
+import layout from '@site/src/generated/research.layout.json';
 
 # 연구 화면 (방식 E)
 
 연구 화면: 탭 2개, 항목 96개, 상세 96개(방식 E)
 
+:::info 저수준 고급 예시
+이 화면은 고수준 API(`<Screen>`, `<ButtonList>` 등)가 아니라 **저수준 API로 직접 쓴 고급 예시**다. 나머지 예시 7개는 모두 고수준이다. 저수준 화면은 같은 `buildScreens` 팩과 같은 라우터에 올릴 수 있다.
+:::
 
-탭 2개, 항목 96개, 상세 96개를 합쳐 버튼 2022개를 만든다. 버튼 번호는 `serverModule`이 만든 배치로 해석한다.
+탭 2개, 항목 96개, 상세 96개를 합쳐 버튼 2022개를 만든다. 버튼 번호는 `createSlots`가 만든 배치로 해석한다.
+
+## 왜 고수준으로 쓰지 않았나
+
+- **특수 배치.** 탭마다 48칸 목록 2개와 항목마다 20칸짜리 상세 블록 96개(2022개 중 1920개)를 한 화면에 미리 만든다. 고수준 `<SlotGrid>`는 화면마다 하나, `<Tabs>`도 화면마다 하나이고, `<SlotGrid detail>`은 고른 칸의 아이콘과 이름만 보여 준다. 재료 8개, 보상 8개, 진행 버튼이 있는 상세는 고수준 요소로 표현할 수 없다.
+- **FFR 원본 바이트 재현.** 이 화면은 FFR 원본의 UI 정의(`faces.json`)와 버튼 번호 배치(`102 + 20k + 19`)를 원본 서버와 같게 두는 것이 목적이다. 고수준 테마는 쓰지 않고, 정의를 한 줄씩 직접 조립한다.
+
+고수준으로 못 쓰는 화면은 이렇게 저수준 API로 만든다. 아래 절에서 순서대로 본다.
 
 ## 쓰는 API
 
 | 이름 | 설명 |
 | --- | --- |
-| `SlotGrid` | [API 레퍼런스](../api) |
-| `TabBar` | [API 레퍼런스](../api) |
-| `ScreenRouter` | [API 레퍼런스](../api) |
-| `createSlots` | [API 레퍼런스](../api) |
-| `serverModule` | [API 레퍼런스](../api) |
+| `SlotGrid` (`LowSlotGrid`) | 저수준 칸 격자: [API 레퍼런스](../api#low) |
+| `TabBar` | 탭 줄: [API 레퍼런스](../api#low) |
+| `ScreenRouter` | 제목으로 화면을 고르는 라우터: [API 레퍼런스](../api#low) |
+| `createSlots` | 이름 붙은 버튼 번호 구간: [API 레퍼런스](../api#low) |
+| `createPack` | 정의 묶음: [API 레퍼런스](../api#low) |
+| `buildScreens` | `lowLevel`로 이 화면을 같은 팩에 올린다: [API 레퍼런스](../api#high) |
 
 ## JSX로 쓰기
 
-`SlotGrid`, `TabBar`, `ScreenRouter`, `createSlots`, `serverModule`을 쓴다. 아래는 화면 정의(`defineResearch`)와 항목 정의(`defineItems`)의 핵심이다.
+`SlotGrid`, `TabBar`, `ScreenRouter`, `createSlots`를 쓴다. 아래는 화면 정의(`defineResearch`)와 항목 정의(`defineItems`)의 핵심이다. 고수준과 달리 `createSlots`로 버튼 번호를 직접 받고, 정의 이름과 참조(`ffr.…`)도 직접 짓는다.
 
-| JSX | 낮춰진 JSON UI |
-| --- | --- |
-| `<ScreenRouter>` | `collection_panel` + `property_bag` 제목 조회 |
-| `<TabBar>` | 가로 `stack_panel` + 라디오 `toggle` 8상태 |
-| `<SlotGrid>` | 줄 `stack_panel` + `collection_index` 칸 |
+| 저수준 JSX | 낮춰진 JSON UI | 근거 규칙 |
+| --- | --- | --- |
+| `<ScreenRouter>` | `collection_panel` + `property_bag` 제목 조회 | HOST-06, COL-22, COL-39 |
+| `<TabBar>` | 가로 `stack_panel` + 라디오 `toggle` 8상태 | INP-13 |
+| `<SlotGrid>` | 줄 `stack_panel` + `collection_index` 칸 | COL-50 |
 
 <Source data={source} />
+
+## 저수준 API로 가공하기
+
+연구 화면은 이렇게 만든다.
+
+1. `createSlots()`로 구간을 정한다. `range("tab0", 48)`, `range("tabs", 2)`처럼 연속 번호 구간을, `blocks("detail", 96, [...필드])`로 항목마다 같은 필드를 가진 블록을 만든다.
+2. `createPack()`으로 네임스페이스(`ffr`)를 만들고 `defineResearch(pack, slots, opts)`가 `render`된 JSX 정의를 `define`한다. `opts.routePrefix`는 제목 접두이고, `opts.text`로 게임 안 글자를 바꾼다.
+3. 화면을 고수준 예시와 같은 팩에 올리려면 `buildScreens`의 `lowLevel`에서 정의를 더하고 화면을 돌려준다. 라우터는 `buildScreens`가 맡으므로 `router: false`로 연구 화면 쪽 라우터를 끈다.
+
+```ts
+import { buildScreens } from "json-ui-react";
+import { createResearchSlots, defineResearch } from "../examples/research/screen.tsx";
+
+const built = buildScreens(screens, {
+  codes: { research: "re" }, // 폼 제목 jur:re
+  lowLevel: (pack) => {
+    const slots = createResearchSlots();
+    defineResearch(pack, slots, { routePrefix: "jur:", router: false });
+    return [{ id: "research", control: "ffr.research_ea", layout: slots.layout() }];
+  },
+});
+```
+
+`lowLevel`이 돌려주는 `{ id, control, layout }`은 라우터 항목과 생성 모듈의 `LAYOUTS`에 그대로 들어간다. 그래서 행동팩은 이 화면도 `decode("research", selection)`와 `screenTitle("research")`로 다룰 수 있다.
+
+## 서버에서 열기
+
+고수준 화면은 `openScreen`으로 열지만, 이 예시의 행동팩(`main.js`)은 버튼을 직접 보낸다. 제목만 생성 모듈에서 받고, 버튼 순서는 `createResearchSlots`와 같다. 칸 48개 x 2, 탭 2, 페이지 2 x 2, 상세 96블록 순이다.
+
+```js
+import { screenTitle } from "./generated/screens.js";
+
+const form = new ActionFormData().title(screenTitle("research")); // jur:re
+for (const list of pageItems) {
+  for (let k = 0; k < 48; k++) {
+    const i = list[k];
+    if (i === undefined) form.button("§r");
+    else form.button("§r", item(i).icon);
+  }
+}
+form.button(`Needed ${tabs[0].length}`, "textures/items/book_normal"); // 탭 2개
+form.button(`Done ${tabs[1].length}`, "textures/items/emerald");
+for (let k = 0; k < 4; k++) form.button("§r"); // 페이지 버튼 2 x 2
+for (const list of pageItems) for (let k = 0; k < 48; k++) addDetailBlock(form, list[k]); // 상세 96 x 20
+```
+
+응답은 생성 모듈의 `decode`로 푼다. 상세 블록은 `field`도 돌려준다.
+
+```js
+import { decode } from "./generated/screens.js";
+
+decode("research", 102 + 20 * 3 + 19); // { name: "detail", index: 3, field: "progress" }
+decode("research", 99);                // { name: "pager0", index: 1 }
+```
+
+생성 모듈의 `LAYOUTS["research"]`는 아래와 같다(길어서 앞부분만 보인다).
+
+<Excerpt data={layout} />
 
 ## 낮춤 결과
 

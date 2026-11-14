@@ -12,12 +12,12 @@ const ADDON = join(ROOT, "dist", "json-ui-react-examples.mcaddon");
 // 예시 id -> [파일, 키 판별]
 const PICK = {
   "router": ["ui/jur.json", (k) => k === "ro_panes" || k.startsWith("ro@")],
-  "tabs-inside": ["ui/jur.json", (k) => k.startsWith("ti_tabs") || k.startsWith("ti_pane_0") || k.startsWith("ti_on_0")],
-  "tabs-follow": ["ui/jur.json", (k) => k.startsWith("tf_")],
-  "tabs-lazy": ["ui/jur.json", (k) => k.startsWith("tl_tabs") || k.startsWith("tl_lazy_1")],
-  "slot-grid": ["ui/jur.json", (k) => k.startsWith("sg_")],
-  "virtual-list-500": ["ui/jur.json", (k) => k === "vl_body_500" || k.startsWith("v5@")],
-  "virtual-list-2000": ["ui/jur.json", (k) => k === "vl_body_2000" || k.startsWith("v2@")],
+  "tabs-inside": ["ui/jur.json", (k) => k === "ti_tabs" || k === "ti_on_0" || k.startsWith("ti@")],
+  "tabs-follow": ["ui/jur.json", (k) => k === "tf_tabs" || k === "tf_panes" || k.startsWith("tf@")],
+  "tabs-lazy": ["ui/jur.json", (k) => k === "tl_tabs" || k === "tl_lazy_1" || k.startsWith("tl@")],
+  "slot-grid": ["ui/jur.json", (k) => k === "sg_right" || k === "sg_detail" || k === "sg_panes" || k.startsWith("sg@")],
+  "virtual-list-500": ["ui/jur.json", (k) => k === "v5_list" || k.startsWith("v5@")],
+  "virtual-list-2000": ["ui/jur.json", (k) => k === "v2_list" || k.startsWith("v2@")],
   "research": ["ui/ffr.json", (k) => k.startsWith("screen_router") || /research/.test(k)],
 };
 const MAX_LINES = 70;
@@ -63,6 +63,21 @@ for (const [id, [file, pick]] of Object.entries(PICK)) {
     join(HERE, "src", "generated", `${id}.json`),
     JSON.stringify({ id, file, keys, text: lines.join("\n") }, null, 2) + "\n",
   );
+}
+
+// "서버에서 열기" 절용: 생성 서버 모듈(행동팩 scripts/generated/screens.js)의 LAYOUTS에서 화면별 배치를 뽑는다.
+{
+  const bp = unzipSync(outer["json-ui-react-examples_bp.mcpack"]);
+  const mod = text(bp["scripts/generated/screens.js"]);
+  const m = /export const LAYOUTS = (\{[\s\S]*?\n\});/.exec(mod);
+  if (!m) throw new Error("site/prebuild: 생성 모듈에서 LAYOUTS를 찾지 못했습니다");
+  const layouts = JSON.parse(m[1]);
+  for (const id of Object.keys(PICK)) {
+    if (!layouts[id]) throw new Error(`site/prebuild: LAYOUTS에 ${id}가 없습니다`);
+    let lines = JSON.stringify({ [id]: layouts[id] }, null, 2).split("\n");
+    if (lines.length > 40) lines = [...lines.slice(0, 40), "  ... (이하 생략)"];
+    writeFileSync(join(HERE, "src", "generated", `${id}.layout.json`), JSON.stringify({ id, text: lines.join("\n") }, null, 2) + "\n");
+  }
 }
 
 // "JSX로 쓰기" 절용 원본 소스: 손으로 복사하지 않고 빌드할 때 example/ 과 examples/ 에서 읽는다.

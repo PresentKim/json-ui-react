@@ -5,6 +5,124 @@ title: API 레퍼런스
 
 # API 레퍼런스
 
+API는 세 부분이다. 1부는 화면을 쓰는 **고수준 API**, 2부는 `buildScreens`가 만드는 **생성 서버 모듈**, 3부는 낮춤 결과를 직접 가공하는 **저수준 API**다. 처음에는 1부와 2부만 알면 된다.
+
+## 1부: 고수준 API {#high}
+
+모두 `json-ui-react`에서 가져온다. 고수준 컴포넌트는 `buildScreens`에 넘기는 `<Screen>` 안에서만 쓴다. 버튼 번호는 렌더 순서대로 자동으로 붙으므로 코드에 `slots`, `ref`, `$` 변수가 나오지 않는다.
+
+| API | 뜻 | 낮춤 결과 | 근거 규칙 |
+| --- | --- | --- | --- |
+| `<Screen id title layout?>` | 화면 하나. `id`는 행동팩이 `openScreen`에서 부르는 이름이고 `title`은 창 위에 보이는 제목이다. `layout`은 `"single"`(기본, 판 하나) 또는 `"split"`(왼쪽 목록 + 오른쪽 상세 판)다. `buildScreens`에 넘기는 최상위 요소로만 쓴다 | 창 정의 + 라우터 항목(폼 제목 `접두 + 2글자 코드`) | HOST-06, COL-22, COL-39, COL-47 |
+| `<ButtonList name count>` | 아이콘 + 글자 버튼 세로 목록. `count`는 1에서 5까지(판 높이 128 안) | 세로 `stack_panel`의 줄 + 고정 `collection_index` 버튼 | COL-38, COL-50 |
+| `<Tabs name mode>` + `<Tab label?>` | 클라이언트 탭. `mode`는 `"inside"`, `"follow"`, `"lazy"`. 탭 글자와 아이콘은 서버 데이터 `name` 배열에서 오고, `label`은 그 글자가 없을 때 보낼 기본 글자다. 화면마다 `<Tabs>` 하나이고 자식은 `<Tab>`만 쓴다 | 탭 줄(라디오 `toggle` 8상태) + 방식 B/C/D 내용. `lazy`는 첫 탭을 자동으로 미리 만든다 | INP-10, INP-11, INP-13, COL-47 |
+| `<SlotGrid name rows cols detail?>` | 칸 격자(라디오 선택). 화면마다 하나. `detail`은 `<Screen layout="split">`에서만 쓰고, 문자열이면 고르기 전 안내 글자다 | 세로 `stack_panel` 안의 줄 + `item_toggle` 칸. `detail`은 `on` 상태에 뜨는 아이콘·이름 | COL-38, COL-50, INP-13, INP-35 |
+| `<VirtualList name count columns?>` | grid 목록. `columns`는 1 또는 2(기본 2). 화면의 유일한 자식이고 `layout="single"`이어야 한다. `count`가 2000을 넘으면 빌드 오류 | `grid` + `maximum_grid_items`를 `#form_button_length`에 묶음, 목록 창 | COL-49 |
+| `buildScreens(screens, opts?)` | 화면 요소 배열을 한 팩으로 묶는다 | 단일 라우터, `server_form` 훅, 테마 정의, 서버 모듈 | HOST-06, COL-47 |
+| `themeTextures()` | 테마 텍스처(`textures/ui/jur/*`)의 경로 -> 바이트. 리소스팩에 그대로 복사한다 | - | - |
+
+### buildScreens
+
+```ts
+buildScreens(screens: JuiNode[], opts?: {
+  namespace?: string; // 정의 네임스페이스(ui/<namespace>.json). 기본 "jur"
+  prefix?: string;    // 폼 제목 접두. 기본 "jur:"
+  codes?: Record<string, string>; // 화면 id -> 2글자 코드. 없으면 a0, a1, ...
+  lowLevel?: (pack: Pack) => { id: string; control: string; layout: SlotLayout }[];
+}): {
+  files: Record<string, string>; // RP 상대 경로 -> JSON 글자(ui/*.json, ui/_ui_defs.json)
+  serverModule: string;          // 행동팩 scripts/generated/screens.js
+  serverTypes: string;           // 그 .d.ts
+  layouts: Record<string, SlotLayout>; // 화면 id -> 버튼 배치
+  titles: Record<string, string>;      // 화면 id -> 폼 제목
+  diagnostics: Diagnostic[];     // lint 경고(오류가 있으면 던진다)
+};
+```
+
+- 폼 제목은 `prefix` + 2글자 코드이고, 모든 제목의 바이트 길이가 같다. `codes`로 제목을 고정하면 문서나 게임 안 확인에서 같은 제목을 쓸 수 있다.
+- `lowLevel`은 같은 팩에 저수준 정의를 더하고, 같은 라우터에 걸 화면(`id`, 컨트롤 참조 `control`, 버튼 배치 `layout`)을 돌려준다. [연구 화면](components/research)이 쓴다.
+- 화면 id가 겹치거나 `<Screen>`이 아닌 항목이 있거나 버튼이 하나도 없으면 던진다.
+
+### 사용 예
+
+```tsx
+import { Screen, ButtonList, buildScreens, themeTextures } from "json-ui-react";
+
+const screen = (
+  <Screen id="router" title="Router: screen picked by title prefix">
+    <ButtonList name="buttons" count={4} />
+  </Screen>
+);
+
+const built = buildScreens([screen], { namespace: "jur", prefix: "jur:" });
+// built.files        -> rp/ui/*.json
+// built.serverModule -> bp/scripts/generated/screens.js
+// themeTextures()    -> rp/textures/ui/jur/*
+```
+
+```tsx
+import { Screen, Tabs, Tab, ButtonList } from "json-ui-react";
+
+<Screen id="tabs-lazy" title="Tabs: built by factory on select (D)">
+  <Tabs name="tabs" mode="lazy">
+    <Tab label="Tab 1">
+      <ButtonList name="tab1" count={2} />
+    </Tab>
+    <Tab label="Tab 2">
+      <ButtonList name="tab2" count={2} />
+    </Tab>
+  </Tabs>
+</Screen>;
+```
+
+```tsx
+import { Screen, SlotGrid, VirtualList } from "json-ui-react";
+
+<Screen id="slot-grid" title="Fixed slot grid with selection detail" layout="split">
+  <SlotGrid name="cells" rows={3} cols={8} detail="Pick a slot." />
+</Screen>;
+
+<Screen id="list" title="Grid list: 500 cells (2 columns)">
+  <VirtualList name="list" count={500} />
+</Screen>;
+```
+
+## 2부: 생성 서버 모듈 {#server}
+
+`buildScreens`가 돌려주는 `serverModule`은 의존 없는 ESM이다. 행동팩 `scripts/generated/screens.js`로 저장하고 `serverTypes`는 옆에 `screens.d.ts`로 둔다. `@minecraft/server-ui`의 `ActionFormData`만 가져온다.
+
+| 내보내기 | 뜻 |
+| --- | --- |
+| `openScreen(player, id, data?)` | 제목을 붙이고 버튼을 화면 배치 순서로 보낸 뒤 응답을 푼다. `Promise<null \| { name, index }>`. 창을 닫으면 `null` |
+| `decode(id, selection)` | 버튼 번호를 `{ name, index }`로 푼다. 블록이면 `field`도 있다. 범위 밖이면 `null` |
+| `buttons(id, data?)` | 배치 순서대로 `[글자, 아이콘?]` 목록을 만든다(`openScreen`이 쓴다) |
+| `screenTitle(id)` | 화면의 폼 제목 |
+| `TITLES`, `LAYOUTS` | 화면 id -> 폼 제목, 버튼 배치(구간, 블록, 시작 번호, 개수) |
+| `EMPTY` | 빈 칸 표식 `§0§e§r`. 데이터가 모자란 칸에 보내며 화면에는 보이지 않는다 |
+
+`data`는 컴포넌트 `name`을 키로, 버튼 배열을 값으로 갖는다. 버튼은 글자 `"Apple"`, `["Apple", "textures/items/apple"]`, `{ text, icon }` 중 하나다.
+
+- 컴포넌트에 없는 키는 오류다. 컴포넌트의 칸 수보다 많이 보내도 오류다.
+- 모자란 칸은 `<Tab label>`이 있으면 그 글자, 아니면 `EMPTY`로 채운다.
+- `serverTypes`는 화면 id마다 `data` 모양(`ScreenData`)과 응답 `name`(`ScreenHitNames`)을 좁힌다. 화면 id나 키를 잘못 쓰면 타입 오류가 난다.
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+openScreen(player, "router", {
+  buttons: [["Apple", "textures/items/apple"], ["Bread", "textures/items/bread"]],
+}).then((hit) => {
+  if (!hit) return; // 취소
+  // hit: { name: "buttons", index: 0..3 }
+});
+```
+
+## 3부: 직접 가공하기: 저수준 API {#low}
+
+고수준 컴포넌트가 낮추는 저수준 컴포넌트와 도구다. 연구 화면처럼 고수준으로 못 쓰는 배치를 만들거나, 낮춤 결과를 가공할 때 쓴다. 저수준은 그대로 공개되어 있다.
+
+루트 `json-ui-react`에서는 고수준이 `SlotGrid`, `VirtualList`, `Tabs`라는 이름을 갖는다. 저수준은 `LowSlotGrid`, `LowVirtualList`, `LowTabs`(탭 훅의 타입)로 내보내고, 원래 이름은 하위 경로(`json-ui-react/components/grid`, `json-ui-react/hooks`)에서 가져온다. 아래 표의 `SlotGrid`, `VirtualList`는 저수준이다. `createPack`, `createSlots`, `render`, `lintFiles`는 루트에서도 가져온다.
+
 | API (src 경로) | 낮춤 결과 | 근거 규칙 |
 | --- | --- | --- |
 | `ScreenRouter` (`src/components/router.tsx`) | `collection_panel` + 팩토리 + `property_bag` 제목 조회(접두 바이트 길이로 비교). 제목 중복과 id 중복은 빌드 오류 | HOST-06, COL-22, COL-39, COL-47 |
@@ -23,11 +141,11 @@ title: API 레퍼런스
 | `createPack` (`src/pack.ts`) | `ns`, `define`, `modify`, `files()`, `json()`으로 정의 묶음을 만든다 | - |
 | `lintFiles`, `countControls` (`src/lint.ts`) | 생성 JSON 검사기와 컨트롤 수 집계 | - |
 
-## 사용 예
+### 사용 예
 
 각 예는 `src`에 있는 시그니처의 prop만 쓴 최소 TSX다.
 
-### 컴포넌트
+#### 컴포넌트
 
 ```tsx
 import { ScreenRouter } from "json-ui-react/components/router";
@@ -73,7 +191,7 @@ const body = radioToggleBody({ group: "t_tabs", size: [48, 18], forcedIndex: "$t
 />;
 ```
 
-### 훅과 슬롯
+#### 훅과 슬롯
 
 ```tsx
 import { createSlots, decode, serverModule } from "json-ui-react/slots";

@@ -1,0 +1,4 @@
+{
+  "id": "slot-grid",
+  "text": "{\n  \"slot-grid\": {\n    \"total\": 24,\n    \"ranges\": [\n      {\n        \"name\": \"cells\",\n        \"start\": 0,\n        \"count\": 24\n      }\n    ],\n    \"blocks\": []\n  }\n}"
+}

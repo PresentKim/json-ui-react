@@ -1,1 +1,1 @@
-생성물 폴더: prebuild가 만든 발췌 JSON(<id>.json)
+생성물 폴더: prebuild가 만든 발췌 JSON(<id>.json, <id>.source.json, <id>.layout.json)

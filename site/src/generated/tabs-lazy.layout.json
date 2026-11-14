@@ -1,0 +1,4 @@
+{
+  "id": "tabs-lazy",
+  "text": "{\n  \"tabs-lazy\": {\n    \"total\": 6,\n    \"ranges\": [\n      {\n        \"name\": \"tabs\",\n        \"start\": 0,\n        \"count\": 2\n      },\n      {\n        \"name\": \"tab1\",\n        \"start\": 2,\n        \"count\": 2\n      },\n      {\n        \"name\": \"tab2\",\n        \"start\": 4,\n        \"count\": 2\n      }\n    ],\n    \"blocks\": []\n  }\n}"
+}

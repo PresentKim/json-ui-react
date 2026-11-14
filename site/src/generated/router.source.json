@@ -1,6 +1,6 @@
 [
   {
     "file": "example/screens/router.tsx",
-    "code": "// router: 아이콘 + 글자 버튼 4개를 세로로 그린다. 화면 선택은 build-rp의 단일 라우터가 맡는다.\nimport type { Pack } from \"../../src/pack.ts\";\nimport type { Slots } from \"../../src/slots.ts\";\nimport { ButtonList, TOP_LEFT, defineWindow, ns, ref } from \"./common.tsx\";\n\nexport function defineRouter(pack: Pack, slots: Slots): string {\n  const buttons = slots.range(\"buttons\", 4);\n  ns(pack).define(\"ro_panes\", (\n    <panel name=\"ro_panes\" size={[180, 128]}>\n      <ButtonList name=\"list\" range={buttons} props={TOP_LEFT} />\n    </panel>\n  ));\n  defineWindow(pack, \"ro\", { \"$mode_title\": \"Router: screen picked by title prefix\", \"$panes_def\": ref(\"ro_panes\") });\n  return ref(\"ro\");\n}\n"
+    "code": "// router: 아이콘 + 글자 버튼 4개. 화면 선택(제목 접두 라우터)은 buildScreens가 맡는다.\nimport { Screen, ButtonList } from \"json-ui-react\";\n\nexport default (\n  <Screen id=\"router\" title=\"Router: screen picked by title prefix\">\n    <ButtonList name=\"buttons\" count={4} />\n  </Screen>\n);\n"
   }
 ]

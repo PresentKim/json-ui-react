@@ -7,44 +7,70 @@ import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/tabs-follow.source.json';
-import tabs_follow from '@site/src/generated/tabs-follow.json';
+import lowered from '@site/src/generated/tabs-follow.json';
+import layout from '@site/src/generated/tabs-follow.layout.json';
 
 # 탭: 표시 바인딩 (방식 C)
 
 패널이 토글 상태 바인딩을 따라 보이는 방식(C)
 
 
-패널이 `#toggle_state`를 `#visible`에 묶어 탭을 따라 보인다. 라우터 아래 컬렉션 바인딩에는 `binding_condition: "always"`가 필요하다.
+`<Tabs mode="follow">`는 탭 내용이 `#toggle_state`를 `#visible`에 묶어 탭을 따라 보이게 한다. 라우터 아래 컬렉션 바인딩에는 `binding_condition: "always"`가 필요하고, 빌드가 알아서 넣는다.
 
 ## 쓰는 API
 
 | 이름 | 설명 |
 | --- | --- |
-| `TabBar` | [API 레퍼런스](../api) |
-| `SlotGrid` | [API 레퍼런스](../api) |
-| `bind.view` | [API 레퍼런스](../api) |
+| `Screen` | 화면 하나: [API 레퍼런스](../api#high) |
+| `Tabs` | 클라이언트 탭: [API 레퍼런스](../api#high) |
+| `Tab` | 탭 하나: [API 레퍼런스](../api#high) |
+| `ButtonList` | 아이콘 + 글자 버튼 세로 목록: [API 레퍼런스](../api#high) |
 
 ## JSX로 쓰기
 
-`TabBar`, `SlotGrid`, `bind.view`를 쓴다. 패널이 토글 상태 바인딩을 따라 보인다.
+`mode="follow"`만 다르고 코드 모양은 방식 B와 같다. 탭 글자와 아이콘은 서버 데이터 `tabs`에서 온다.
 
-| JSX | 낮춰진 JSON UI |
-| --- | --- |
-| `<TabBar>` | 가로 `stack_panel` + 라디오 `toggle` 8상태 |
-| `<SlotGrid>` | 줄 `stack_panel` + `collection_index` 칸 |
-| `useTabs().paneBinding` | `#toggle_state` -> `#visible` 바인딩 |
+| 고수준 요소 | 낮춰진 JSON UI | 근거 규칙 |
+| --- | --- | --- |
+| `<Screen>` | 창 정의 `tf@jur.window` + 라우터 항목(폼 제목 `jur:tf`) | HOST-06, COL-22, COL-39, COL-47 |
+| `<Tabs name="tabs" mode="follow">` | 탭 줄 `tf_tabs`: 가로 `stack_panel` + 라디오 `toggle` 8상태 | INP-10, INP-11, INP-13 |
+| `<Tab>` 안의 내용 | 판 `tf_panes` 안에 탭마다 내용을 두고, 각 내용에 탭 토글의 `#toggle_state`를 `#visible`에 묶는 `view` 바인딩(`binding_condition: "always"`)을 단다 | INP-13, COL-47, BND-32 |
+| `<ButtonList name="tab1" count={2} />`, `<ButtonList name="tab2" count={2} />` | 탭마다 `@jur.btn` 버튼 2개: 세로 `stack_panel` 안의 줄 2개(`collection_name: form_buttons`), 줄마다 고정 `collection_index` 칸 | COL-38, COL-50 |
 
 <Source data={source} />
 
+## 서버에서 열기
+
+행동팩은 `buildScreens`가 만든 `scripts/generated/screens.js`의 `openScreen(player, id, data)`로 화면을 연다. `data`의 키는 컴포넌트의 `name`이고, 값은 버튼 목록이다. 버튼은 `[글자, 아이콘]`이다. 반환값은 `Promise<null | { name, index }>`로, 창을 닫으면 `null`이고 버튼을 누르면 어느 컴포넌트(`name`)의 몇 번째(`index`)인지 돌려준다. 컴포넌트의 칸 수보다 많이 보내면 오류이고, 모자라면 빈 칸 표식(`§0§e§r`)으로 채운다.
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+openScreen(player, "tabs-follow", {
+  // <Tabs name="tabs">: 탭 글자와 아이콘
+  tabs: [["Tab 1", "textures/items/book_normal"], ["Tab 2", "textures/items/emerald"]],
+  // <ButtonList name="tab1" count={2}>, <ButtonList name="tab2" count={2}>
+  tab1: [["Tab 1: Apple", "textures/items/apple"], ["Tab 1: Bread", "textures/items/bread"]],
+  tab2: [["Tab 2: Diamond", "textures/items/diamond"], ["Tab 2: Gold Ingot", "textures/items/gold_ingot"]],
+}).then((hit) => {
+  if (!hit) return; // 취소
+  // hit: { name: "tab1" | "tab2", index: 0..1 }
+});
+```
+
+생성 모듈의 `LAYOUTS["tabs-follow"]`는 컴포넌트가 버튼 번호를 어떻게 나눠 받았는지 보여 준다. 아래는 prebuild가 생성 모듈에서 뽑은 것이다.
+
+<Excerpt data={layout} />
+
 ## 낮춤 결과
 
-`jur:tf` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+`jur:tf` 화면이 컴파일된 JSON UI 정의의 일부다. 탭 줄(`tf_tabs`), 탭 내용이 든 판(`tf_panes`), 창 정의(`tf@jur.window`)다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
 
-<Excerpt data={tabs_follow} />
+<Excerpt data={lowered} />
 
 ## 근거 규칙
 
-INP-13, COL-47, BND-32
+INP-13, COL-47, BND-32, COL-38, COL-50
 
 ## 통합 애드온에서 실행 방법
 

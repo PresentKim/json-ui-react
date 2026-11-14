@@ -8,6 +8,11 @@ const ROOT = join(__dirname, "..");
 const BUILD = join(ROOT, "site", "build");
 const HREF_RE = /href="(\/json-ui-react\/downloads\/json-ui-react-examples-v\d+\.\d+\.\d+-(?:[0-9a-f]{7}|dev)\.mcaddon)"/;
 
+// HTML에서 태그를 지우고 엔티티를 되돌린다(코드 블록의 `<Screen`은 토큰 태그로 쪼개져 있다).
+const textOf = (html: string): string =>
+  html.replace(/<[^>]*>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&amp;/g, "&");
+const IDS = ["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "research"];
+
 beforeAll(() => {
   if (!existsSync(join(BUILD, "index.html"))) execSync("npm run site:build", { cwd: ROOT, stdio: "ignore" });
 }, 300_000);
@@ -48,6 +53,52 @@ describe("site", () => {
       expect(html.indexOf("JSX로 쓰기")).toBeLessThan(html.indexOf("낮춤 결과"));
       expect(html).toContain("통합 애드온에서 실행 방법");
       expect(html).not.toContain("게임에서 열기");
+    }
+  });
+  it("test_component_pages_high_level_and_server_open", () => {
+    // 컴포넌트 페이지(ko, en)는 고수준 소스(<Screen)와 서버에서 여는 법(openScreen)을 보인다.
+    for (const [prefix, server] of [["", "서버에서 열기"], ["en", "Opening it from the server"]] as const) {
+      for (const id of IDS) {
+        const html = readFileSync(join(BUILD, prefix, "components", id, "index.html"), "utf8");
+        const text = textOf(/<article[\s\S]*?<\/article>/.exec(html)![0]);
+        expect(text, `${prefix || "ko"}/${id}`).toContain("<Screen");
+        expect(text, `${prefix || "ko"}/${id}`).toContain("openScreen");
+        expect(text, `${prefix || "ko"}/${id}`).toContain(server);
+      }
+    }
+    // research는 저수준 고급 예시임을 머리에 밝히고 lowLevel로 같은 팩에 올리는 법을 보인다.
+    const ko = textOf(readFileSync(join(BUILD, "components", "research", "index.html"), "utf8"));
+    expect(ko).toContain("저수준 고급 예시");
+    expect(ko).toContain("lowLevel");
+    const en = textOf(readFileSync(join(BUILD, "en", "components", "research", "index.html"), "utf8"));
+    expect(en).toContain("Advanced example using the low-level API");
+    expect(en).toContain("lowLevel");
+    // 고수준 예시 페이지에는 삭제된 common.tsx 참조가 없다.
+    for (const id of IDS) {
+      expect(readFileSync(join(BUILD, "components", id, "index.html"), "utf8")).not.toContain("common.tsx");
+    }
+  });
+  it("test_api_page_has_high_and_low_level_parts", () => {
+    for (const [prefix, parts] of [
+      ["", ["1부: 고수준 API", "2부: 생성 서버 모듈", "3부: 직접 가공하기: 저수준 API"]],
+      ["en", ["Part 1: High-level API", "Part 2: Generated server module", "Part 3: Working with it yourself: the low-level API"]],
+    ] as const) {
+      const html = readFileSync(join(BUILD, prefix, "api", "index.html"), "utf8");
+      const text = textOf(/<article[\s\S]*?<\/article>/.exec(html)![0]);
+      for (const h of parts) expect(text, `${prefix || "ko"}: ${h}`).toContain(h);
+      expect(text.indexOf(parts[0])).toBeLessThan(text.indexOf(parts[1]));
+      expect(text.indexOf(parts[1])).toBeLessThan(text.indexOf(parts[2]));
+      for (const word of ["buildScreens", "openScreen", "<ButtonList", "LowSlotGrid", "createPack"]) expect(text, word).toContain(word);
+      // 이 페이지의 고수준 절 링크(#high, #low)가 실제 제목 id로 존재한다.
+      for (const id of ["high", "server", "low"]) expect(html).toContain(`id="${id}"`);
+    }
+  });
+  it("test_quick_start_is_high_level", () => {
+    for (const [prefix, quick] of [["", "빠른 시작"], ["en", "Quick start"]] as const) {
+      const html = readFileSync(join(BUILD, prefix, "getting-started", "index.html"), "utf8");
+      const text = textOf(/<article[\s\S]*?<\/article>/.exec(html)![0]);
+      expect(text).toContain(quick);
+      for (const word of ["<Screen", "buildScreens", "openScreen", "scripts/generated/screens.js"]) expect(text, word).toContain(word);
     }
   });
   it("test_navbar_icons_visible_on_mobile", () => {

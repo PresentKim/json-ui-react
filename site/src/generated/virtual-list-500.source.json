@@ -1,10 +1,10 @@
 [
   {
     "file": "example/screens/virtual-list-500.tsx",
-    "code": "// virtual-list-500: 2열 가상 목록 500칸.\nimport type { Pack } from \"../../src/pack.ts\";\nimport type { Slots } from \"../../src/slots.ts\";\nimport { defineVirtualList } from \"./virtual-list.tsx\";\n\nexport const defineVirtualList500 = (pack: Pack, slots: Slots): string => defineVirtualList(pack, slots, \"v5\", 500);\n"
+    "code": "// virtual-list-500: 2열 가상 목록 500칸.\nimport { virtualListScreen } from \"./virtual-list.tsx\";\n\nexport default virtualListScreen(\"virtual-list-500\", 500);\n"
   },
   {
     "file": "example/screens/virtual-list.tsx",
-    "code": "// virtual-list: 2열 가상 목록. 칸 수는 컬렉션 길이에 묶인다.\nimport type { Pack } from \"../../src/pack.ts\";\nimport type { Slots } from \"../../src/slots.ts\";\nimport { VirtualList } from \"../../src/components/grid.tsx\";\nimport { ns, ref } from \"./common.tsx\";\n\n/** code: 라우트 코드(\"v5\"/\"v2\"), count: 버튼 수. */\nexport function defineVirtualList(pack: Pack, slots: Slots, code: string, count: number): string {\n  slots.range(\"list\", count);\n  const n = ns(pack);\n  const body = `vl_body_${count}`;\n  n.define(body, <VirtualList name={body} columns={2} cellSize={[100, 30]} cellDef=\"ffr.list_cell\" maxItems={count} />);\n  n.define(`${code}@ffr.list_window`, {\n    \"$list_title\": `Grid list: ${count} cells (2 columns)`,\n    \"$list_content\": ref(body),\n  });\n  return ref(code);\n}\n"
+    "code": "// virtual-list: 2열 가상 목록 화면 하나. 칸 수는 서버가 보낸 버튼 수에 묶인다.\nimport { Screen, VirtualList } from \"json-ui-react\";\n\nexport const virtualListScreen = (id: string, count: number) => (\n  <Screen id={id} title={`Grid list: ${count} cells (2 columns)`}>\n    <VirtualList name=\"list\" count={count} />\n  </Screen>\n);\n"
   }
 ]

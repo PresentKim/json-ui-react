@@ -2,8 +2,8 @@
   "id": "virtual-list-500",
   "file": "ui/jur.json",
   "keys": [
-    "vl_body_500",
-    "v5@ffr.list_window"
+    "v5_list",
+    "v5@jur.list_window"
   ],
-  "text": "{\n  \"vl_body_500\": {\n    \"type\": \"grid\",\n    \"size\": [\n      200,\n      \"100%c\"\n    ],\n    \"grid_rescaling_type\": \"horizontal\",\n    \"grid_item_template\": \"ffr.list_cell\",\n    \"collection_name\": \"form_buttons\",\n    \"maximum_grid_items\": 500,\n    \"bindings\": [\n      {\n        \"binding_name\": \"#form_button_length\",\n        \"binding_type\": \"collection\",\n        \"binding_collection_name\": \"form_buttons\"\n      },\n      {\n        \"binding_type\": \"view\",\n        \"source_property_name\": \"#form_button_length\",\n        \"target_property_name\": \"#maximum_grid_items\"\n      }\n    ]\n  },\n  \"v5@ffr.list_window\": {\n    \"$list_title\": \"Grid list: 500 cells (2 columns)\",\n    \"$list_content\": \"jur.vl_body_500\"\n  }\n}"
+  "text": "{\n  \"v5_list\": {\n    \"type\": \"grid\",\n    \"size\": [\n      200,\n      \"100%c\"\n    ],\n    \"grid_rescaling_type\": \"horizontal\",\n    \"grid_item_template\": \"jur.list_cell\",\n    \"collection_name\": \"form_buttons\",\n    \"maximum_grid_items\": 500,\n    \"bindings\": [\n      {\n        \"binding_name\": \"#form_button_length\",\n        \"binding_type\": \"collection\",\n        \"binding_collection_name\": \"form_buttons\"\n      },\n      {\n        \"binding_type\": \"view\",\n        \"source_property_name\": \"#form_button_length\",\n        \"target_property_name\": \"#maximum_grid_items\"\n      }\n    ]\n  },\n  \"v5@jur.list_window\": {\n    \"$list_title\": \"Grid list: 500 cells (2 columns)\",\n    \"$list_content\": \"jur.v5_list\"\n  }\n}"
 }

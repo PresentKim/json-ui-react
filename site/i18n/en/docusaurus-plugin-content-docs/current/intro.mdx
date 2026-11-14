@@ -8,7 +8,27 @@ title: Introduction
 # json-ui-react
 
 
-Compile server-form screens written with TSX and hooks into **static JSON UI** and a **server button layout module**. It has zero runtime dependencies, and the same input always produces byte-identical output.
+Compile server-form screens written in TSX into **static JSON UI** and a **server module for the behavior pack**. You write a screen with high-level components such as `<Screen>`, `<ButtonList>` and `<Tabs>`, and open it from the server with a single call to the generated `openScreen(player, id, data)`. It has zero runtime dependencies, and the same input always produces byte-identical output.
+
+```tsx
+import { Screen, ButtonList } from "json-ui-react";
+
+export default (
+  <Screen id="router" title="Router: screen picked by title prefix">
+    <ButtonList name="buttons" count={4} />
+  </Screen>
+);
+```
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+openScreen(player, "router", {
+  buttons: [["Apple", "textures/items/apple"], ["Bread", "textures/items/bread"]],
+}).then((hit) => {
+  // null (canceled) | { name: "buttons", index: 0..3 }
+});
+```
 
 ## Why compile at build time
 
@@ -18,13 +38,14 @@ Bedrock JSON UI has no JS runtime, so a screen's structure is baked statically i
 
 | Stage | What it does |
 | --- | --- |
-| TSX screen | Write the screen with components and hooks |
-| Built-in JSX runtime | Builds an element tree without React |
-| ControlNode tree | `render` and `toBody` lower it into JSON UI control shapes |
-| Pack | Collects the definitions per namespace into a set of `ui/*.json` files |
-| Slots | Assigns server button indices and generates the server module (JS) |
+| TSX screen | Write the screen with `<Screen>` and the other high-level components |
+| `buildScreens` | Builds the screens into one pack: the theme, a single router, the `server_form` hook and the generated server module |
+| Low-level layer | The built-in JSX runtime, `render`, `createPack` and `createSlots` lower everything into JSON UI controls |
 | Lint | Checks the generated JSON and reports diagnostics tagged with rule IDs |
+| Behavior pack | The generated `openScreen` sends the form with its buttons in the right order and decodes the response into `{ name, index }` |
+
+A layout the high-level API cannot express can be built directly with the low-level API. The [research screen](components/research) is one such example, and the [API reference](api#low) covers the low-level API.
 
 ## Next
 
-Install the add-on in [Getting started](getting-started), then browse the eight examples on the component pages.
+Make your first screen in [Getting started](getting-started), then browse the eight examples on the component pages.

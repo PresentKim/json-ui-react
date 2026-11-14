@@ -7,42 +7,68 @@ import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/slot-grid.source.json';
-import slot_grid from '@site/src/generated/slot-grid.json';
+import lowered from '@site/src/generated/slot-grid.json';
+import layout from '@site/src/generated/slot-grid.layout.json';
 
 # 고정 칸 그리드
 
 고정 칸 3x8 그리드와 선택 상세
 
 
-세로 `stack_panel` 안의 가로 줄에 칸을 직속 자식으로 두고 칸마다 고정 `collection_index`를 준다. 부모가 `panel`이면 COL-50 때문에 전부 0을 그린다.
+`<SlotGrid>`는 고정 칸 격자를 만든다. 칸은 세로 `stack_panel` 안의 가로 줄에 직속 자식으로 놓이고 칸마다 고정 `collection_index`를 받는다. 부모가 `panel`이면 COL-50 때문에 전부 0을 그리므로, 이 배치는 컴포넌트가 맡는다. `detail`을 주면 고른 칸의 아이콘과 이름이 오른쪽 판에 뜬다.
 
 ## 쓰는 API
 
 | 이름 | 설명 |
 | --- | --- |
-| `SlotGrid` | [API 레퍼런스](../api) |
-| `createSlots` | [API 레퍼런스](../api) |
+| `Screen` | 화면 하나: [API 레퍼런스](../api#high) |
+| `SlotGrid` | 칸 격자: [API 레퍼런스](../api#high) |
+| `buildScreens` | 화면들을 한 팩으로: [API 레퍼런스](../api#high) |
 
 ## JSX로 쓰기
 
-`SlotGrid`, `createSlots`를 쓴다. 3x8 고정 칸과 선택 상세를 그린다.
+`<Screen layout="split">`는 왼쪽 목록과 오른쪽 상세 판으로 창을 나눈다. `detail`은 `split`에서만 쓸 수 있고, 문자열이면 칸을 고르기 전 오른쪽 판에 보이는 안내 글자다. `<SlotGrid>`는 화면마다 하나다.
 
-| JSX | 낮춰진 JSON UI |
-| --- | --- |
-| `<SlotGrid>` | 세로 `stack_panel` 안의 줄 `stack_panel` + `collection_index` 칸 |
-| `slots.range` | 연속 버튼 번호 구간 |
+| 고수준 요소 | 낮춰진 JSON UI | 근거 규칙 |
+| --- | --- | --- |
+| `<Screen layout="split">` | 창 정의 `sg@jur.window_split`(왼쪽 판 + 오른쪽 판) + 라우터 항목(폼 제목 `jur:sg`) | HOST-06, COL-22, COL-39, COL-47 |
+| `<SlotGrid name="cells" rows={3} cols={8}>` | `sg_panes`: 세로 `stack_panel` 안에 가로 줄 3개, 줄마다 `item_toggle` 칸 8개(라디오 `toggle`, 칸마다 고정 `collection_index`) | COL-38, COL-50, INP-35 |
+| `detail="Pick a slot."` | `sg_right`(오른쪽 판의 안내 글자)와 `sg_detail`(고른 칸 버튼의 아이콘과 이름). 칸을 켜면 상세가 뜬다 | INP-13, INP-35 |
 
 <Source data={source} />
 
+## 서버에서 열기
+
+행동팩은 `buildScreens`가 만든 `scripts/generated/screens.js`의 `openScreen(player, id, data)`로 화면을 연다. `data`의 키는 컴포넌트의 `name`이고, 값은 버튼 목록이다. 버튼은 `[글자, 아이콘]`이다. 반환값은 `Promise<null | { name, index }>`로, 창을 닫으면 `null`이고 버튼을 누르면 어느 컴포넌트(`name`)의 몇 번째(`index`)인지 돌려준다. 컴포넌트의 칸 수보다 많이 보내면 오류이고, 모자라면 빈 칸 표식(`§0§e§r`)으로 채운다.
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+const ICONS = ["textures/items/diamond", "textures/items/apple", "textures/items/iron_ingot" /* ... */]; // 예시는 10개를 돌려 쓴다
+const NAMES = ["Diamond", "Apple", "Iron Ingot" /* ... */]; // 예시는 10개를 돌려 쓴다
+
+openScreen(player, "slot-grid", {
+  // 칸마다 [이름, 아이콘]
+  cells: Array.from({ length: 24 }, (_, i) => [NAMES[i % NAMES.length], ICONS[i % ICONS.length]]),
+}).then((hit) => {
+  if (!hit) return; // 취소
+  // hit: { name: "cells", index: 0..23 }
+});
+```
+
+생성 모듈의 `LAYOUTS["slot-grid"]`는 컴포넌트가 버튼 번호를 어떻게 나눠 받았는지 보여 준다. 아래는 prebuild가 생성 모듈에서 뽑은 것이다.
+
+<Excerpt data={layout} />
+
 ## 낮춤 결과
 
-`jur:sg` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+`jur:sg` 화면이 컴파일된 JSON UI 정의의 일부다. 오른쪽 판(`sg_right`), 상세(`sg_detail`), 칸이 든 판(`sg_panes`)이다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
 
-<Excerpt data={slot_grid} />
+<Excerpt data={lowered} />
 
 ## 근거 규칙
 
-COL-38, COL-50, INP-35, BND-32
+COL-38, COL-50, INP-13, INP-35
 
 ## 통합 애드온에서 실행 방법
 

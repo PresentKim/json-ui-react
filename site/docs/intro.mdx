@@ -8,7 +8,27 @@ title: 소개
 # json-ui-react
 
 
-TSX와 훅으로 쓴 서버 폼 화면을 **정적 JSON UI**와 **서버 버튼 배치 모듈**로 컴파일한다. 런타임 의존은 0이고, 같은 입력이면 바이트가 같은 출력이 나온다.
+TSX로 쓴 서버 폼 화면을 **정적 JSON UI**와 **행동팩용 서버 모듈**로 컴파일한다. 화면은 `<Screen>`, `<ButtonList>`, `<Tabs>` 같은 고수준 컴포넌트로 쓰고, 서버에서는 생성된 `openScreen(player, id, data)` 한 줄로 연다. 런타임 의존은 0이고, 같은 입력이면 바이트가 같은 출력이 나온다.
+
+```tsx
+import { Screen, ButtonList } from "json-ui-react";
+
+export default (
+  <Screen id="router" title="Router: screen picked by title prefix">
+    <ButtonList name="buttons" count={4} />
+  </Screen>
+);
+```
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+openScreen(player, "router", {
+  buttons: [["Apple", "textures/items/apple"], ["Bread", "textures/items/bread"]],
+}).then((hit) => {
+  // null(취소) | { name: "buttons", index: 0..3 }
+});
+```
 
 ## 왜 빌드 시점 컴파일인가
 
@@ -18,13 +38,14 @@ TSX와 훅으로 쓴 서버 폼 화면을 **정적 JSON UI**와 **서버 버튼 
 
 | 단계 | 하는 일 |
 | --- | --- |
-| TSX 화면 | 컴포넌트와 훅으로 화면을 쓴다 |
-| 자체 JSX 런타임 | React 없이 요소 트리를 만든다 |
-| ControlNode 트리 | `render`, `toBody`가 JSON UI 컨트롤 모양으로 낮춘다 |
-| Pack | 네임스페이스별 정의를 모아 `ui/*.json` 묶음을 만든다 |
-| Slots | 서버 버튼 번호를 할당하고 서버 모듈(JS)을 만든다 |
+| TSX 화면 | `<Screen>`과 고수준 컴포넌트로 화면을 쓴다 |
+| `buildScreens` | 화면들을 한 팩으로 묶는다: 테마, 단일 라우터, `server_form` 훅, 생성 서버 모듈 |
+| 저수준 층 | 자체 JSX 런타임, `render`, `createPack`, `createSlots`가 JSON UI 컨트롤로 낮춘다 |
 | Lint | 생성된 JSON을 규칙 ID가 붙은 진단으로 검사한다 |
+| 행동팩 | 생성 모듈의 `openScreen`이 버튼 순서를 맞춰 폼을 보내고 응답을 `{ name, index }`로 푼다 |
+
+고수준으로 안 되는 배치는 저수준 API로 직접 만들 수 있다. [연구 화면](components/research)이 그 예이고, [API 레퍼런스](api#low)에 저수준 API를 정리했다.
 
 ## 다음
 
-[시작하기](getting-started)에서 설치하고, 컴포넌트 페이지에서 예시 8개를 살펴본다.
+[시작하기](getting-started)에서 첫 화면을 만들어 보고, 컴포넌트 페이지에서 예시 8개를 살펴본다.

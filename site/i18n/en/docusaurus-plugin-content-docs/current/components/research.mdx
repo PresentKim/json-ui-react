@@ -8,39 +8,109 @@ import Excerpt from '@site/src/components/Excerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/research.source.json';
 import research from '@site/src/generated/research.json';
+import layout from '@site/src/generated/research.layout.json';
 
 # Research screen (method E)
 
 Research screen: 2 tabs, 96 items, 96 details (method E)
 
+:::info Advanced example using the low-level API
+This screen is not written with the high-level API (`<Screen>`, `<ButtonList>` and so on). It is an **advanced example written directly with the low-level API**. The other seven examples are all high-level. A low-level screen can still go into the same `buildScreens` pack and the same router.
+:::
 
-Two tabs, 96 items and 96 details add up to 2022 buttons. Button indices are resolved with the layout that `serverModule` generates.
+Two tabs, 96 items and 96 details add up to 2022 buttons. Button indices are resolved with the layout that `createSlots` builds.
+
+## Why it is not high-level
+
+- **A special layout.** Each tab has a 48-cell list, and the screen prebuilds 96 detail blocks of 20 cells each (1920 of the 2022 buttons). The high-level `<SlotGrid>` is limited to one per screen, `<Tabs>` is also limited to one per screen, and `<SlotGrid detail>` shows only the icon and name of the chosen cell. A detail with eight materials, eight rewards and a progress button cannot be expressed with high-level elements.
+- **Reproducing the FFR original byte for byte.** The point of this screen is to keep the FFR original's UI definitions (`faces.json`) and its button layout (`102 + 20k + 19`) identical to the original server. It does not use the high-level theme; it assembles the definitions one by one.
+
+A screen that high-level elements cannot express is built with the low-level API like this. The sections below go through it in order.
 
 ## APIs used
 
 | Name | Description |
 | --- | --- |
-| `SlotGrid` | [API reference](../api) |
-| `TabBar` | [API reference](../api) |
-| `ScreenRouter` | [API reference](../api) |
-| `createSlots` | [API reference](../api) |
-| `serverModule` | [API reference](../api) |
+| `SlotGrid` (`LowSlotGrid`) | The low-level grid of cells: [API reference](../api#low) |
+| `TabBar` | The tab row: [API reference](../api#low) |
+| `ScreenRouter` | A router that picks a screen by title: [API reference](../api#low) |
+| `createSlots` | Named ranges of button indices: [API reference](../api#low) |
+| `createPack` | A bundle of definitions: [API reference](../api#low) |
+| `buildScreens` | Its `lowLevel` option puts this screen into the same pack: [API reference](../api#high) |
 
 ## Writing it in JSX
 
-Uses `SlotGrid`, `TabBar`, `ScreenRouter`, `createSlots` and `serverModule`. Below are the essentials of the screen definition (`defineResearch`) and the item definitions (`defineItems`).
+Uses `SlotGrid`, `TabBar`, `ScreenRouter` and `createSlots`. Below are the core of the screen definition (`defineResearch`) and the item definition (`defineItems`). Unlike the high-level API, you get the button indices from `createSlots` yourself, and you name the definitions and references (`ffr.…`) yourself.
 
-| JSX | Lowered JSON UI |
-| --- | --- |
-| `<ScreenRouter>` | `collection_panel` + `property_bag` title lookup |
-| `<TabBar>` | Horizontal `stack_panel` + radio `toggle` with 8 states |
-| `<SlotGrid>` | Row `stack_panel` + `collection_index` cells |
+| Low-level JSX | Lowered JSON UI | Rules |
+| --- | --- | --- |
+| `<ScreenRouter>` | `collection_panel` + `property_bag` title lookup | HOST-06, COL-22, COL-39 |
+| `<TabBar>` | Horizontal `stack_panel` + radio `toggle` with 8 states | INP-13 |
+| `<SlotGrid>` | Row `stack_panel` + `collection_index` cells | COL-50 |
 
 <Source data={source} />
 
+## Working with the low-level API
+
+The research screen is built like this.
+
+1. `createSlots()` decides the ranges. `range("tab0", 48)` and `range("tabs", 2)` make ranges of consecutive indices, and `blocks("detail", 96, [...fields])` makes blocks that share the same fields per item.
+2. `createPack()` makes the namespace (`ffr`), and `defineResearch(pack, slots, opts)` `define`s the rendered JSX definitions. `opts.routePrefix` is the title prefix, and `opts.text` changes the in-game text.
+3. To put the screen into the same pack as the high-level examples, add the definitions in the `lowLevel` option of `buildScreens` and return the screen. `buildScreens` owns the router, so turn the research screen's own router off with `router: false`.
+
+```ts
+import { buildScreens } from "json-ui-react";
+import { createResearchSlots, defineResearch } from "../examples/research/screen.tsx";
+
+const built = buildScreens(screens, {
+  codes: { research: "re" }, // form title jur:re
+  lowLevel: (pack) => {
+    const slots = createResearchSlots();
+    defineResearch(pack, slots, { routePrefix: "jur:", router: false });
+    return [{ id: "research", control: "ffr.research_ea", layout: slots.layout() }];
+  },
+});
+```
+
+The `{ id, control, layout }` that `lowLevel` returns goes straight into the router entries and into `LAYOUTS` of the generated module. So the behavior pack can handle this screen with `decode("research", selection)` and `screenTitle("research")` too.
+
+## Opening it from the server
+
+High-level screens open with `openScreen`, but this example's behavior pack (`main.js`) sends the buttons itself. It takes only the title from the generated module, and the button order is the same as `createResearchSlots`: 48 cells x 2, 2 tabs, 2 x 2 pager buttons, then 96 detail blocks.
+
+```js
+import { screenTitle } from "./generated/screens.js";
+
+const form = new ActionFormData().title(screenTitle("research")); // jur:re
+for (const list of pageItems) {
+  for (let k = 0; k < 48; k++) {
+    const i = list[k];
+    if (i === undefined) form.button("§r");
+    else form.button("§r", item(i).icon);
+  }
+}
+form.button(`Needed ${tabs[0].length}`, "textures/items/book_normal"); // 2 tabs
+form.button(`Done ${tabs[1].length}`, "textures/items/emerald");
+for (let k = 0; k < 4; k++) form.button("§r"); // 2 x 2 pager buttons
+for (const list of pageItems) for (let k = 0; k < 48; k++) addDetailBlock(form, list[k]); // 96 details x 20
+```
+
+Decode the response with the generated module's `decode`. A detail block also returns a `field`.
+
+```js
+import { decode } from "./generated/screens.js";
+
+decode("research", 102 + 20 * 3 + 19); // { name: "detail", index: 3, field: "progress" }
+decode("research", 99);                // { name: "pager0", index: 1 }
+```
+
+`LAYOUTS["research"]` in the generated module looks like this (only the beginning is shown because it is long).
+
+<Excerpt data={layout} />
+
 ## Lowered result
 
-An excerpt of the compiled JSON UI definition of the `jur:re` screen. The prebuild step extracts it from `rp/ui`.
+An excerpt of the compiled JSON UI definitions of the `jur:re` screen. The prebuild step extracts it from `rp/ui`.
 
 <Excerpt data={research} />
 

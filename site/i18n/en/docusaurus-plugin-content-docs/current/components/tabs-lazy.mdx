@@ -7,50 +7,77 @@ import Photos from '@site/src/components/Photos';
 import Excerpt from '@site/src/components/Excerpt';
 import Source from '@site/src/components/Source';
 import source from '@site/src/generated/tabs-lazy.source.json';
-import tabs_lazy from '@site/src/generated/tabs-lazy.json';
+import lowered from '@site/src/generated/tabs-lazy.json';
+import layout from '@site/src/generated/tabs-lazy.layout.json';
 
 # Tabs: built on first select (method D)
 
 Method D: build a panel with a factory only when its tab is selected
 
 
-Only the first tab is built up front. The rest are created by a factory bound to the toggle state when selected. You cannot use `lazyPane(0)` for the first tab.
+`<Tabs mode="lazy">` builds only the first tab up front. The other tabs are created, when selected, by a factory bound to the toggle state. A first tab built by a factory would be empty when the screen first opens, so the build creates the first tab up front automatically.
 
 ## APIs used
 
 | Name | Description |
 | --- | --- |
-| `TabBar` | [API reference](../api) |
-| `SlotGrid` | [API reference](../api) |
-| `bind.view` | [API reference](../api) |
+| `Screen` | One screen: [API reference](../api#high) |
+| `Tabs` | Client-side tabs: [API reference](../api#high) |
+| `Tab` | One tab: [API reference](../api#high) |
+| `ButtonList` | A vertical list of icon + text buttons: [API reference](../api#high) |
 
 ## Writing it in JSX
 
-Uses `TabBar`, `SlotGrid` and `bind.view`. A panel is created by a factory only when its tab is selected.
+Only `mode="lazy"` differs; the code has the same shape as method B. You do not need to treat the first tab specially.
 
-| JSX | Lowered JSON UI |
-| --- | --- |
-| `<TabBar>` | Horizontal `stack_panel` + radio `toggle` with 8 states |
-| `<SlotGrid>` | Row `stack_panel` + `collection_index` cells |
-| `useTabs().lazyPane` | `factory` + `#collection_length` binding |
+| High-level element | Lowered JSON UI | Rules |
+| --- | --- | --- |
+| `<Screen>` | Window definition `tl@jur.window` + a router entry (form title `jur:tl`) | HOST-06, COL-22, COL-39, COL-47 |
+| `<Tabs name="tabs" mode="lazy">` | Tab row `tl_tabs`: a horizontal `stack_panel` + radio `toggle` with 8 states | INP-10, INP-11, INP-13 |
+| Content of the first `<Tab>` | `tl_pane_0` is built up front and shown only through the toggle-state binding | INP-13, COL-47 |
+| Content of the other `<Tab>`s | `tl_lazy_1`: a `factory` plus a binding from the tab toggle to `#collection_length`. The pane is built when the tab is selected | INP-13, COL-47 |
+| `<ButtonList name="tab1" count={2} />`, `<ButtonList name="tab2" count={2} />` | Two `@jur.btn` buttons per tab: 2 rows in a vertical `stack_panel` (`collection_name: form_buttons`), each with a fixed-`collection_index` cell | COL-38, COL-50 |
 
 <Source data={source} />
 
+## Opening it from the server
+
+The behavior pack opens the screen with `openScreen(player, id, data)` from `scripts/generated/screens.js`, which `buildScreens` generates. The keys of `data` are the components' `name`s, and each value is a list of buttons. A button is `[text, icon]`. It returns a `Promise<null | { name, index }>`: `null` if the window is closed, otherwise which component (`name`) and which button in it (`index`) was pressed. Sending more buttons than the component has is an error, and missing ones are filled with the empty-cell mark (`§0§e§r`).
+
+```js
+import { openScreen } from "./generated/screens.js";
+
+openScreen(player, "tabs-lazy", {
+  // <Tabs name="tabs">: tab text and icons
+  tabs: [["Tab 1", "textures/items/book_normal"], ["Tab 2", "textures/items/emerald"]],
+  // <ButtonList name="tab1" count={2}>, <ButtonList name="tab2" count={2}>
+  tab1: [["Tab 1: Apple", "textures/items/apple"], ["Tab 1: Bread", "textures/items/bread"]],
+  tab2: [["Tab 2: Diamond", "textures/items/diamond"], ["Tab 2: Gold Ingot", "textures/items/gold_ingot"]],
+}).then((hit) => {
+  if (!hit) return; // canceled
+  // hit: { name: "tab1" | "tab2", index: 0..1 }
+});
+```
+
+`LAYOUTS["tabs-lazy"]` in the generated module shows how the component ranges split the button indices. The excerpt below is extracted from the generated module by the prebuild step.
+
+<Excerpt data={layout} />
+
 ## Lowered result
 
-An excerpt of the compiled JSON UI definition of the `jur:tl` screen. The prebuild step extracts it from `rp/ui`.
+An excerpt of the compiled JSON UI definitions of the `jur:tl` screen: the tab row (`tl_tabs`), the second tab built by a factory (`tl_lazy_1`) and the window (`tl@jur.window`). The prebuild step extracts it from `rp/ui`.
 
-<Excerpt data={tabs_lazy} />
+<Excerpt data={lowered} />
 
 ## Rules
 
-INP-13, COL-47
+INP-13, COL-47, COL-38, COL-50
 
 ## Running it in the integration add-on
 
 In the add-on you downloaded with "Download integration test add-on" at the top right, use the stick to pick the example in the picker, or run the command. In-game text is in English: the picker (`json-ui-react Examples`) lists this example as `Tabs: built on first select`.
 
-Six buttons, form title `jur:tl`.
+6 buttons, form title `jur:tl`.
 
 ```text
 /scriptevent jur:open tabs-lazy
