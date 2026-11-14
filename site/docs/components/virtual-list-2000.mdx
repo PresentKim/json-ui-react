@@ -1,0 +1,45 @@
+---
+sidebar_position: 7
+title: 가상 목록 2000칸
+---
+
+import DownloadButton from '@site/src/components/DownloadButton';
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import virtual_list_2000 from '@site/src/generated/virtual-list-2000.json';
+
+# 가상 목록 2000칸
+
+2열 가상 목록 2000칸(COL-49 한계)
+
+<DownloadButton small />
+
+2000칸은 COL-49 한계다. 이를 넘으면 칸이 겹쳐 그려져 빌드가 오류를 낸다.
+
+## 쓰는 API
+
+| 이름 | 설명 |
+| --- | --- |
+| `VirtualList` | [API 레퍼런스](../api) |
+
+## 낮춤 결과
+
+`jur:v2` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+
+<Excerpt data={virtual_list_2000} />
+
+## 근거 규칙
+
+COL-49
+
+## 게임에서 열기
+
+버튼 2000개, 폼 제목 `jur:v2`.
+
+```text
+/scriptevent jur:open virtual-list-2000
+```
+
+## 실측 사진
+
+<Photos id="virtual-list-2000" />

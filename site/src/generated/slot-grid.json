@@ -1,0 +1,9 @@
+{
+  "id": "slot-grid",
+  "file": "ui/jur.json",
+  "keys": [
+    "sg_detail",
+    "sg_panes"
+  ],
+  "text": "{\n  \"sg_detail\": {\n    \"type\": \"panel\",\n    \"size\": [\n      100,\n      24\n    ],\n    \"controls\": [\n      {\n        \"t\": {\n          \"type\": \"label\",\n          \"layer\": 3,\n          \"localize\": false,\n          \"text\": \"선택한 칸의 상세\",\n          \"color\": [\n            0.2,\n            0.2,\n            0.2\n          ]\n        }\n      }\n    ]\n  },\n  \"sg_panes\": {\n    \"type\": \"panel\",\n    \"size\": [\n      144,\n      128\n    ],\n    \"controls\": [\n      {\n        \"sg_grid\": {\n          \"type\": \"stack_panel\",\n          \"orientation\": \"vertical\",\n          \"size\": [\n            144,\n            54\n          ],\n          \"anchor_from\": \"top_left\",\n          \"anchor_to\": \"top_left\",\n          \"controls\": [\n            {\n              \"r0\": {\n                \"type\": \"stack_panel\",\n                \"orientation\": \"horizontal\",\n                \"size\": [\n                  144,\n                  18\n                ],\n                \"collection_name\": \"form_buttons\",\n                \"controls\": [\n                  {\n                    \"i0@ffr.item_toggle\": {\n                      \"collection_index\": 0,\n                      \"$k\": 0,\n                      \"$detail_offset\": [\n                        152,\n                        -4\n                      ],\n                      \"$detail_def\": \"jur.sg_detail\"\n                    }\n                  },\n                  {\n                    \"i1@ffr.item_toggle\": {\n                      \"collection_index\": 1,\n                      \"$k\": 1,\n                      \"$detail_offset\": [\n                        134,\n                        -4\n                      ],\n  ... (이하 생략)"
+}

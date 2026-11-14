@@ -7,11 +7,21 @@
     "test": "vitest run",
     "build:example": "tsx examples/research/build.ts",
     "typecheck": "tsc --noEmit",
-    "build:addon": "tsx example/pack-addon.ts"
+    "build:addon": "tsx --tsconfig site/tsconfig.build.json example/pack-addon.ts",
+    "site:build": "npm run build:addon && node site/prebuild.mjs && docusaurus build site",
+    "site:start": "npm run build:addon && node site/prebuild.mjs && docusaurus start site"
   },
   "devDependencies": {
+    "@docusaurus/core": "^3.10.2",
+    "@docusaurus/preset-classic": "^3.10.2",
+    "@docusaurus/types": "^3.10.2",
+    "@mdx-js/react": "^3.1.1",
     "@types/node": "^22",
+    "clsx": "^2.1.1",
     "fflate": "^0.8.3",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tsx": "^4",
     "typescript": "^5",
     "vitest": "^2"

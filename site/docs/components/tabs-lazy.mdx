@@ -1,0 +1,47 @@
+---
+sidebar_position: 4
+title: "탭: 고를 때 팩토리 (방식 D)"
+---
+
+import DownloadButton from '@site/src/components/DownloadButton';
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import tabs_lazy from '@site/src/generated/tabs-lazy.json';
+
+# 탭: 고를 때 팩토리 (방식 D)
+
+탭을 고를 때만 패널을 팩토리로 만드는 방식(D)
+
+<DownloadButton small />
+
+첫 탭만 미리 만들고 나머지는 토글 상태에 묶은 팩토리로 고를 때 만든다. 첫 탭에는 `lazyPane(0)`을 쓸 수 없다.
+
+## 쓰는 API
+
+| 이름 | 설명 |
+| --- | --- |
+| `TabBar` | [API 레퍼런스](../api) |
+| `SlotGrid` | [API 레퍼런스](../api) |
+| `bind.view` | [API 레퍼런스](../api) |
+
+## 낮춤 결과
+
+`jur:tl` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+
+<Excerpt data={tabs_lazy} />
+
+## 근거 규칙
+
+INP-13, COL-47
+
+## 게임에서 열기
+
+버튼 6개, 폼 제목 `jur:tl`.
+
+```text
+/scriptevent jur:open tabs-lazy
+```
+
+## 실측 사진
+
+<Photos id="tabs-lazy" />

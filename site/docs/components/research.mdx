@@ -1,0 +1,49 @@
+---
+sidebar_position: 8
+title: 연구 화면 (방식 E)
+---
+
+import DownloadButton from '@site/src/components/DownloadButton';
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import research from '@site/src/generated/research.json';
+
+# 연구 화면 (방식 E)
+
+연구 화면: 탭 2개, 항목 96개, 상세 96개(방식 E)
+
+<DownloadButton small />
+
+탭 2개, 항목 96개, 상세 96개를 합쳐 버튼 2022개를 만든다. 버튼 번호는 `serverModule`이 만든 배치로 해석한다.
+
+## 쓰는 API
+
+| 이름 | 설명 |
+| --- | --- |
+| `SlotGrid` | [API 레퍼런스](../api) |
+| `TabBar` | [API 레퍼런스](../api) |
+| `ScreenRouter` | [API 레퍼런스](../api) |
+| `createSlots` | [API 레퍼런스](../api) |
+| `serverModule` | [API 레퍼런스](../api) |
+
+## 낮춤 결과
+
+`jur:re` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+
+<Excerpt data={research} />
+
+## 근거 규칙
+
+COL-50, INP-13, COL-47, BND-32
+
+## 게임에서 열기
+
+버튼 2022개, 폼 제목 `jur:re`.
+
+```text
+/scriptevent jur:open research
+```
+
+## 실측 사진
+
+<Photos id="research" />

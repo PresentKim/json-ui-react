@@ -1,0 +1,47 @@
+---
+sidebar_position: 2
+title: "탭: 탭 안에 내용 (방식 B)"
+---
+
+import DownloadButton from '@site/src/components/DownloadButton';
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import tabs_inside from '@site/src/generated/tabs-inside.json';
+
+# 탭: 탭 안에 내용 (방식 B)
+
+탭을 켠 얼굴 안에 패널을 넣는 방식(B)
+
+<DownloadButton small />
+
+각 탭 토글의 켠 얼굴 안에 패널을 넣는다. 토글 상태가 곧 표시 상태라 바인딩이 필요 없다.
+
+## 쓰는 API
+
+| 이름 | 설명 |
+| --- | --- |
+| `TabBar` | [API 레퍼런스](../api) |
+| `radioToggleBody` | [API 레퍼런스](../api) |
+| `SlotGrid` | [API 레퍼런스](../api) |
+
+## 낮춤 결과
+
+`jur:ti` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+
+<Excerpt data={tabs_inside} />
+
+## 근거 규칙
+
+INP-10, INP-11, INP-13
+
+## 게임에서 열기
+
+버튼 6개, 폼 제목 `jur:ti`.
+
+```text
+/scriptevent jur:open tabs-inside
+```
+
+## 실측 사진
+
+<Photos id="tabs-inside" />

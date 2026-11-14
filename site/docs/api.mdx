@@ -1,0 +1,24 @@
+---
+sidebar_position: 20
+title: API 레퍼런스
+---
+
+# API 레퍼런스
+
+| API (src 경로) | 낮춤 결과 | 근거 규칙 |
+| --- | --- | --- |
+| `ScreenRouter` (`src/components/router.tsx`) | `collection_panel` + 팩토리 + `property_bag` 제목 조회(접두 바이트 길이로 비교). 제목 중복과 id 중복은 빌드 오류 | HOST-06, COL-22, COL-39, COL-47 |
+| `radioToggleBody` (`src/components/toggle.tsx`) | 원시 `toggle` 라디오 그룹 본문. 8개 상태 키를 채운다 | INP-10, INP-11, INP-13 |
+| `TabBar` (`src/components/toggle.tsx`) | `form_buttons` 컬렉션 위 가로 줄에 토글 정의를 늘어놓고 탭마다 `$tab_index`를 붙인다 | INP-13 |
+| `SlotGrid` (`src/components/grid.tsx`) | 세로 `stack_panel` 안의 가로 줄과 고정 `collection_index` 칸 | COL-38, COL-50, INP-35, BND-32 |
+| `VirtualList` (`src/components/grid.tsx`) | `grid` + `maximum_grid_items`를 `#form_button_length`에 묶는다. 2000개 초과는 빌드 오류 | COL-49 |
+| `createSlots` / `withSlots` / `useSlots` (`src/slots.ts`) | `range`, `blocks`로 이름 붙은 연속 버튼 번호를 배정한다 | 연구 화면 2절 |
+| `decode`, `serverModule` (`src/slots.ts`) | 버튼 번호를 `{ name, index, field }`로 풀고 서버 모듈 문자열을 만든다 | 연구 화면 2절 |
+| `useTabs` (`src/hooks.ts`) | 탭 모드(`inside`, `follow`, `lazy`)별 탭 이름, 인덱스, 패널 바인딩, 토글 본문, 지연 패널을 돌려준다 | INP-13, COL-47 |
+| `useSelection` (`src/hooks.ts`) | 선택 항목 토글 본문(`itemBody`)과 지연 상세 팩토리(`lazyDetail`)를 돌려준다 | INP-13 |
+| `useBinding` (`src/hooks.ts`) | 식을 검사(EXP-36)하고 `view` 바인딩을 만든다 | EXP-36 |
+| `lit`, `prefixEq`, `lacks` (`src/expr.ts`) | 바닐라 식 문자열 조립. `lit`은 `'`, `*`, `@`를 던진다 | EXP-36 |
+| `view`, `collection`, `details`, `global` (`src/bind.ts`) | 바인딩 객체 빌더. 키 순서 고정, `undefined` 키 생략 | COL-47, BND-32 |
+| `render`, `toBody`, `toEntry` (`src/render.ts`) | 요소 트리 → ControlNode → JSON 본문 | - |
+| `createPack` (`src/pack.ts`) | `ns`, `define`, `modify`, `files()`, `json()`으로 정의 묶음을 만든다 | - |
+| `lintFiles`, `countControls` (`src/lint.ts`) | 생성 JSON 검사기와 컨트롤 수 집계 | - |

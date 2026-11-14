@@ -1,0 +1,45 @@
+---
+sidebar_position: 6
+title: 가상 목록 500칸
+---
+
+import DownloadButton from '@site/src/components/DownloadButton';
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import virtual_list_500 from '@site/src/generated/virtual-list-500.json';
+
+# 가상 목록 500칸
+
+2열 가상 목록 500칸
+
+<DownloadButton small />
+
+`grid`에 `maximum_grid_items`를 `#form_button_length`로 묶은 2열 가상 목록.
+
+## 쓰는 API
+
+| 이름 | 설명 |
+| --- | --- |
+| `VirtualList` | [API 레퍼런스](../api) |
+
+## 낮춤 결과
+
+`jur:v5` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+
+<Excerpt data={virtual_list_500} />
+
+## 근거 규칙
+
+COL-49
+
+## 게임에서 열기
+
+버튼 500개, 폼 제목 `jur:v5`.
+
+```text
+/scriptevent jur:open virtual-list-500
+```
+
+## 실측 사진
+
+<Photos id="virtual-list-500" />

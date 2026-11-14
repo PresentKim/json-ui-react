@@ -1,0 +1,46 @@
+---
+sidebar_position: 5
+title: 고정 칸 그리드
+---
+
+import DownloadButton from '@site/src/components/DownloadButton';
+import Photos from '@site/src/components/Photos';
+import Excerpt from '@site/src/components/Excerpt';
+import slot_grid from '@site/src/generated/slot-grid.json';
+
+# 고정 칸 그리드
+
+고정 칸 3x8 그리드와 선택 상세
+
+<DownloadButton small />
+
+세로 `stack_panel` 안의 가로 줄에 칸을 직속 자식으로 두고 칸마다 고정 `collection_index`를 준다. 부모가 `panel`이면 COL-50 때문에 전부 0을 그린다.
+
+## 쓰는 API
+
+| 이름 | 설명 |
+| --- | --- |
+| `SlotGrid` | [API 레퍼런스](../api) |
+| `createSlots` | [API 레퍼런스](../api) |
+
+## 낮춤 결과
+
+`jur:sg` 화면이 컴파일된 JSON UI 정의의 일부다. 빌드할 때 prebuild가 `rp/ui`에서 뽑는다.
+
+<Excerpt data={slot_grid} />
+
+## 근거 규칙
+
+COL-38, COL-50, INP-35, BND-32
+
+## 게임에서 열기
+
+버튼 24개, 폼 제목 `jur:sg`.
+
+```text
+/scriptevent jur:open slot-grid
+```
+
+## 실측 사진
+
+<Photos id="slot-grid" />
