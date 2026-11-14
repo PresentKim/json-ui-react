@@ -22,6 +22,12 @@ describe("pack-addon", () => {
     expect(rp["pack_icon.png"]).toBeDefined();
     expect(rp["ui/_ui_defs.json"]).toBeDefined();
     expect(rp["ui/server_form.json"]).toBeDefined();
+    // 생성 서버 모듈과 테마 텍스처를 팩에 넣는다.
+    const gen = new TextDecoder().decode(bp["scripts/generated/screens.js"]!);
+    expect(gen).toContain("export function openScreen");
+    expect(rp["textures/ui/jur/button.png"]).toBeDefined();
+    expect(rp["textures/ui/jur/panel.json"]).toBeDefined();
+    expect(rp["textures/ui/ffr/panel.png"]).toBeDefined(); // research(저수준)는 그대로
   });
   it("test_version_in_name_and_description", () => {
     process.env.JUR_COMMIT = "abc1234";

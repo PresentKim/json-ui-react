@@ -1,39 +1,16 @@
-// tabs-follow: 패널이 탭 토글 상태에 바인딩되어 보인다(방식 C).
-import type { Pack } from "../../src/pack.ts";
-import type { Slots } from "../../src/slots.ts";
-import { TabBar } from "../../src/components/toggle.tsx";
-import { view } from "../../src/bind.ts";
-import { ButtonList, TOP_LEFT, defineWindow, ns, ref } from "./common.tsx";
+// tabs-follow: 탭 2개, 탭마다 버튼 2개. 내용이 탭 토글 상태를 따라 보인다(방식 C).
+// 탭 글자·아이콘은 서버 데이터 tabs에서 온다.
+import { Screen, Tabs, Tab, ButtonList } from "json-ui-react";
 
-export function defineTabsFollow(pack: Pack, slots: Slots): string {
-  const tabs = slots.range("tabs", 2);
-  const panes = [slots.range("pane0", 2), slots.range("pane1", 2)];
-  const n = ns(pack);
-  n.define("tf_tabs", (
-    <TabBar
-      name="tf_tabs"
-      size={[192, 22]}
-      toggleDef="ffr.tab_toggle"
-      tabs={[0, 1].map((i) => ({ name: `jur_t${i}`, index: tabs.at(i) }))}
-    />
-  ));
-  n.define("tf_panes", (
-    <panel name="tf_panes" size={[180, 128]}>
-      {panes.map((r, i) => (
-        <ButtonList
-          name={`p${i}`}
-          range={r}
-          props={TOP_LEFT}
-          bindings={[view("#toggle_state", "#visible", { condition: "always", control: `jur_t${i}` })]}
-        />
-      ))}
-    </panel>
-  ));
-  defineWindow(pack, "tf", {
-    "$mode_title": "Tabs: follow toggle state (C)",
-    "$tabs_def": ref("tf_tabs"),
-    "$panes_def": ref("tf_panes"),
-    "$tab": 0,
-  });
-  return ref("tf");
-}
+export default (
+  <Screen id="tabs-follow" title="Tabs: follow toggle state (C)">
+    <Tabs name="tabs" mode="follow">
+      <Tab>
+        <ButtonList name="tab1" count={2} />
+      </Tab>
+      <Tab>
+        <ButtonList name="tab2" count={2} />
+      </Tab>
+    </Tabs>
+  </Screen>
+);

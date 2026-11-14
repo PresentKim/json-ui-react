@@ -4,6 +4,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildExamples } from "../../example/build-rp.ts";
 import { EXAMPLES } from "../../example/catalog.ts";
+import { loadServerModule, mockForms, runMain } from "../high/server-harness.ts";
 
 const HANGUL = /[가-힣ㄱ-ㅎㅏ-ㅣ]/;
 const rd = (p: string) => readFileSync(new URL(`../../example/${p}`, import.meta.url), "utf8");
@@ -11,35 +12,28 @@ const src = rd("bp/scripts/main.js");
 
 type Sent = { forms: { title: string; body: string; buttons: string[] }[]; chat: string[]; bar: string[] };
 
-/** main.js를 모의 @minecraft 모듈로 실행해 폼 글자, 채팅, 액션바를 모은다. */
-function run(): { sent: Sent; spawn: () => void; open: (id: string) => void; pick: (n: number) => void } {
+/** main.js를 모의 @minecraft 모듈과 생성 모듈(generated/screens.js)로 실행해 폼 글자, 채팅, 액션바를 모은다. */
+async function run(): Promise<{ sent: Sent; spawn: () => void; open: (id: string) => void; pick: (n: number) => void }> {
+  const m = mockForms();
+  const mod = await loadServerModule(buildExamples().serverModule, m.ActionFormData);
   const sent: Sent = { forms: [], chat: [], bar: [] };
   const handlers: Record<string, (e: unknown) => void> = {};
-  let resolve: ((r: unknown) => void) | undefined;
-  class ActionFormData {
-    f = { title: "", body: "", buttons: [] as string[] };
-    constructor() { sent.forms.push(this.f); }
-    title(t: string) { this.f.title = t; return this; }
-    body(t: string) { this.f.body = t; return this; }
-    button(t: string) { this.f.buttons.push(t); return this; }
-    show() { return new Promise((r) => { resolve = r; }); }
-  }
   const sub = (name: string) => ({ subscribe: (h: (e: unknown) => void) => { handlers[name] = h; } });
   const world = { afterEvents: { itemUse: sub("itemUse"), playerSpawn: sub("playerSpawn") } };
   const system = { run: (f: () => void) => f(), afterEvents: { scriptEventReceive: sub("script") } };
-  class ItemStack {}
-  new Function("ItemStack", "system", "world", "ActionFormData", src.replace(/^import .*$/gm, ""))(ItemStack, system, world, ActionFormData);
+  runMain(src, mod, { ActionFormData: m.ActionFormData, world, system });
   const player = {
     typeId: "minecraft:player",
     onScreenDisplay: { setActionBar: (t: string) => sent.bar.push(t) },
     sendMessage: (t: string) => sent.chat.push(t),
     getComponent: () => ({ container: { size: 0, getItem: () => undefined, addItem() {} } }),
   };
+  const sync = () => { sent.forms = m.forms.map((f) => ({ title: f.title, body: f.body, buttons: f.buttons.map((b) => b.text) })); };
   return {
     sent,
     spawn: () => handlers.playerSpawn!({ initialSpawn: true, player }),
-    open: (id) => handlers.script!({ id: "jur:open", message: id, sourceEntity: player }),
-    pick: (n) => resolve!({ canceled: false, selection: n }),
+    open: (id) => { handlers.script!({ id: "jur:open", message: id, sourceEntity: player }); sync(); },
+    pick: (n) => m.respond({ canceled: false, selection: n }),
   };
 }
 
@@ -51,7 +45,7 @@ describe("english add-on (F-I18N-1)", () => {
   });
 
   it("main.js가 만드는 폼, 채팅, 액션바 글자에 한글이 없다", async () => {
-    const r = run();
+    const r = await run();
     r.spawn();
     r.open("menu");
     const menu = r.sent.forms[0]!;
@@ -63,6 +57,10 @@ describe("english add-on (F-I18N-1)", () => {
       r.pick(0);
       await Promise.resolve();
     }
+    await new Promise((res) => setTimeout(res, 0));
+    // openScreen 응답은 { name, index }로 decode되어 액션바에 뜬다.
+    expect(r.sent.bar).toContain("[jur] router selection=buttons[0]");
+    expect(r.sent.bar).toContain("[jur] tabs-lazy selection=tabs[0]");
     r.open("nope");
     for (const f of r.sent.forms) {
       expect(HANGUL.test([f.title, f.body, ...f.buttons].join("\n")), f.title).toBe(false);

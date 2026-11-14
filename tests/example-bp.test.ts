@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { EXAMPLES } from "../example/catalog.ts";
 
 const rd = (p: string) => readFileSync(new URL(`../example/${p}`, import.meta.url), "utf8");
 const IDS = ["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "research"];
@@ -12,7 +13,10 @@ describe("example bp", () => {
   it("test_bp_ids_match_catalog", () => {
     const m = main.match(/^\/\/ @examples: (.*)$/m);
     expect(JSON.parse(m![1])).toEqual(IDS);
-    IDS.forEach((id, i) => expect(main).toContain(`title: "jur:${CODES[i]}"`));
+    // 폼 제목은 main.js에 적지 않고 생성 모듈(buildScreens)이 카탈로그 코드로 정한다.
+    IDS.forEach((id, i) => expect(EXAMPLES.find((e) => e.id === id)!.title).toBe(`jur:${CODES[i]}`));
+    expect(main).toMatch(/^import \{ [^}]*openScreen[^}]* \} from "\.\/generated\/screens\.js";$/m);
+    expect(main).not.toMatch(/title: "jur:/);
     expect(main).toContain('"jur:open"');
     expect(main).toContain("[jur]");
   });

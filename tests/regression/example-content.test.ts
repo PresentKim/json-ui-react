@@ -4,31 +4,22 @@ import { readFileSync } from "node:fs";
 import { buildExamples } from "../../example/build-rp.ts";
 import { EXAMPLES } from "../../example/catalog.ts";
 import type { JsonObject } from "../../src/types.ts";
+import { loadServerModule, mockForms, runMain, type Form } from "../high/server-harness.ts";
 
 const src = readFileSync(new URL("../../example/bp/scripts/main.js", import.meta.url), "utf8");
+const files = buildExamples();
+const mock = mockForms();
+const mod = await loadServerModule(files.serverModule, mock.ActionFormData);
 
-type Btn = { text: string; icon?: string };
-type Form = { title: string; buttons: Btn[] };
-
-/** main.js를 모의 @minecraft 모듈로 실행해, scriptevent로 연 폼의 버튼 목록을 얻는다. */
+/** main.js를 모의 @minecraft 모듈과 생성 모듈로 실행해, scriptevent로 연 폼의 버튼 목록을 얻는다. */
 function openForm(id: string): Form {
-  const forms: Form[] = [];
   let handler: ((e: unknown) => void) | undefined;
-  class ActionFormData {
-    f: Form = { title: "", buttons: [] };
-    constructor() { forms.push(this.f); }
-    title(t: string) { this.f.title = t; return this; }
-    body() { return this; }
-    button(text: string, icon?: string) { this.f.buttons.push({ text, icon }); return this; }
-    show() { return new Promise(() => {}); }
-  }
   const sub = { subscribe: () => {} };
   const world = { afterEvents: { itemUse: sub, playerSpawn: sub } };
   const system = { run: () => {}, afterEvents: { scriptEventReceive: { subscribe: (h: (e: unknown) => void) => { handler = h; } } } };
-  const code = src.replace(/^import .*$/gm, "");
-  new Function("ItemStack", "system", "world", "ActionFormData", code)(class {}, system, world, ActionFormData);
+  runMain(src, mod, { ActionFormData: mock.ActionFormData, world, system });
   handler!({ id: "jur:open", message: id, sourceEntity: { typeId: "minecraft:player", onScreenDisplay: {}, sendMessage() {} } });
-  return forms[forms.length - 1]!;
+  return mock.forms[mock.forms.length - 1]!;
 }
 
 describe("example content (F-T11-1)", () => {
@@ -70,8 +61,7 @@ describe("example content (F-T11-1)", () => {
     expect(v.slice(0, 12).trim()).toBe("Item 12");
   });
 
-  const files = buildExamples().files;
-  const jur = JSON.parse(files["ui/jur.json"]!) as JsonObject;
+  const jur = JSON.parse(files.files["ui/jur.json"]!) as JsonObject;
 
   it("research 외 예시 정의에는 ffr.placeholder가 없다", () => {
     expect(JSON.stringify(jur)).not.toContain("ffr.placeholder");
@@ -79,19 +69,21 @@ describe("example content (F-T11-1)", () => {
       if (!k.includes("@")) continue;
       expect(JSON.stringify(v), k).not.toContain("Pick a research.");
     }
-    // 한 판짜리 창은 오른쪽 판이 없다
-    expect(JSON.stringify(jur["window1"])).not.toContain("right");
+    // 한 판짜리 창은 오른쪽 판이 없다(split 창만 있다)
+    expect(JSON.stringify(jur["window"])).not.toContain("right");
+    expect(JSON.stringify(jur["window_split"])).toContain("right");
+    for (const k of ["ro@jur.window", "ti@jur.window", "tf@jur.window", "tl@jur.window", "sg@jur.window_split"]) expect(jur[k], k).toBeDefined();
     // research는 그대로 자리표시를 쓴다
-    expect(files["ui/ffr.json"]).toContain("ffr.placeholder");
+    expect(files.files["ui/ffr.json"]).toContain("ffr.placeholder");
   });
 
   it("slot-grid 상세에 배경 image가 있고 칸 번호로 그 칸 버튼을 읽는다", () => {
     const d = jur["sg_detail"] as JsonObject;
     expect(d.type).toBe("image");
-    expect(d.texture).toBe("textures/ui/ffr/panel");
+    expect(d.texture).toBe("textures/ui/jur/panel");
     const text = JSON.stringify(d);
-    expect(text).toContain("ffr.detail_icon");
-    expect(text).toContain("ffr.text_item");
+    expect(text).toContain("jur.detail_icon");
+    expect(text).toContain("jur.text_item");
     expect(text).toContain('"collection_index":"$cell"');
     expect(JSON.stringify(jur["sg_panes"])).toContain('"$cell":23');
   });

@@ -1,17 +1,10 @@
 import { ItemStack, system, world } from "@minecraft/server";
 import { ActionFormData } from "@minecraft/server-ui";
+import { LAYOUTS, openScreen, screenTitle } from "./generated/screens.js";
 
+// 예시 id(메뉴 순서). 폼 제목과 버튼 수는 빌드가 만든 generated/screens.js(TITLES, LAYOUTS)에서 온다.
 // @examples: ["router","tabs-inside","tabs-follow","tabs-lazy","slot-grid","virtual-list-500","virtual-list-2000","research"]
-const EXAMPLES = {
-  "router": { title: "jur:ro", buttons: 4 },
-  "tabs-inside": { title: "jur:ti", buttons: 6 },
-  "tabs-follow": { title: "jur:tf", buttons: 6 },
-  "tabs-lazy": { title: "jur:tl", buttons: 6 },
-  "slot-grid": { title: "jur:sg", buttons: 24 },
-  "virtual-list-500": { title: "jur:v5", buttons: 500 },
-  "virtual-list-2000": { title: "jur:v2", buttons: 2000 },
-  "research": { title: "jur:re", buttons: 2022 },
-};
+const EXAMPLES = ["router", "tabs-inside", "tabs-follow", "tabs-lazy", "slot-grid", "virtual-list-500", "virtual-list-2000", "research"];
 
 // research: 목록 96 + 탭 2 + 페이지 4 + 상세 96 x 20 (FFR 원본 서버와 같은 버튼 순서)
 const RESEARCH_ITEMS = 96;
@@ -99,7 +92,7 @@ function addDetailBlock(form, i) {
 function openResearch(player, id, state) {
   const tabs = tabItems();
   const pageItems = [0, 1].map((t) => tabs[t].slice(state.pages[t] * PAGE_SIZE, (state.pages[t] + 1) * PAGE_SIZE));
-  const form = new ActionFormData().title(EXAMPLES[id].title);
+  const form = new ActionFormData().title(screenTitle(id));
   for (const list of pageItems) {
     for (let k = 0; k < PAGE_SIZE; k++) {
       const i = list[k];
@@ -130,52 +123,47 @@ function openResearch(player, id, state) {
   });
 }
 
-// 예시별 버튼 [글자, 아이콘]. 버튼 순서와 개수는 example/screens/*.tsx의 슬롯 구간과 같다.
-function exampleButtons(id) {
-  switch (id) {
-    case "router":
-      return [
-        ["Title prefix jur:", ICONS[1]],
-        ["Lookup by 6 bytes", ICONS[5]],
-        ["Pick one screen", ICONS[0]],
-        ["4 buttons in a row", ICONS[4]],
-      ];
-    case "tabs-inside":
-    case "tabs-follow":
-    case "tabs-lazy":
-      // 탭 2, 첫째 탭 패널 2, 둘째 탭 패널 2
-      return [
-        ["Tab 1", "textures/items/book_normal"],
-        ["Tab 2", "textures/items/emerald"],
-        ["Tab 1: Apple", ICONS[1]],
-        ["Tab 1: Bread", ICONS[5]],
-        ["Tab 2: Diamond", ICONS[0]],
-        ["Tab 2: Gold Ingot", ICONS[3]],
-      ];
-    case "slot-grid":
-      return Array.from({ length: 24 }, (_, i) => [ICON_NAMES[i % ICONS.length], ICONS[i % ICONS.length]]);
-    default: {
-      // 가상 목록: 이름 12자 + 설명 20자 + 숫자(진행 막대)
-      const n = EXAMPLES[id].buttons;
-      return Array.from({ length: n }, (_, i) => [
-        pad(`Item ${i + 1}`, 12) + pad(`Description ${i + 1}`, 20) + String((i * 7) % 101),
-        ICONS[i % ICONS.length],
-      ]);
-    }
-  }
+// 예시별 서버 데이터: 컴포넌트 name -> 버튼 [글자, 아이콘] 목록. 버튼 순서는 openScreen이 화면 배치대로 맞춘다.
+const TAB_BUTTONS = [["Tab 1", "textures/items/book_normal"], ["Tab 2", "textures/items/emerald"]];
+const TABS_DATA = {
+  tabs: TAB_BUTTONS,
+  tab1: [["Tab 1: Apple", ICONS[1]], ["Tab 1: Bread", ICONS[5]]],
+  tab2: [["Tab 2: Diamond", ICONS[0]], ["Tab 2: Gold Ingot", ICONS[3]]],
+};
+
+// 가상 목록 칸: 이름 12자 + 설명 20자 + 숫자(진행 막대)
+function listItems(n) {
+  return Array.from({ length: n }, (_, i) => [
+    pad(`Item ${i + 1}`, 12) + pad(`Description ${i + 1}`, 20) + String((i * 7) % 101),
+    ICONS[i % ICONS.length],
+  ]);
 }
+
+const DATA = {
+  "router": () => ({
+    buttons: [
+      ["Title prefix jur:", ICONS[1]],
+      ["Lookup by 6 bytes", ICONS[5]],
+      ["Pick one screen", ICONS[0]],
+      ["4 buttons in a row", ICONS[4]],
+    ],
+  }),
+  "tabs-inside": () => TABS_DATA,
+  "tabs-follow": () => TABS_DATA,
+  "tabs-lazy": () => TABS_DATA,
+  "slot-grid": () => ({ cells: Array.from({ length: 24 }, (_, i) => [ICON_NAMES[i % ICONS.length], ICONS[i % ICONS.length]]) }),
+  "virtual-list-500": () => ({ list: listItems(500) }),
+  "virtual-list-2000": () => ({ list: listItems(2000) }),
+};
 
 function openExample(player, id) {
   if (id === "research") {
     openResearch(player, id, { pages: [0, 0] });
     return;
   }
-  const ex = EXAMPLES[id];
-  const form = new ActionFormData().title(ex.title);
-  for (const [text, icon] of exampleButtons(id)) form.button(text, icon);
-  form.show(player).then((res) => {
-    if (res.canceled || res.selection === undefined) return;
-    player.onScreenDisplay.setActionBar(`[jur] ${id} selection=${res.selection}`);
+  openScreen(player, id, DATA[id]()).then((hit) => {
+    if (!hit) return;
+    player.onScreenDisplay.setActionBar(`[jur] ${id} selection=${hit.name}[${hit.index}]`);
   });
 }
 
@@ -195,11 +183,11 @@ const MENU_LABELS = {
 };
 
 function openMenu(player) {
-  const ids = Object.keys(EXAMPLES);
+  const ids = EXAMPLES;
   const form = new ActionFormData()
     .title("json-ui-react Examples")
     .body(`Pick an example. Use the stick to open this menu again.\n§7Add-on ${ADDON_VERSION}`);
-  for (const id of ids) form.button(`${MENU_LABELS[id] ?? id}\n§8${id} · ${EXAMPLES[id].buttons} buttons`);
+  for (const id of ids) form.button(`${MENU_LABELS[id] ?? id}\n§8${id} · ${LAYOUTS[id].total} buttons`);
   form.show(player).then((res) => {
     if (res.canceled || res.selection === undefined) return;
     const id = ids[res.selection];
@@ -238,8 +226,8 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
     openMenu(player);
     return;
   }
-  if (!Object.hasOwn(EXAMPLES, id)) {
-    player.sendMessage(`[jur] Unknown id: ${id}. Available: ${Object.keys(EXAMPLES).join(", ")}`);
+  if (!EXAMPLES.includes(id)) {
+    player.sendMessage(`[jur] Unknown id: ${id}. Available: ${EXAMPLES.join(", ")}`);
     return;
   }
   openExample(player, id);

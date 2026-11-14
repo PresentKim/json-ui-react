@@ -94,9 +94,10 @@ export function packAddon(outFile: string): { bytes: number; entries: string[] }
     buildExampleRp(tmp);
     const bp: Zippable = {};
     collect(join(HERE, "bp"), bp);
+    collect(join(tmp, "bp"), bp); // 생성된 scripts/generated/screens.js(openScreen)
     const rp: Zippable = {};
     collect(join(HERE, "rp"), rp);
-    collect(join(tmp, "rp"), rp); // 생성된 ui/*.json
+    collect(join(tmp, "rp"), rp); // 생성된 ui/*.json과 테마 텍스처 textures/ui/jur/*
     const v = buildVersion();
     const enc = (s: string) => new TextEncoder().encode(s);
     for (const pack of [bp, rp]) {
