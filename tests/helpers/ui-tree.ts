@@ -1,7 +1,7 @@
 // 이름을 무시한 JSON UI 트리 비교기(F-HL-3).
 // 생성된 ui/*.json에서 루트 정의를 펼친다: 상속(@), `$`변수(`|default` 포함), 변수로 건 참조(`x@$def`),
 // 팩토리 control_ids·control_name, grid_item_template, 바닐라 컨트롤에 넘기는 정의 참조 변수($scrolling_content).
-// 해석 규칙은 bedrock-json-ui-research/jsonui-tester/src/engine/resolve.js를 따른다:
+// 해석 규칙(bedrock-research 위키 "파일과 정의" 장의 규칙):
 //   - 참조 자리의 `$`값이 먼저 프레임에 들어가고, 정의(상속 펼친 결과)의 `$`값은 참조 자리에 없는 것만 더한다.
 //   - 가장 가까운 구체값이 어떤 `|default`보다 이긴다(FILE-33). 값이 다시 `$x`면 이어서 찾는다.
 //   - 상속은 기반 속성 위에 파생 속성을 통째로 덮는다(FILE-37, CN-23). 정의 안의 null은 기반 값을 지운다(CN-24).

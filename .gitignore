@@ -13,3 +13,6 @@ examples/research/out/
 site/build/
 site/.docusaurus/
 site/static/downloads/
+
+# 내부 작업 계획 문서(저장소에 올리지 않는다)
+docs/plans/
