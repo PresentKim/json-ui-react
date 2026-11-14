@@ -161,3 +161,7 @@ npm run build:example    # tsx examples/research/build.ts
 - 한 폼에는 grid(`SlotGrid` 또는 `VirtualList`)를 하나만 둔다.
 - C-66은 아직 검증하지 않았다.
 - 여는 시간은 측정하지 않았다.
+
+## 라이선스
+
+MIT 라이선스(`LICENSE`). 이 라이브러리가 기반으로 삼은 [bedrock-research](https://github.com/PresentKim/bedrock-research) 위키도 자체 글은 MIT이고, 위키 안의 제3자 발췌는 원 출처 라이선스를 따른다.
