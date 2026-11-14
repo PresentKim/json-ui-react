@@ -1,10 +1,24 @@
 {
   "router": [],
   "tabs-inside": [],
-  "tabs-follow": [],
-  "tabs-lazy": [],
-  "slot-grid": [],
-  "virtual-list-500": [],
+  "tabs-follow": [
+    "01-첫째-탭.png"
+  ],
+  "tabs-lazy": [
+    "01-처음-열었을-때.png",
+    "02-첫째-탭-생성-후.png"
+  ],
+  "slot-grid": [
+    "01-처음-열었을-때.png",
+    "02-칸-선택.png"
+  ],
+  "virtual-list-500": [
+    "01-목록.png"
+  ],
   "virtual-list-2000": [],
-  "research": []
+  "research": [
+    "01-연구-필요-탭.png",
+    "02-아이템-선택.png",
+    "03-연구-완료-탭-선택.png"
+  ]
 }

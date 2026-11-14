@@ -62,8 +62,26 @@ describe("site", () => {
     expect(css).toContain("@media (max-width:480px)");
   });
   it("test_photo_placeholder", () => {
-    const html = readFileSync(join(BUILD, "components", "slot-grid", "index.html"), "utf8");
-    expect(html).toContain("실측 사진 준비 중");
-    expect(html).toContain("/scriptevent jur:open slot-grid");
+    // 사진이 없는 페이지는 자리표시를 보인다(photos.json에서 비어 있는 예시를 고른다).
+    const photos = JSON.parse(readFileSync(join(BUILD, "..", "src", "photos.json"), "utf8")) as Record<string, string[]>;
+    const empty = Object.keys(photos).find((id) => photos[id]!.length === 0);
+    if (empty) {
+      const html = readFileSync(join(BUILD, "components", empty, "index.html"), "utf8");
+      expect(html).toContain("실측 사진 준비 중");
+      expect(html).toContain(`/scriptevent jur:open ${empty}`);
+    }
+  });
+  it("test_photos_rendered", () => {
+    // 사진이 있는 페이지는 자리표시 대신 사진을 보이고, 파일이 빌드에 복사된다.
+    const photos = JSON.parse(readFileSync(join(BUILD, "..", "src", "photos.json"), "utf8")) as Record<string, string[]>;
+    for (const [id, files] of Object.entries(photos)) {
+      if (files.length === 0) continue;
+      const html = readFileSync(join(BUILD, "components", id, "index.html"), "utf8");
+      expect(html).not.toContain("실측 사진 준비 중");
+      for (const f of files) {
+        expect(existsSync(join(BUILD, "img", "components", id, f))).toBe(true);
+        expect(html.includes(f) || html.includes(encodeURIComponent(f))).toBe(true);
+      }
+    }
   });
 });
