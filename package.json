@@ -6,10 +6,12 @@
   "scripts": {
     "test": "vitest run",
     "build:example": "tsx examples/research/build.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:addon": "tsx example/pack-addon.ts"
   },
   "devDependencies": {
     "@types/node": "^22",
+    "fflate": "^0.8.3",
     "tsx": "^4",
     "typescript": "^5",
     "vitest": "^2"
