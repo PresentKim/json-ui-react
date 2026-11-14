@@ -7,7 +7,7 @@ import { createSlots, type Slots, type SlotLayout } from "../../src/slots.ts";
 import { ScreenRouter } from "../../src/components/router.tsx";
 import { TabBar, radioToggleBody } from "../../src/components/toggle.tsx";
 import { collection, details, global, view } from "../../src/bind.ts";
-import { defineItems } from "./items.tsx";
+import { defineItems, type ItemsText } from "./items.tsx";
 
 const faces = JSON.parse(readFileSync(new URL("./faces.json", import.meta.url), "utf8")) as Record<string, JsonObject | string>;
 
@@ -48,6 +48,49 @@ export interface ResearchOptions {
   routePrefix?: string;
   /** false면 screen_router를 정의하지 않는다(다른 라우터가 대신 맡을 때). 기본 true. */
   router?: boolean;
+  /** 화면 글자 바꾸기(선택). 없으면 FFR 원본 글자 그대로 나간다. */
+  text?: ResearchText;
+}
+
+/** 연구 화면에서 보이는 글자. 지정한 항목만 바꾼다. */
+export interface ResearchText {
+  /** 선택 전 안내 글자 */
+  placeholder?: string;
+  /** 재료 머리글 */
+  materials?: string;
+  /** 보상 머리글 */
+  rewards?: string;
+  /** E 화면(상세 미리 만듦) 창 제목 */
+  title?: string;
+  /** F 화면(상세는 고를 때) 창 제목 */
+  titleLazy?: string;
+  /** J, K, L 최적화 목록 창 제목 */
+  listJ?: string;
+  listK?: string;
+  listL?: string;
+}
+
+/** faces.json의 원본(한국어) 글자 -> ResearchText 항목. */
+const TEXT_SOURCES: Array<[string, keyof ResearchText]> = [
+  ["연구를 고르세요.", "placeholder"],
+  ["필요한 재료", "materials"],
+  ["보상 레시피", "rewards"],
+  ["E: 선택도 토글, 상세 96개 미리", "title"],
+  ["F: 선택도 토글, 상세는 고를 때", "titleLazy"],
+  ["J: 최적화 목록 (팩토리가 스크롤째로 만듦)", "listJ"],
+  ["K: 최적화 목록 (숨긴 화면 라우터)", "listK"],
+  ["L: 최적화 목록 (1열 스택 팩토리)", "listL"],
+];
+
+/** 정의 본문의 글자 값을 바꾼 사본을 만든다(키 순서 유지). */
+function retext<T extends JsonObject | string>(body: T, map: Map<string, string>): T {
+  const walk = (v: unknown): unknown => {
+    if (typeof v === "string") return map.get(v) ?? v;
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return walk(body) as T;
 }
 
 export function defineResearch(pack: Pack, slots: Slots, opts: ResearchOptions = {}): void {
@@ -173,16 +216,22 @@ export function defineResearch(pack: Pack, slots: Slots, opts: ResearchOptions =
     },
   };
 
+  const textMap = new Map<string, string>();
+  for (const [from, field] of TEXT_SOURCES) {
+    const to = opts.text?.[field];
+    if (to !== undefined) textMap.set(from, to);
+  }
+
   for (const [key, body] of Object.entries(faces)) {
     if (body === "@code") {
       const f = code[key];
       if (!f) throw new Error(`faces.json의 코드 정의 "${key}"를 만들 수 없습니다`);
       f();
     } else {
-      ns.define(key, body);
+      ns.define(key, textMap.size > 0 ? retext(body, textMap) : body);
     }
   }
-  defineItems(pack, slots);
+  defineItems(pack, slots, opts.text);
 }
 
 /** server_form 훅: 라우터 루트를 화면 내용으로 꽂고 기본 폼을 숨긴다. */

@@ -28,7 +28,7 @@ export function defineTabsInside(pack: Pack, slots: Slots): string {
     />
   ));
   defineWindow(pack, "ti", {
-    "$mode_title": "탭 안에 패널 (방식 B)",
+    "$mode_title": "Tabs: pane inside the toggle (B)",
     "$tabs_def": ref("ti_tabs"),
     "$panes_def": "ffr.panes_none",
     "$tab": 0,

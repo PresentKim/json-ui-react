@@ -30,7 +30,7 @@ export function defineTabsFollow(pack: Pack, slots: Slots): string {
     </panel>
   ));
   defineWindow(pack, "tf", {
-    "$mode_title": "토글 상태 따라가기 (방식 C)",
+    "$mode_title": "Tabs: follow toggle state (C)",
     "$tabs_def": ref("tf_tabs"),
     "$panes_def": ref("tf_panes"),
     "$tab": 0,

@@ -10,6 +10,6 @@ export function defineRouter(pack: Pack, slots: Slots): string {
       <ButtonList name="list" range={buttons} props={TOP_LEFT} />
     </panel>
   ));
-  defineWindow(pack, "ro", { "$mode_title": "라우터: 제목 접두로 화면 선택", "$panes_def": ref("ro_panes") });
+  defineWindow(pack, "ro", { "$mode_title": "Router: screen picked by title prefix", "$panes_def": ref("ro_panes") });
   return ref("ro");
 }

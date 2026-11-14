@@ -46,12 +46,12 @@ describe("example content (F-T11-1)", () => {
     for (let k = 0; k < 48; k++) expect(f.buttons[k]!.icon, `칸 ${k}`).toBeDefined();
     // 탭 글자와 아이콘, 상세 첫 블록(이름 + 아이콘, 재료 아이콘)
     expect(f.buttons[96]).toMatchObject({ icon: "textures/items/book_normal" });
-    expect(f.buttons[96]!.text).toMatch(/^연구 필요 \d+$/);
+    expect(f.buttons[96]!.text).toMatch(/^Needed \d+$/);
     expect(f.buttons[97]).toMatchObject({ icon: "textures/items/emerald" });
-    expect(f.buttons[102]!.text).toBe("§c아이템 2"); // 아이템 1은 연구 완료 탭
+    expect(f.buttons[102]!.text).toBe("§cItem 2"); // 아이템 1은 연구 완료 탭
     expect(f.buttons[102]!.icon).toBeDefined();
     expect(f.buttons[105]!.icon).toBeDefined();
-    expect(f.buttons[102 + 19]!.text).toMatch(/^연구 (진행|완료됨)$/);
+    expect(f.buttons[102 + 19]!.text).toMatch(/^(Start research|Researched)$/);
   });
 
   it("다른 예시도 버튼마다 글자와 아이콘을 준다", () => {
@@ -67,7 +67,7 @@ describe("example content (F-T11-1)", () => {
     }
     // 가상 목록: 이름은 12글자 안
     const v = openForm("virtual-list-500").buttons[11]!.text;
-    expect(v.slice(0, 12).trim()).toBe("항목 12");
+    expect(v.slice(0, 12).trim()).toBe("Item 12");
   });
 
   const files = buildExamples().files;
@@ -77,7 +77,7 @@ describe("example content (F-T11-1)", () => {
     expect(JSON.stringify(jur)).not.toContain("ffr.placeholder");
     for (const [k, v] of Object.entries(jur)) {
       if (!k.includes("@")) continue;
-      expect(JSON.stringify(v), k).not.toContain("연구를 고르세요");
+      expect(JSON.stringify(v), k).not.toContain("Pick a research.");
     }
     // 한 판짜리 창은 오른쪽 판이 없다
     expect(JSON.stringify(jur["window1"])).not.toContain("right");

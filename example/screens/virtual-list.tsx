@@ -11,7 +11,7 @@ export function defineVirtualList(pack: Pack, slots: Slots, code: string, count:
   const body = `vl_body_${count}`;
   n.define(body, <VirtualList name={body} columns={2} cellSize={[100, 30]} cellDef="ffr.list_cell" maxItems={count} />);
   n.define(`${code}@ffr.list_window`, {
-    "$list_title": `가상 목록 ${count}칸 (2열)`,
+    "$list_title": `Grid list: ${count} cells (2 columns)`,
     "$list_content": ref(body),
   });
   return ref(code);

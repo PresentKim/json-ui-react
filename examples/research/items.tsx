@@ -47,7 +47,13 @@ function SlotRow(p: { name: string; at: (j: number) => number; count: number }):
   );
 }
 
-function DetailBody(p: { at: (field: string) => number; mats: number; rewards: number }): JuiElement {
+/** 머리글 글자 바꾸기(선택). 없으면 FFR 원본 글자. */
+export interface ItemsText {
+  materials?: string;
+  rewards?: string;
+}
+
+function DetailBody(p: { at: (field: string) => number; mats: number; rewards: number; text?: ItemsText }): JuiElement {
   const { at } = p;
   return (
     <stack_panel name="detail_body" orientation="vertical" size={["100% - 4px", "100%c"]}>
@@ -68,10 +74,10 @@ function DetailBody(p: { at: (field: string) => number; mats: number; rewards: n
         <use name="d" def="ffr.desc_item" collection_index={at("desc")} />
       </stack_panel>
       <Gap name="gap2" h={4} />
-      <use name="mat_head" def="ffr.header_label" text="필요한 재료" />
+      <use name="mat_head" def="ffr.header_label" text={p.text?.materials ?? "필요한 재료"} />
       <SlotRow name="mats" count={p.mats} at={(j) => at(`mat${j}`)} />
       <Gap name="gap3" h={4} />
-      <use name="reward_head" def="ffr.header_label" text="보상 레시피" />
+      <use name="reward_head" def="ffr.header_label" text={p.text?.rewards ?? "보상 레시피"} />
       <SlotRow name="rewards" count={p.rewards} at={(j) => at(`rew${j}`)} />
     </stack_panel>
   );
@@ -139,7 +145,7 @@ function ItemsPanel(p: {
   );
 }
 
-export function defineItems(pack: Pack, slots: Slots): void {
+export function defineItems(pack: Pack, slots: Slots, text?: ItemsText): void {
   const layout = slots.layout();
   const detailAt = blockAt(layout, "detail");
   const tabStart = (tab: number) => rangeStart(layout, `tab${tab}`);
@@ -149,7 +155,7 @@ export function defineItems(pack: Pack, slots: Slots): void {
   const ns = pack.ns("ffri", "ffr_items.json");
   for (let k = 0; k < ITEMS; k++) {
     const at = (field: string) => detailAt(k, field);
-    ns.define(`detail_body_${k}`, <DetailBody at={at} mats={mats} rewards={rewards} />);
+    ns.define(`detail_body_${k}`, <DetailBody at={at} mats={mats} rewards={rewards} text={text} />);
     ns.define(`detail_${k}`, <Detail k={k} progress={at("progress")} />);
     ns.define(`lazy_${k}@ffr.lazy_detail`, {
       factory: { name: `ffr_lazy_${k}`, control_name: `ffri.detail_${k}` },

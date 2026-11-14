@@ -36,14 +36,14 @@ const ICONS = [
   "textures/items/hopper",
   "textures/items/coal",
 ];
-const ICON_NAMES = ["다이아몬드", "사과", "철 주괴", "금 주괴", "에메랄드", "빵", "레드스톤", "책", "깔때기", "석탄"];
+const ICON_NAMES = ["Diamond", "Apple", "Iron Ingot", "Gold Ingot", "Emerald", "Bread", "Redstone", "Book", "Hopper", "Coal"];
 
 const SENTENCES = [
-  "호퍼로 넣은 재료를 걸러 옆 상자에 보냅니다.",
-  "전력이 부족하면 작업 속도가 절반으로 줄어듭니다.",
-  "같은 블록을 여러 개 이어 붙이면 범위가 넓어집니다.",
-  "레드스톤 신호를 받으면 잠시 멈춥니다.",
-  "업그레이드 슬롯에 넣은 부품 수만큼 빨라집니다.",
+  "Filters hopper input and sends it to the next chest.",
+  "Work speed halves when power is low.",
+  "Joining several blocks widens the range.",
+  "Pauses briefly on a redstone signal.",
+  "Speeds up with each part in the upgrade slot.",
 ];
 
 function pad(text, width) {
@@ -56,10 +56,10 @@ function item(i) {
   const rewardCount = ((i * 3) % 4) + 1;
   const sentences = (i % SENTENCES.length) + 1;
   return {
-    name: `아이템 ${i + 1}`,
+    name: `Item ${i + 1}`,
     icon: ICONS[i % ICONS.length],
     done: i % 3 === 0,
-    desc: [`아이템 ${i + 1}의 설명입니다.`, ...SENTENCES.slice(0, sentences)].join(" "),
+    desc: [`Description of Item ${i + 1}.`, ...SENTENCES.slice(0, sentences)].join(" "),
     mats: Array.from({ length: matCount }, (_, j) => [ICONS[(i + j + 2) % ICONS.length], ((i + j) % 16) + 1]),
     rewards: Array.from({ length: rewardCount }, (_, j) => ICONS[(i + j * 3) % ICONS.length]),
   };
@@ -80,7 +80,7 @@ function addDetailBlock(form, i) {
   }
   const it = item(i);
   form.button(`§c${it.name}`, it.icon);
-  form.button(it.done ? "§a연구 완료" : "§c연구 필요");
+  form.button(it.done ? "§aResearched" : "§cNeeds research");
   form.button(it.desc);
   for (let j = 0; j < MAX_MATS; j++) {
     const m = it.mats[j];
@@ -92,7 +92,7 @@ function addDetailBlock(form, i) {
     if (r) form.button("§f+1", r);
     else form.button(EMPTY);
   }
-  form.button(it.done ? "연구 완료됨" : "연구 진행");
+  form.button(it.done ? "Researched" : "Start research");
 }
 
 // 연구 화면. 버튼 순서는 layouts의 createResearchSlots와 같다: 칸 48x2, 탭 2, 페이지 2x2, 상세 96 블록.
@@ -107,8 +107,8 @@ function openResearch(player, id, state) {
       else form.button("§r", item(i).icon);
     }
   }
-  form.button(`연구 필요 ${tabs[0].length}`, "textures/items/book_normal");
-  form.button(`연구 완료 ${tabs[1].length}`, "textures/items/emerald");
+  form.button(`Needed ${tabs[0].length}`, "textures/items/book_normal");
+  form.button(`Done ${tabs[1].length}`, "textures/items/emerald");
   for (let k = 0; k < 4; k++) form.button("§r");
   for (const list of pageItems) for (let k = 0; k < PAGE_SIZE; k++) addDetailBlock(form, list[k]);
 
@@ -125,7 +125,7 @@ function openResearch(player, id, state) {
     } else if (s >= RESEARCH_DETAIL && (s - RESEARCH_DETAIL) % RESEARCH_BLOCK === RESEARCH_BLOCK - 1) {
       const slot = Math.floor((s - RESEARCH_DETAIL) / RESEARCH_BLOCK);
       const i = pageItems[slot < PAGE_SIZE ? 0 : 1][slot % PAGE_SIZE];
-      if (i !== undefined) player.sendMessage(`[jur] 연구 진행 요청: ${item(i).name}`);
+      if (i !== undefined) player.sendMessage(`[jur] Research requested: ${item(i).name}`);
     }
   });
 }
@@ -135,22 +135,22 @@ function exampleButtons(id) {
   switch (id) {
     case "router":
       return [
-        ["제목 접두 jur:", ICONS[1]],
-        ["6바이트로 조회", ICONS[5]],
-        ["화면 하나 선택", ICONS[0]],
-        ["버튼 4개 한 줄", ICONS[4]],
+        ["Title prefix jur:", ICONS[1]],
+        ["Lookup by 6 bytes", ICONS[5]],
+        ["Pick one screen", ICONS[0]],
+        ["4 buttons in a row", ICONS[4]],
       ];
     case "tabs-inside":
     case "tabs-follow":
     case "tabs-lazy":
       // 탭 2, 첫째 탭 패널 2, 둘째 탭 패널 2
       return [
-        ["첫째 탭", "textures/items/book_normal"],
-        ["둘째 탭", "textures/items/emerald"],
-        ["첫째: 사과", ICONS[1]],
-        ["첫째: 빵", ICONS[5]],
-        ["둘째: 다이아몬드", ICONS[0]],
-        ["둘째: 금 주괴", ICONS[3]],
+        ["Tab 1", "textures/items/book_normal"],
+        ["Tab 2", "textures/items/emerald"],
+        ["Tab 1: Apple", ICONS[1]],
+        ["Tab 1: Bread", ICONS[5]],
+        ["Tab 2: Diamond", ICONS[0]],
+        ["Tab 2: Gold Ingot", ICONS[3]],
       ];
     case "slot-grid":
       return Array.from({ length: 24 }, (_, i) => [ICON_NAMES[i % ICONS.length], ICONS[i % ICONS.length]]);
@@ -158,7 +158,7 @@ function exampleButtons(id) {
       // 가상 목록: 이름 12자 + 설명 20자 + 숫자(진행 막대)
       const n = EXAMPLES[id].buttons;
       return Array.from({ length: n }, (_, i) => [
-        pad(`항목 ${i + 1}`, 12) + pad(`설명 ${i + 1}`, 20) + String((i * 7) % 101),
+        pad(`Item ${i + 1}`, 12) + pad(`Description ${i + 1}`, 20) + String((i * 7) % 101),
         ICONS[i % ICONS.length],
       ]);
     }
@@ -184,22 +184,22 @@ const ADDON_VERSION = "__JUR_VERSION__";
 
 // 예시 고르기 창. 제목에 jur: 접두가 없으므로 바닐라 폼 그대로 그려진다.
 const MENU_LABELS = {
-  "router": "화면 라우터",
-  "tabs-inside": "탭: 토글 안에 내용",
-  "tabs-follow": "탭: 토글 상태를 따라 보이기",
-  "tabs-lazy": "탭: 처음 누를 때 만들기",
-  "slot-grid": "칸 격자와 선택 상세",
-  "virtual-list-500": "grid 목록 500개",
-  "virtual-list-2000": "grid 목록 2000개",
-  "research": "연구 화면",
+  "router": "Screen router",
+  "tabs-inside": "Tabs: content inside the toggle",
+  "tabs-follow": "Tabs: shown by toggle state",
+  "tabs-lazy": "Tabs: built on first select",
+  "slot-grid": "Slot grid with selection detail",
+  "virtual-list-500": "Grid list (500)",
+  "virtual-list-2000": "Grid list (2000)",
+  "research": "Research screen",
 };
 
 function openMenu(player) {
   const ids = Object.keys(EXAMPLES);
   const form = new ActionFormData()
-    .title("json-ui-react 예시")
-    .body(`열어 볼 예시를 고르세요. 막대기를 쓰면 이 창이 다시 열립니다.\n§7애드온 ${ADDON_VERSION}`);
-  for (const id of ids) form.button(`${MENU_LABELS[id] ?? id}\n§8${id} · 버튼 ${EXAMPLES[id].buttons}개`);
+    .title("json-ui-react Examples")
+    .body(`Pick an example. Use the stick to open this menu again.\n§7Add-on ${ADDON_VERSION}`);
+  for (const id of ids) form.button(`${MENU_LABELS[id] ?? id}\n§8${id} · ${EXAMPLES[id].buttons} buttons`);
   form.show(player).then((res) => {
     if (res.canceled || res.selection === undefined) return;
     const id = ids[res.selection];
@@ -226,7 +226,7 @@ world.afterEvents.playerSpawn.subscribe((event) => {
     if (inv.getItem(i)?.typeId === "minecraft:stick") { hasStick = true; break; }
   }
   if (!hasStick) inv.addItem(new ItemStack("minecraft:stick", 1));
-  player.sendMessage("[jur] 막대기를 쓰면(모바일은 길게 누르기) 예시 고르기 창이 열립니다.");
+  player.sendMessage("[jur] Use the stick (long-press on mobile) to open the example menu.");
 });
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
@@ -239,7 +239,7 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
     return;
   }
   if (!Object.hasOwn(EXAMPLES, id)) {
-    player.sendMessage(`[jur] 알 수 없는 id: ${id}. 사용 가능: ${Object.keys(EXAMPLES).join(", ")}`);
+    player.sendMessage(`[jur] Unknown id: ${id}. Available: ${Object.keys(EXAMPLES).join(", ")}`);
     return;
   }
   openExample(player, id);

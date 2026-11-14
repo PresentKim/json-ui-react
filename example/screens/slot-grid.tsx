@@ -14,7 +14,7 @@ export function defineSlotGrid(pack: Pack, slots: Slots): string {
   // 오른쪽 판: 선택 전 안내 글자. 상세가 같은 자리를 배경으로 덮는다.
   n.define("sg_right", (
     <panel name="sg_right" size={[150, 128]}>
-      <label name="hint" layer={3} localize={false} text="칸을 고르세요." color={[0.4, 0.4, 0.4]} font_scale_factor={0.8} anchor_from="top_left" anchor_to="top_left" />
+      <label name="hint" layer={3} localize={false} text="Pick a slot." color={[0.4, 0.4, 0.4]} font_scale_factor={0.8} anchor_from="top_left" anchor_to="top_left" />
     </panel>
   ));
   // 선택 상세: 배경 판을 깔고 높은 layer로 안내를 덮는다. 그 칸 버튼의 아이콘과 글자를 보인다.
@@ -57,6 +57,6 @@ export function defineSlotGrid(pack: Pack, slots: Slots): string {
       />
     </panel>
   ));
-  defineSplitWindow(pack, "sg", { "$mode_title": "고정 칸 그리드와 선택 상세", "$panes_def": ref("sg_panes"), "$right_def": ref("sg_right") });
+  defineSplitWindow(pack, "sg", { "$mode_title": "Fixed slot grid with selection detail", "$panes_def": ref("sg_panes"), "$right_def": ref("sg_right") });
   return ref("sg");
 }

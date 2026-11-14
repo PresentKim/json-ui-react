@@ -44,7 +44,7 @@ export function defineTabsLazy(pack: Pack, slots: Slots): string {
     </panel>
   ));
   defineWindow(pack, "tl", {
-    "$mode_title": "탭 고를 때 팩토리로 생성 (방식 D)",
+    "$mode_title": "Tabs: built by factory on select (D)",
     "$tabs_def": ref("tl_tabs"),
     "$panes_def": ref("tl_panes"),
     "$tab": 0,

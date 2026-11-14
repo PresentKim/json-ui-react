@@ -37,7 +37,21 @@ export function buildExamples(): { files: Record<string, string>; layouts: Recor
 
   // research는 examples/research의 정의를 재사용하고 라우터만 이쪽에 맡긴다.
   const researchSlots = createResearchSlots();
-  defineResearch(pack, researchSlots, { routePrefix: TITLE_PREFIX, router: false });
+  defineResearch(pack, researchSlots, {
+    routePrefix: TITLE_PREFIX,
+    router: false,
+    // 통합 애드온은 게임 안 글자를 영어로 낸다(FFR 원본 글자는 examples/research 단독 빌드에서만).
+    text: {
+      placeholder: "Pick a research.",
+      materials: "Required materials",
+      rewards: "Reward recipes",
+      title: "E: selection by toggle, 96 details prebuilt",
+      titleLazy: "F: selection by toggle, details on select",
+      listJ: "J: optimized list (factory builds whole scroll)",
+      listK: "K: optimized list (hidden screen router)",
+      listL: "L: optimized list (1-column stack factory)",
+    },
+  });
   controls["research"] = "ffr.research_ea";
   layouts["research"] = researchSlots.layout();
 
