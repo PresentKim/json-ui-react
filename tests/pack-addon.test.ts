@@ -23,6 +23,37 @@ describe("pack-addon", () => {
     expect(rp["ui/_ui_defs.json"]).toBeDefined();
     expect(rp["ui/server_form.json"]).toBeDefined();
   });
+  it("test_version_in_name_and_description", () => {
+    process.env.JUR_COMMIT = "abc1234";
+    process.env.JUR_DATE = "2026-11-14";
+    try {
+      const f = join(dir, "v.mcaddon");
+      const r = packAddon(f);
+      const outer = unzipSync(new Uint8Array(readFileSync(f)));
+      const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+      const ver = pkg.version.split(".").map(Number);
+      const dec = (b: Uint8Array) => new TextDecoder().decode(b);
+      const bp = unzipSync(outer[r.entries[0]!]!);
+      const rp = unzipSync(outer[r.entries[1]!]!);
+      for (const pack of [bp, rp]) {
+        const m = JSON.parse(dec(pack["manifest.json"]!));
+        expect(m.header.name).toContain(`v${pkg.version}`);
+        expect(m.header.description).toContain(`v${pkg.version} · abc1234 · 2026-11-14`);
+        expect(m.header.version).toEqual(ver);
+        for (const mod of m.modules) expect(mod.version).toEqual(ver);
+      }
+      const bpm = JSON.parse(dec(bp["manifest.json"]!));
+      const rpm = JSON.parse(dec(rp["manifest.json"]!));
+      const dep = bpm.dependencies.find((d: any) => d.uuid === rpm.header.uuid);
+      expect(dep.version).toEqual(ver);
+      const script = dec(bp["scripts/main.js"]!);
+      expect(script).not.toContain("__JUR_VERSION__");
+      expect(script).toContain(`v${pkg.version} · abc1234 · 2026-11-14`);
+    } finally {
+      delete process.env.JUR_COMMIT;
+      delete process.env.JUR_DATE;
+    }
+  });
   it("test_deterministic_zip", () => {
     const a = join(dir, "x.mcaddon");
     const b = join(dir, "y.mcaddon");

@@ -43,6 +43,9 @@ function openExample(player, id) {
   });
 }
 
+// 빌드할 때 pack-addon이 "v0.1.0 · 커밋 · 날짜"로 바꾼다.
+const ADDON_VERSION = "__JUR_VERSION__";
+
 // 예시 고르기 창. 제목에 jur: 접두가 없으므로 바닐라 폼 그대로 그려진다.
 const MENU_LABELS = {
   "router": "화면 라우터",
@@ -59,7 +62,7 @@ function openMenu(player) {
   const ids = Object.keys(EXAMPLES);
   const form = new ActionFormData()
     .title("json-ui-react 예시")
-    .body("열어 볼 예시를 고르세요. 막대기를 쓰면 이 창이 다시 열립니다.");
+    .body(`열어 볼 예시를 고르세요. 막대기를 쓰면 이 창이 다시 열립니다.\n§7애드온 ${ADDON_VERSION}`);
   for (const id of ids) form.button(`${MENU_LABELS[id] ?? id}\n§8${id} · 버튼 ${EXAMPLES[id].buttons}개`);
   form.show(player).then((res) => {
     if (res.canceled || res.selection === undefined) return;

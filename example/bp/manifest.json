@@ -1,8 +1,8 @@
 {
   "format_version": 2,
   "header": {
-    "name": "json-ui-react Example BP",
-    "description": "json-ui-react 예시 화면을 scriptevent jur:open 으로 연다",
+    "name": "json-ui-react 예시 BP",
+    "description": "json-ui-react 예시. 막대기를 쓰면 예시 고르기 창이 열린다",
     "uuid": "5b0c2f1e-7a3d-4e58-9c61-0d2f8a4b6e11",
     "version": [1, 0, 0],
     "min_engine_version": [1, 21, 90]
