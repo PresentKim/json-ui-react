@@ -1,0 +1,10 @@
+# superlite: dependency, build and cache folders
+.superlite/
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
