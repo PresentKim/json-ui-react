@@ -1,0 +1,47 @@
+# 문서 사이트(site/)를 빌드해 GitHub Pages에 올린다.
+# site:build가 예시 mcaddon을 먼저 만들어 site/static/downloads/에 넣으므로
+# 사이트의 다운로드 버튼은 같은 커밋에서 만든 mcaddon을 가리킨다.
+name: pages
+
+on:
+  push:
+    branches: [main, ccr-868da1ab-mzpoux]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 단위 시험
+        run: npx vitest run --exclude tests/site.test.ts
+      - name: mcaddon과 문서 사이트 빌드
+        run: npm run site:build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
