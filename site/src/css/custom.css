@@ -1,1 +1,16 @@
 .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}.photo-grid img{width:100%;border-radius:6px}.photo-empty{border:2px dashed var(--ifm-color-emphasis-400);border-radius:8px;padding:2rem;text-align:center;color:var(--ifm-color-emphasis-700)}.download-btn.small{font-size:.8rem;padding:.3rem .7rem}
+
+.addon-pop{position:relative;display:inline-flex;align-items:center}
+.addon-pop__btn{background:none;border:0;cursor:pointer;display:inline-flex;align-items:center;color:var(--ifm-navbar-link-color)}
+.header-github-link{display:inline-flex;align-items:center}
+.addon-pop__btn:hover,.header-github-link:hover{color:var(--ifm-navbar-link-hover-color)}
+.addon-pop__panel{position:absolute;right:0;top:calc(100% + .5rem);z-index:300;width:22rem;max-width:calc(100vw - 1rem);box-sizing:border-box;padding:1rem;border-radius:8px;background:var(--ifm-background-surface-color);color:var(--ifm-font-color-base);border:1px solid var(--ifm-color-emphasis-300);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.addon-pop__panel[hidden]{display:none}
+.addon-pop__title{display:block;margin-bottom:.5rem}
+.addon-pop__file{display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem}
+.addon-pop__file code{flex:1;min-width:0;font-family:var(--ifm-font-family-monospace);font-size:.75rem;word-break:break-all;user-select:all}
+.addon-pop__meta{font-size:.8rem;color:var(--ifm-color-emphasis-700)}
+.addon-pop__hint{font-size:.8rem;margin:.5rem 0 .75rem}
+@media (max-width:360px){.addon-pop__panel{position:fixed;left:.5rem;right:.5rem;top:3.75rem;width:auto;max-width:none}}
+.addon-pop__btn:not(:hover){color:var(--ifm-navbar-link-color)}
+.navbar .addon-pop__btn,.navbar .header-github-link{color:var(--ifm-font-color-base)}.navbar .addon-pop__btn:hover,.navbar .header-github-link:hover{color:var(--ifm-color-primary)}

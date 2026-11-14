@@ -16,13 +16,17 @@ describe("site", () => {
   it("test_site_download_link", () => {
     const html = readFileSync(join(BUILD, "index.html"), "utf8");
     const nav = /<nav[\s\S]*?<\/nav>/.exec(html)![0];
-    const m = HREF_RE.exec(nav);
+    expect(nav).toContain('aria-label="통합 테스트 애드온 다운로드"');
+    expect(nav).toContain('href="https://github.com/PresentKim/json-ui-react"');
+    expect(nav).toContain('aria-label="GitHub 저장소"');
+    const m = HREF_RE.exec(html);
     expect(m).not.toBeNull();
     const href = m![1]!;
     expect(existsSync(join(BUILD, href.replace("/json-ui-react/", "")))).toBe(true);
     const meta = JSON.parse(readFileSync(join(ROOT, "site", "src", "generated", "addon.json"), "utf8")) as { label: string; file: string };
     expect(href.endsWith(`/${meta.file}`)).toBe(true);
-    expect(nav).toContain("통합 테스트 애드온 다운로드");
+    expect(html).toContain(meta.file);
+    expect(nav).toContain("통합 테스트 애드온");
     expect(nav).toContain(meta.label);
     expect(nav).toContain(`download="${meta.file}"`);
     for (const page of ["components/router", "getting-started"]) {
