@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
+    "build:example": "tsx examples/research/build.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

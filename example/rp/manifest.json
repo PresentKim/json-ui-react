@@ -1,0 +1,17 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "json-ui-react Example RP",
+    "description": "json-ui-react 예시 화면 리소스 팩",
+    "uuid": "7e2a9d46-b1c8-4035-9fa7-3d5e8c10b2a6",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 90]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "f4b7d0a3-96e1-4c2f-b8d5-2a71e3c94d08",
+      "version": [1, 0, 0]
+    }
+  ]
+}

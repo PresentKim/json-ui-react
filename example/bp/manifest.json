@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "json-ui-react Example BP",
+    "description": "json-ui-react 예시 화면을 scriptevent jur:open 으로 연다",
+    "uuid": "5b0c2f1e-7a3d-4e58-9c61-0d2f8a4b6e11",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 90]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "a1d4e7c2-3b96-4f08-8e5a-61c9b0d27f34",
+      "version": [1, 0, 0]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "c83f5a90-12de-4b7c-a456-9e07d1b3c852",
+      "entry": "scripts/main.js",
+      "version": [1, 0, 0]
+    }
+  ],
+  "dependencies": [
+    { "uuid": "7e2a9d46-b1c8-4035-9fa7-3d5e8c10b2a6", "version": [1, 0, 0] },
+    { "module_name": "@minecraft/server", "version": "2.0.0" },
+    { "module_name": "@minecraft/server-ui", "version": "2.0.0" }
+  ]
+}
