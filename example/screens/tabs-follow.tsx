@@ -3,7 +3,7 @@ import type { Pack } from "../../src/pack.ts";
 import type { Slots } from "../../src/slots.ts";
 import { TabBar } from "../../src/components/toggle.tsx";
 import { view } from "../../src/bind.ts";
-import { ButtonList, defineWindow, ns, ref } from "./common.tsx";
+import { ButtonList, TOP_LEFT, defineWindow, ns, ref } from "./common.tsx";
 
 export function defineTabsFollow(pack: Pack, slots: Slots): string {
   const tabs = slots.range("tabs", 2);
@@ -23,6 +23,7 @@ export function defineTabsFollow(pack: Pack, slots: Slots): string {
         <ButtonList
           name={`p${i}`}
           range={r}
+          props={TOP_LEFT}
           bindings={[view("#toggle_state", "#visible", { condition: "always", control: `jur_t${i}` })]}
         />
       ))}

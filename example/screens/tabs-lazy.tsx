@@ -3,7 +3,7 @@ import type { Pack } from "../../src/pack.ts";
 import type { Slots } from "../../src/slots.ts";
 import { TabBar } from "../../src/components/toggle.tsx";
 import { view } from "../../src/bind.ts";
-import { ButtonList, defineWindow, ns, ref } from "./common.tsx";
+import { ButtonList, TOP_LEFT, defineWindow, ns, ref } from "./common.tsx";
 
 export function defineTabsLazy(pack: Pack, slots: Slots): string {
   const tabs = slots.range("tabs", 2);
@@ -17,20 +17,30 @@ export function defineTabsLazy(pack: Pack, slots: Slots): string {
       tabs={[0, 1].map((i) => ({ name: `jur_t${i}`, index: tabs.at(i) }))}
     />
   ));
-  panes.forEach((r, i) => {
-    n.define(`tl_pane_${i}`, <ButtonList name={`tl_pane_${i}`} range={r} />);
-    n.define(`tl_lazy_${i}`, (
-      <stack_panel
-        name={`tl_lazy_${i}`}
-        size={[180, 128]}
-        factory={{ name: `jur_tl${i}`, control_name: ref(`tl_pane_${i}`) }}
-        bindings={[view("(#toggle_state * 1)", "#collection_length", { condition: "always", control: `jur_t${i}` })]}
-      />
-    ));
-  });
+  // 첫 탭은 처음부터 열려 있으므로 미리 만들고 토글 상태로만 보이게 한다.
+  // 첫 탭까지 `#toggle_state` 길이 팩토리로 만들면 처음 열 때 비고, 탭을 한 번 눌러야 채워진다(연구 화면 3절 D).
+  n.define("tl_pane_0", (
+    <ButtonList
+      name="tl_pane_0"
+      range={panes[0]!}
+      props={TOP_LEFT}
+      bindings={[view("#toggle_state", "#visible", { condition: "always", control: "jur_t0" })]}
+    />
+  ));
+  // 둘째 탭부터는 그 탭을 처음 고를 때 팩토리가 만든다.
+  n.define("tl_pane_1", <ButtonList name="tl_pane_1" range={panes[1]!} />);
+  n.define("tl_lazy_1", (
+    <stack_panel
+      name="tl_lazy_1"
+      size={[180, 128]}
+      factory={{ name: "jur_tl1", control_name: ref("tl_pane_1") }}
+      bindings={[view("(#toggle_state * 1)", "#collection_length", { condition: "always", control: "jur_t1" })]}
+    />
+  ));
   n.define("tl_panes", (
     <panel name="tl_panes" size={[180, 128]}>
-      {[0, 1].map((i) => <use name={`g${i}`} def={ref(`tl_lazy_${i}`)} />)}
+      <use name="g0" def={ref("tl_pane_0")} />
+      <use name="g1" def={ref("tl_lazy_1")} />
     </panel>
   ));
   defineWindow(pack, "tl", {

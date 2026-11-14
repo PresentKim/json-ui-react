@@ -87,8 +87,11 @@ export function defineSplitWindow(pack: Pack, code: string, vars: JsonObject & {
   return ns(pack).define(`${code}@ffr.window`, { "$tabs_def": "ffr.panes_none", ...vars });
 }
 
+/** 판 안에서 목록을 왼쪽 위에 붙인다. panel 자식의 기본 앵커는 가운데라 짧은 목록이 세로 가운데에 뜬다. */
+export const TOP_LEFT: JsonObject = { anchor_from: "top_left", anchor_to: "top_left" };
+
 /** 슬롯 구간을 세로로 쌓은 글자 버튼(아이콘 + 글자)으로 만든다. 줄마다 컬렉션 stack_panel이 직속 부모다(COL-38, COL-50). */
-export function ButtonList(p: { name: string; range: SlotRange; bindings?: JsonObject[] }): JuiElement {
+export function ButtonList(p: { name: string; range: SlotRange; bindings?: JsonObject[]; props?: JsonObject }): JuiElement {
   const n = p.range.count;
   return (
     <SlotGrid
@@ -98,6 +101,7 @@ export function ButtonList(p: { name: string; range: SlotRange; bindings?: JsonO
       cols={1}
       rowHeight={BTN_ROW}
       rowWidth={BTN[0]}
+      props={p.props}
       bindings={p.bindings}
       cell={(pos) => <use name={`b${pos}`} def="jur.btn" collection_index={p.range.at(pos)} />}
     />
