@@ -31,6 +31,16 @@ describe("example bp", () => {
     expect(dep("@minecraft/server").version).toBe("2.0.0");
     expect(dep("@minecraft/server-ui").version).toBe("2.0.0");
   });
+  it("test_stick_opens_menu", () => {
+    // 막대기 사용 → 예시 고르기 창. 메뉴 제목은 jur: 접두가 없어야 바닐라 폼으로 그려진다.
+    expect(main).toMatch(/itemUse\.subscribe/);
+    expect(main).toContain('"minecraft:stick"');
+    const title = main.match(/\.title\("([^"]+)"\)\s*\n\s*\.body/);
+    expect(title).not.toBeNull();
+    expect(title![1].startsWith("jur:")).toBe(false);
+    for (const id of IDS) expect(main).toMatch(new RegExp(`"${id}": "[^"]+"`));
+  });
+
   it("pack_icon is 128x128 png", () => {
     const b = readFileSync(new URL("../example/rp/pack_icon.png", import.meta.url));
     expect(b.subarray(1, 4).toString()).toBe("PNG");

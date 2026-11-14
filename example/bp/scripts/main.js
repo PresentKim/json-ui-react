@@ -1,4 +1,4 @@
-import { system } from "@minecraft/server";
+import { ItemStack, system, world } from "@minecraft/server";
 import { ActionFormData } from "@minecraft/server-ui";
 
 // @examples: ["router","tabs-inside","tabs-follow","tabs-lazy","slot-grid","virtual-list-500","virtual-list-2000","research"]
@@ -43,11 +43,62 @@ function openExample(player, id) {
   });
 }
 
+// 예시 고르기 창. 제목에 jur: 접두가 없으므로 바닐라 폼 그대로 그려진다.
+const MENU_LABELS = {
+  "router": "화면 라우터",
+  "tabs-inside": "탭: 토글 안에 내용",
+  "tabs-follow": "탭: 토글 상태를 따라 보이기",
+  "tabs-lazy": "탭: 처음 누를 때 만들기",
+  "slot-grid": "칸 격자와 선택 상세",
+  "virtual-list-500": "grid 목록 500개",
+  "virtual-list-2000": "grid 목록 2000개",
+  "research": "연구 화면",
+};
+
+function openMenu(player) {
+  const ids = Object.keys(EXAMPLES);
+  const form = new ActionFormData()
+    .title("json-ui-react 예시")
+    .body("열어 볼 예시를 고르세요. 막대기를 쓰면 이 창이 다시 열립니다.");
+  for (const id of ids) form.button(`${MENU_LABELS[id] ?? id}\n§8${id} · 버튼 ${EXAMPLES[id].buttons}개`);
+  form.show(player).then((res) => {
+    if (res.canceled || res.selection === undefined) return;
+    const id = ids[res.selection];
+    if (id) openExample(player, id);
+  });
+}
+
+// 막대기를 쓰면(모바일은 길게 누르기) 예시 고르기 창을 연다.
+world.afterEvents.itemUse.subscribe((event) => {
+  if (event.itemStack?.typeId !== "minecraft:stick") return;
+  const player = event.source;
+  if (player?.typeId !== "minecraft:player") return;
+  system.run(() => openMenu(player));
+});
+
+// 처음 들어올 때 막대기가 없으면 하나 주고 쓰는 법을 알린다.
+world.afterEvents.playerSpawn.subscribe((event) => {
+  if (!event.initialSpawn) return;
+  const player = event.player;
+  const inv = player.getComponent("minecraft:inventory")?.container;
+  if (!inv) return;
+  let hasStick = false;
+  for (let i = 0; i < inv.size; i++) {
+    if (inv.getItem(i)?.typeId === "minecraft:stick") { hasStick = true; break; }
+  }
+  if (!hasStick) inv.addItem(new ItemStack("minecraft:stick", 1));
+  player.sendMessage("[jur] 막대기를 쓰면(모바일은 길게 누르기) 예시 고르기 창이 열립니다.");
+});
+
 system.afterEvents.scriptEventReceive.subscribe((event) => {
   if (event.id !== "jur:open") return;
   const player = event.sourceEntity;
   if (player?.typeId !== "minecraft:player") return;
   const id = event.message.trim();
+  if (id === "" || id === "menu") {
+    openMenu(player);
+    return;
+  }
   if (!Object.hasOwn(EXAMPLES, id)) {
     player.sendMessage(`[jur] 알 수 없는 id: ${id}. 사용 가능: ${Object.keys(EXAMPLES).join(", ")}`);
     return;

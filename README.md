@@ -73,7 +73,7 @@ npm run build:example    # tsx examples/research/build.ts
 
 ## 예시 애드온과 문서
 
-- 예시 애드온: `example/`에 컴포넌트별 예시 화면과 행동팩 스크립트를 둔다. 게임 안에서 `/scriptevent jur:open <예시id>`로 각 예시 폼을 연다. 예시 id는 `router`, `tabs-inside`, `tabs-follow`, `tabs-lazy`, `slot-grid`, `virtual-list-500`, `virtual-list-2000`, `research`다.
+- 예시 애드온: `example/`에 컴포넌트별 예시 화면과 행동팩 스크립트를 둔다. 게임 안에서 막대기를 쓰면(모바일은 길게 누르기) 예시 고르기 창이 열린다. `/scriptevent jur:open <예시id>`로 바로 열 수도 있다(id 없이 쓰면 고르기 창). 처음 접속할 때 막대기가 없으면 하나 준다. 예시 id는 `router`, `tabs-inside`, `tabs-follow`, `tabs-lazy`, `slot-grid`, `virtual-list-500`, `virtual-list-2000`, `research`다.
 - 애드온 빌드 `npm run build:addon`: `dist/json-ui-react-examples.mcaddon`(행동팩과 리소스팩 `.mcpack` 두 개를 담은 zip)을 만든다. 두 번 빌드해도 바이트가 같다.
 - 문서 사이트: `site/`(Docusaurus)에 소개, 시작하기, 컴포넌트별 페이지 8개, API 레퍼런스를 둔다. `npm run site:build`가 mcaddon을 만들어 `downloads/`에 넣고 사이트를 빌드한다(`site/build`). 소개·시작하기·각 컴포넌트 페이지에 mcaddon 다운로드 버튼이 있다. 개발 서버는 `npm run site:start`.
 - 실측 사진: `site/static/img/components/<예시id>/01-설명.png` 형식으로 넣으면 그 컴포넌트 페이지에 표시된다. 없으면 "실측 사진 준비 중" 상자가 보인다.
