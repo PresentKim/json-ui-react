@@ -1,7 +1,7 @@
 // 느린 테스트: `npm run site:build`로 만든 site/build를 검사한다. 없으면 먼저 빌드한다.
 import { describe, expect, it, beforeAll } from "vitest";
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(__dirname, "..");
@@ -49,6 +49,17 @@ describe("site", () => {
       expect(html).toContain("통합 애드온에서 실행 방법");
       expect(html).not.toContain("게임에서 열기");
     }
+  });
+  it("test_navbar_icons_visible_on_mobile", () => {
+    const html = readFileSync(join(BUILD, "components", "router", "index.html"), "utf8");
+    const nav = /<nav[\s\S]*?<\/nav>/.exec(html)![0];
+    expect(nav).toContain("jur-navbar-icon");
+    // 사이드바(모바일 메뉴)에는 중복 항목이 없다.
+    expect(html.match(/aria-label="GitHub 저장소"/g)?.length).toBe(1);
+    const css = readdirSync(join(BUILD, "assets", "css")).map((f) => readFileSync(join(BUILD, "assets", "css", f), "utf8")).join("\n");
+    expect(css).toContain("@media (max-width:996px)");
+    expect(css).toContain(".jur-navbar-icon,.jur-navbar-icon-wrap{display:inline-flex!important}");
+    expect(css).toContain("@media (max-width:480px)");
   });
   it("test_photo_placeholder", () => {
     const html = readFileSync(join(BUILD, "components", "slot-grid", "index.html"), "utf8");

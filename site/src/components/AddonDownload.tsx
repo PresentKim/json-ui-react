@@ -27,15 +27,10 @@ export function GithubLink({ mobile = false }: { mobile?: boolean }): JSX.Elemen
     "aria-label": "GitHub 저장소",
     title: "GitHub 저장소",
   };
-  if (mobile) {
-    return (
-      <a className="menu__link" {...props}>
-        GitHub 저장소
-      </a>
-    );
-  }
+  // 모바일에서도 상단바 아이콘이 항상 보이므로 사이드바에는 중복 항목을 두지 않는다.
+  if (mobile) return <></>;
   return (
-    <a className="navbar__item navbar__link header-github-link" {...props}>
+    <a className="jur-navbar-icon header-github-link" {...props}>
       <GithubIcon />
     </a>
   );
@@ -70,27 +65,18 @@ export default function AddonDownload({ mobile = false }: { mobile?: boolean }):
     };
   }, [open]);
 
-  if (mobile) {
-    return (
-      <a className="menu__link" href={href} download={addon.file} title={meta}>
-        <span>
-          {LABEL}
-          <small style={{ display: "block", opacity: 0.8 }}>{meta}</small>
-        </span>
-      </a>
-    );
-  }
+  if (mobile) return <></>;
 
   const copy = (): void => {
     void navigator.clipboard?.writeText(addon.file).then(() => setCopied(true));
   };
 
   return (
-    <span className="addon-pop" ref={root}>
+    <span className="addon-pop jur-navbar-icon-wrap" ref={root}>
       <button
         ref={btn}
         type="button"
-        className="addon-pop__btn navbar__item navbar__link"
+        className="addon-pop__btn jur-navbar-icon"
         aria-label={LABEL}
         title={LABEL}
         aria-haspopup="dialog"

@@ -14,3 +14,7 @@
 @media (max-width:360px){.addon-pop__panel{position:fixed;left:.5rem;right:.5rem;top:3.75rem;width:auto;max-width:none}}
 .addon-pop__btn:not(:hover){color:var(--ifm-navbar-link-color)}
 .navbar .addon-pop__btn,.navbar .header-github-link{color:var(--ifm-font-color-base)}.navbar .addon-pop__btn:hover,.navbar .header-github-link:hover{color:var(--ifm-color-primary)}
+.jur-navbar-icon{display:inline-flex;align-items:center;justify-content:center;padding:var(--ifm-navbar-item-padding-vertical) var(--ifm-navbar-item-padding-horizontal);color:var(--ifm-font-color-base);text-decoration:none}
+.jur-navbar-icon:hover{color:var(--ifm-color-primary);text-decoration:none}
+@media (max-width:996px){.jur-navbar-icon,.jur-navbar-icon-wrap{display:inline-flex!important}.jur-navbar-icon{padding:.5rem}}
+@media (max-width:480px){.addon-pop{position:static}.addon-pop__panel{position:fixed;left:.5rem;right:.5rem;top:3.75rem;width:auto;max-width:none}}
