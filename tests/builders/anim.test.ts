@@ -29,8 +29,13 @@ describe("animation", () => {
     expect(animation({ anim_type: "wait", duration: 1 })).toEqual({ anim_type: "wait", duration: 1 });
   });
   it("easing 검증", () => {
-    expect(() => animation({ ...a, easing: "in_back" } as unknown as AnimDef)).toThrow(/ANI-10/);
+    expect(() => animation({ ...a, easing: "in_bogus" } as unknown as AnimDef)).toThrow(/ANI-10/);
     expect(animation({ ...a, easing: "out_cubic" })).toMatchObject({ easing: "out_cubic" });
+  });
+  it("easing 위키 목록 허용(in_back) + 크기 문자열 좌표 (거짓 타입 오류 회귀)", () => {
+    expect(animation({ ...a, easing: "in_back" })).toMatchObject({ easing: "in_back" });
+    expect(animation({ anim_type: "offset", from: ["100%c + 40px", 20], to: [0, 20], duration: 0.5 })).toMatchObject({ from: ["100%c + 40px", 20] });
+    expect(animation({ anim_type: "size", from: "$a", to: "$b", duration: 1 })).toMatchObject({ from: "$a" });
   });
   it("offset [x,y]", () => {
     expect(animation({ anim_type: "offset", from: [0, 0], to: [10, "$y"], duration: 1 })).toMatchObject({ to: [10, "$y"] });

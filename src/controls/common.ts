@@ -120,6 +120,8 @@ export interface CommonProps {
   button_mappings?: ButtonMappingObj[];
   /** 애니메이션 참조 (`@네임스페이스.이름`) */
   anims?: string[] | Var;
+  /** 팩토리가 만드는 컨트롤에 넘기는 변수 (바닐라 사용, 공식 자료에는 없음) */
+  factory_variables?: JsonValue;
   /** 자식 컨트롤 정의 */
   controls?: JsonValue[];
   /** 포커스 가능 여부 */

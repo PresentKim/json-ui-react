@@ -1,6 +1,6 @@
 // 애니메이션 정의 빌더. anim_type 별 from/to 모양을 타입으로 고정하고 단일 정의에서 검사 가능한 ANI 규칙을 던진다.
 //  - ANI-08/ANI-20: anim_type 은 9종
-//  - ANI-10: easing 은 value-dictionary 의 바닐라 14종
+//  - ANI-10: easing 은 위키 목록 32종(바닐라 14종 포함)
 //  - ANI-09: duration > 0 (wait 포함), flip_book 은 frame_count 필요
 //  - ANI-15: aseprite_flip_book 은 from/to 를 쓰지 않는다
 import type { JsonObject } from "./types";
@@ -8,18 +8,28 @@ import type { JsonObject } from "./types";
 export type AnimType =
   | "offset" | "size" | "alpha" | "color" | "uv" | "flip_book" | "clip" | "wait" | "aseprite_flip_book";
 
+/** 위키 전체 목록 32종. 바닐라는 14종만 쓰지만 `in_back` 등은 작동팩이 쓴다(ANI-10). */
 export type Easing =
-  | "linear" | "out_cubic" | "in_expo" | "in_quart" | "in_quint" | "in_sine" | "in_out_back"
-  | "out_expo" | "out_back" | "in_out_expo" | "out_bounce" | "in_bounce" | "in_out_circ" | "out_sine";
+  | "linear" | "spring"
+  | "in_quad" | "out_quad" | "in_out_quad" | "in_cubic" | "out_cubic" | "in_out_cubic"
+  | "in_quart" | "out_quart" | "in_out_quart" | "in_quint" | "out_quint" | "in_out_quint"
+  | "in_sine" | "out_sine" | "in_out_sine" | "in_expo" | "out_expo" | "in_out_expo"
+  | "in_circ" | "out_circ" | "in_out_circ" | "in_bounce" | "out_bounce" | "in_out_bounce"
+  | "in_back" | "out_back" | "in_out_back" | "in_elastic" | "out_elastic" | "in_out_elastic";
 
 export const EASINGS: readonly Easing[] = [
-  "linear", "out_cubic", "in_expo", "in_quart", "in_quint", "in_sine", "in_out_back",
-  "out_expo", "out_back", "in_out_expo", "out_bounce", "in_bounce", "in_out_circ", "out_sine",
+  "linear", "spring",
+  "in_quad", "out_quad", "in_out_quad", "in_cubic", "out_cubic", "in_out_cubic",
+  "in_quart", "out_quart", "in_out_quart", "in_quint", "out_quint", "in_out_quint",
+  "in_sine", "out_sine", "in_out_sine", "in_expo", "out_expo", "in_out_expo",
+  "in_circ", "out_circ", "in_out_circ", "in_bounce", "out_bounce", "in_out_bounce",
+  "in_back", "out_back", "in_out_back", "in_elastic", "out_elastic", "in_out_elastic",
 ];
 
 /** 변수(`$x`)도 허용하는 값 */
 type V<T> = T | `$${string}`;
-type Vec2 = [V<number>, V<number>];
+/** 좌표 쌍: 숫자, `$변수`, 크기 문자열("100%c + 40px") 모두 허용 */
+type Vec2 = [V<number> | string, V<number> | string] | `$${string}`;
 type Rgb = [number, number, number] | [number, number, number, number];
 
 /** 모든 타입 공통 필드 */

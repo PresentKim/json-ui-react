@@ -1860,7 +1860,7 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
   "BND-30": {
     "id": "BND-30",
     "category": "BND",
-    "page": "json-ui/bindings",
+    "page": "json-ui/expressions",
     "anchor": "bnd-30",
     "proposal": false,
     "evidence": [
@@ -1868,14 +1868,14 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
       "미검증"
     ],
     "title": {
-      "ko": "(반영안) 같은 대상에 \"초기화\"와 \"자기 자신 + 증가\" 두 view 바인딩을 걸어 반복 계산(문자열 길이 세기, 뉴턴 제곱근)하는 생성기가 있다.",
+      "ko": "같은 대상에 \"초기화\"와 \"자기 자신 + 증가\" 두 view 바인딩을 걸어 반복 계산(문자열 길이 세기, 뉴턴 제곱근)하는 생성기가 있다.",
       "en": "(proposal) There is a generator that does repeated calculation (counting string length, a Newton square root) by attaching two view bindings to the same target, \"initialize\" and \"itself + increment\"."
     },
     "detail": {
-      "ko": "(반영안) 같은 대상에 \"초기화\"와 \"자기 자신 + 증가\" 두 view 바인딩을 걸어 반복 계산(문자열 길이 세기, 뉴턴 제곱근)하는 생성기가 있다. view 바인딩이 원본이 바뀔 때만 다시 쓰고 사슬이 수렴할 때까지 돈다는 전제(Cinnabar 발견 CN-36)가 필요하다. 반복 상한과 프레임당 처리는 확인되지 않았으므로 레시피로 쓰지 않는다. 실측 과제: 이 구성이 최종 길이에 도달하는지, 몇 프레임 걸리는지. 커뮤니티의 \"자기 자신을 읽고 쓰면 루프가 된다\"는 보고와 맞물린다.",
+      "ko": "같은 대상에 \"초기화\"와 \"자기 자신 + 증가\" 두 view 바인딩을 걸어 반복 계산(문자열 길이 세기, 뉴턴 제곱근)하는 생성기가 있다. view 바인딩이 원본이 바뀔 때만 다시 쓰고 사슬이 수렴할 때까지 돈다(CN-36)는 전제가 필요하다. 반복 상한과 프레임당 처리는 확인되지 않았으므로 레시피로 쓰지 않는다.",
       "en": "(proposal) There is a generator that does repeated calculation (counting string length, a Newton square root) by attaching two view bindings to the same target, \"initialize\" and \"itself + increment\". It needs the premise that a view binding rewrites only when its source changes and the chain loops until it converges (the Cinnabar finding CN-36). The iteration limit and per-frame processing were not confirmed, so it is not used as a recipe. Measurement task: whether this setup reaches the final length and how many frames it takes. It ties in with the community report that \"reading and writing itself becomes a loop\"."
     },
-    "sources": "jua-asajs, jua-cinnabar"
+    "sources": "ASJ 4.4, CN-36"
   },
   "BND-31": {
     "id": "BND-31",
@@ -3356,21 +3356,21 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
   "DBG-23": {
     "id": "DBG-23",
     "category": "DBG",
-    "page": "json-ui/debugging-and-versions",
+    "page": "json-ui/expressions",
     "anchor": "dbg-23",
-    "proposal": true,
+    "proposal": false,
     "evidence": [
       "코드"
     ],
     "title": {
-      "ko": "커뮤니티 UI 스키마는 바닐라에도 오류를 낸다.",
+      "ko": "식 컴파일러가 만든 JSON은 5장 규칙으로 다시 검사한다.",
       "en": "Community UI schemas produce errors on vanilla too."
     },
     "detail": {
-      "ko": "커뮤니티 UI 스키마는 바닐라에도 오류를 낸다. 1.26.50.4 바닐라 205개 파일을 검증하면 Blockception 최신 소스는 43개 파일 116건(모르는 속성 50종), Bugrock(KalmeMarq)은 186개 파일 2,224건(크기 식·텍스처 경로 정규식), Blockception VS Code 확장 v8.0.46에 든 2025-09 스키마는 193개 파일 2,251건(`\"100%c\"`, 음수 offset, 크기 식 거부)이다. 스키마 오류는 먼저 바닐라에 같은 형태가 있는지 grep해서 오탐인지 가린다.",
+      "ko": "식 컴파일러가 만든 JSON은 5장 규칙으로 다시 검사한다. AsaJS 4.2.0에서 확인된 문제: 삼항 `?:` 출력의 괄호 불일치, 지수 리터럴(`1e-2`)이 `0.01`(정수 0)로 나감, 리터럴만 든 보조 바인딩(BND-05), 문자열 바인딩에 `%` 적용(EXP-32), 사슬 비교 미검사(EXP-28), 소수점 리터럴을 쓸 수 없음.",
       "en": "Community UI schemas produce errors on vanilla too. Validating the 205 vanilla 1.26.50.4 files, the Blockception latest source gives 116 errors in 43 files (50 unknown properties), Bugrock (KalmeMarq) 2,224 errors in 186 files (size expression and texture path regular expressions), and the 2025-09 schema bundled in Blockception VS Code extension v8.0.46 2,251 errors in 193 files (rejects `\"100%c\"`, negative offsets and size expressions). For a schema error, first grep whether vanilla has the same form to tell whether it is a false positive."
     },
-    "sources": "jsonui-schemas"
+    "sources": "ASJ 3.1·3.3·5장"
   },
   "DBG-24": {
     "id": "DBG-24",
@@ -5226,17 +5226,17 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "FILE",
     "page": "json-ui/files-and-definitions",
     "anchor": "file-40",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "코드",
       "미검증"
     ],
     "title": {
-      "ko": "(반영안) 키와 문자열 값의 `\\uXXXX` 이스케이프는 읽을 때 원래 글자로 풀린다.",
+      "ko": "키와 문자열 값의 `\\uXXXX` 이스케이프는 읽을 때 원래 글자로 풀린다.",
       "en": "(proposal) A `\\uXXXX` escape in keys and string values is decoded into the original character when read."
     },
     "detail": {
-      "ko": "(반영안) 키와 문자열 값의 `\\uXXXX` 이스케이프는 읽을 때 원래 글자로 풀린다. 이스케이프로 바꾼 파일은 크기만 커지고 의미(식의 바이트 수, 비교, 포함 검사)는 같으며 누구나 JSON 파서로 되돌릴 수 있어, 숨길 목적이면 효과가 없다. 다섯 자리 이스케이프 버그와 서로게이트 쌍 문제를 보고한 작은 팩 도구가 있다. 실측 과제: `\"type\"` 키와 `\"label\"` 값을 `\\u` 이스케이프로 적은 정의가 동작하는지, BMP 밖 이모지를 서로게이트 쌍으로 적은 라벨이 그려지는지.",
+      "ko": "키와 문자열 값의 `\\uXXXX` 이스케이프는 읽을 때 원래 글자로 풀린다. 이스케이프로 바꾼 파일은 크기만 커지고 의미(식의 바이트 수, 비교, 포함 검사)는 같으며 누구나 JSON 파서로 되돌릴 수 있어, 숨길 목적이면 효과가 없다. 다섯 자리 이스케이프 버그와 서로게이트 쌍 문제를 보고한 작은 팩 도구가 있다. 실측 과제: `\"type\"` 키와 `\"label\"` 값을 `\\u` 이스케이프로 적은 정의가 동작하는지, BMP 밖 이모지를 서로게이트 쌍으로 적은 라벨이 그려지는지.",
       "en": "(proposal) A `\\uXXXX` escape in keys and string values is decoded into the original character when read. A file converted with escapes only gets bigger and the meaning (the byte count of an expression, comparison, containment check) is the same, and anyone can revert it with a JSON parser, so it has no effect if the purpose is hiding. There is a small pack tool that reported a five-digit escape bug and a surrogate pair problem. Measurement task: whether a definition that writes the `\"type\"` key and the `\"label\"` value with `\\u` escapes works, and whether a label that writes an emoji outside the BMP as a surrogate pair is drawn."
     },
     "sources": "jua-jsonencryptor, jua-small-packs"
@@ -5246,17 +5246,17 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "FILE",
     "page": "json-ui/files-and-definitions",
     "anchor": "file-41",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "바닐라",
       "미검증"
     ],
     "title": {
-      "ko": "(반영안) 바닐라 1.26.50 UI는 namespace 하나를 파일 하나에만 둔다.",
+      "ko": "바닐라 1.26.50 UI는 namespace 하나를 파일 하나에만 둔다.",
       "en": "(proposal) The vanilla 1.26.50 UI puts one namespace in only one file."
     },
     "detail": {
-      "ko": "(반영안) 바닐라 1.26.50 UI는 namespace 하나를 파일 하나에만 둔다. 한 namespace의 정의를 여러 파일로 나눠도 참조가 풀린다는 난독화기의 주장이 있지만 기록은 없다. 나눌 이유가 없으면 namespace당 파일 하나를 유지한다. 실측 과제: 같은 namespace `x`를 두 파일에 나눠 `x.a`(파일 1)가 `x.b`(파일 2)를 참조할 때 풀리는지.",
+      "ko": "바닐라 1.26.50 UI는 namespace 하나를 파일 하나에만 둔다. 한 namespace의 정의를 여러 파일로 나눠도 참조가 풀린다는 난독화기의 주장이 있지만 기록은 없다. 나눌 이유가 없으면 namespace당 파일 하나를 유지한다. 실측 과제: 같은 namespace `x`를 두 파일에 나눠 `x.a`(파일 1)가 `x.b`(파일 2)를 참조할 때 풀리는지.",
       "en": "(proposal) The vanilla 1.26.50 UI puts one namespace in only one file. An obfuscator claims that splitting the definitions of one namespace across several files still resolves references, but there is no record. If there is no reason to split, keep one file per namespace. Measurement task: whether it resolves when the same namespace `x` is split across two files and `x.a` (file 1) references `x.b` (file 2)."
     },
     "sources": "bedrock-samples, jua-jsonencryptor"
@@ -5266,17 +5266,17 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "FILE",
     "page": "json-ui/files-and-definitions",
     "anchor": "file-42",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "바닐라",
       "충돌"
     ],
     "title": {
-      "ko": "(반영안) namespace 없는 `@이름`은 문맥에 따라 다른 namespace에서 찾아진다.",
+      "ko": "namespace 없는 `@이름`은 문맥에 따라 다른 namespace에서 찾아진다.",
       "en": "(proposal) An `@name` without a namespace is looked up in different namespaces depending on context."
     },
     "detail": {
-      "ko": "(반영안) namespace 없는 `@이름`은 문맥에 따라 다른 namespace에서 찾아진다. 최상위 정의가 다른 namespace를 상속해도 그 안의 짧은 이름은 파일 namespace에서 찾아지는 용례가 바닐라에 43건이고(`trade_screen_pocket.json:349`), 컨트롤 배열 안에서 다른 namespace를 상속한 인스턴스(`\"x@common.close_button\": { \"controls\": [...] }`) 아래의 짧은 이름은 기반 namespace에서 찾아지는 용례가 3건이다(`command_block_screen.json:1010-1038`의 `default@close_button_panel`은 `common`에만 있다). 두 namespace에 같은 이름이 있을 때 우선순위는 알 수 없으므로 다른 namespace를 상속한 컨트롤 안에서는 항상 `ns.이름`을 적는다. FILE-06에는 이 예외를 덧붙이는 보강이 함께 제안되었다. 충돌 C-55와 연결된다.",
+      "ko": "namespace 없는 `@이름`은 문맥에 따라 다른 namespace에서 찾아진다. 최상위 정의가 다른 namespace를 상속해도 그 안의 짧은 이름은 파일 namespace에서 찾아지는 용례가 바닐라에 43건이고(`trade_screen_pocket.json:349`), 컨트롤 배열 안에서 다른 namespace를 상속한 인스턴스(`\"x@common.close_button\": { \"controls\": [...] }`) 아래의 짧은 이름은 기반 namespace에서 찾아지는 용례가 3건이다(`command_block_screen.json:1010-1038`의 `default@close_button_panel`은 `common`에만 있다). 두 namespace에 같은 이름이 있을 때 우선순위는 알 수 없으므로 다른 namespace를 상속한 컨트롤 안에서는 항상 `ns.이름`을 적는다. FILE-06에는 이 예외를 덧붙이는 보강이 함께 제안되었다. 충돌 C-55와 연결된다.",
       "en": "(proposal) An `@name` without a namespace is looked up in different namespaces depending on context. There are 43 cases in vanilla where, even if a top-level definition inherits another namespace, the short name inside it is looked up in the file namespace (`trade_screen_pocket.json:349`), and 3 cases where a short name under an instance that inherits another namespace inside a control array (`\"x@common.close_button\": { \"controls\": [...] }`) is looked up in the base namespace (`default@close_button_panel` at `command_block_screen.json:1010-1038` exists only in `common`). The priority when both namespaces have the same name cannot be known, so inside a control that inherits another namespace always write `ns.name`. A reinforcement adding this exception to FILE-06 was also proposed. Connected to conflict C-55."
     },
     "sources": "jua-netease-docs, bedrock-samples"
@@ -6766,7 +6766,7 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "INP",
     "page": "json-ui/input-buttons-toggles",
     "anchor": "inp-25",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "바닐라",
       "작동팩",
@@ -7738,16 +7738,16 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "LAY",
     "page": "json-ui/controls-and-layout",
     "anchor": "lay-44",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "바닐라"
     ],
     "title": {
-      "ko": "(반영안) 크기·위치 식에는 `+`와 `-`만 쓴다.",
+      "ko": "크기·위치 식에는 `+`와 `-`만 쓴다.",
       "en": "(proposal) Use only `+` and `-` in size and position expressions."
     },
     "detail": {
-      "ko": "(반영안) 크기·위치 식에는 `+`와 `-`만 쓴다. 바닐라 크기 문자열 551종(12,806회, 재집계 원소 12,712개)에 ``, `/`는 한 번도 없고, Mojang은 비율 계산을 주석으로 해 둔 뒤 결과 계수를 적는다(`store_common.json:5870`의 `\"34.628%x + 2px\"`, `store_search_screen.json:64` 주석). 소수 계수(`56.25%x`, `1.1249px`)와 음수 항(`\"-50% + 10px\"`)은 쓴다. 실측 과제: 크기 식에 ``를 쓰면(`\"50% * 2\"`) 무시되는지 오류인지.",
+      "ko": "크기·위치 식에는 `+`와 `-`만 쓴다. 바닐라 크기 문자열 551종(12,806회, 재집계 원소 12,712개)에 ``, `/`는 한 번도 없고, Mojang은 비율 계산을 주석으로 해 둔 뒤 결과 계수를 적는다(`store_common.json:5870`의 `\"34.628%x + 2px\"`, `store_search_screen.json:64` 주석). 소수 계수(`56.25%x`, `1.1249px`)와 음수 항(`\"-50% + 10px\"`)은 쓴다. 실측 과제: 크기 식에 ``를 쓰면(`\"50% * 2\"`) 무시되는지 오류인지.",
       "en": "(proposal) Use only `+` and `-` in size and position expressions. The 551 kinds of vanilla size strings (12,806 uses, 12,712 elements on recount) never have `` or `/`, and Mojang does ratio calculations in a comment and then writes the resulting coefficient (`\"34.628%x + 2px\"` in `store_common.json:5870`, a comment in `store_search_screen.json:64`). Decimal coefficients (`56.25%x`, `1.1249px`) and negative terms (`\"-50% + 10px\"`) are used. Measurement task: whether using `` in a size expression (`\"50% * 2\"`) is ignored or an error."
     },
     "sources": "jua-jsonui-schemas, bedrock-samples"
@@ -7757,17 +7757,17 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "LAY",
     "page": "json-ui/controls-and-layout",
     "anchor": "lay-45",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "바닐라",
       "코드"
     ],
     "title": {
-      "ko": "(반영안) `anchor_from`과 `anchor_to`는 함께 적는다.",
+      "ko": "`anchor_from`과 `anchor_to`는 함께 적는다.",
       "en": "(proposal) Write `anchor_from` and `anchor_to` together."
     },
     "detail": {
-      "ko": "(반영안) `anchor_from`과 `anchor_to`는 함께 적는다. 바닐라는 2,997곳 중 2,985곳(99.6%)에서 둘 다 적고 그중 106곳은 서로 다르다(하나만 적은 곳 12곳, 각 6). 생략했을 때의 기본값은 도구마다 다르게 가정한다(JsonForge·Cinnabar는 `center`, w1zardz 편집기는 `anchor_to`가 `anchor_from`과 같다고 본다).",
+      "ko": "`anchor_from`과 `anchor_to`는 함께 적는다. 바닐라는 2,997곳 중 2,985곳(99.6%)에서 둘 다 적고 그중 106곳은 서로 다르다(하나만 적은 곳 12곳, 각 6). 생략했을 때의 기본값은 도구마다 다르게 가정한다(JsonForge·Cinnabar는 `center`, w1zardz 편집기는 `anchor_to`가 `anchor_from`과 같다고 본다).",
       "en": "(proposal) Write `anchor_from` and `anchor_to` together. Vanilla writes both in 2,985 of 2,997 places (99.6%), and in 106 of those they differ from each other (12 places write only one, 6 each). Tools assume different defaults when they are omitted (JsonForge and Cinnabar assume `center`, and the w1zardz editor treats `anchor_to` as equal to `anchor_from`)."
     },
     "sources": "jua-jsonforge, jua-bedrock-json-ui-editor, jua-cinnabar, bedrock-samples"
@@ -7777,14 +7777,14 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "LAY",
     "page": "json-ui/controls-and-layout",
     "anchor": "lay-46",
-    "proposal": false,
+    "proposal": true,
     "evidence": [],
     "title": {
-      "ko": "(반영안) `\"100%c\"` 부모 안의 자식에 같은 축 `%` 크기를 주지 않는다.",
+      "ko": "`\"100%c\"` 부모 안의 자식에 같은 축 `%` 크기를 주지 않는다.",
       "en": "(proposal) Do not give a child inside a `\"100%c\"` parent a `%` size on the same axis."
     },
     "detail": {
-      "ko": "(반영안) `\"100%c\"` 부모 안의 자식에 같은 축 `%` 크기를 주지 않는다. 자식 크기가 부모를, 부모 크기가 자식을 정하는 순환이 되어 아무것도 그려지지 않는다는 도구 저자의 기록이 있다. 내용 패널의 자식은 픽셀이나 `default`로 준다. 병합 기록은 근거를 엔진 코드가 아니라 편집기 저자의 주석으로 보고 수준을 `바닐라, 미검증`(바닐라 0/1,972 집계가 근거)으로 낮췄다. 같은 병합에서 LAY-17에 \"오른쪽·아래 앵커여도 축은 뒤집히지 않는다\"는 보강(C-49 해소)이 함께 제안되었다: 바닐라 206개 파일 분포에서 오른쪽 앵커 x는 음수 104 대 양수 37, 아래 앵커 y는 음수 190 대 양수 45이고 `common.close_button`이 `top_right` 앵커에 `[-2, 2]`를 쓴다(`ui_common.json:3239-3246`).",
+      "ko": "`\"100%c\"` 부모 안의 자식에 같은 축 `%` 크기를 주지 않는다. 자식 크기가 부모를, 부모 크기가 자식을 정하는 순환이 되어 아무것도 그려지지 않는다는 도구 저자의 기록이 있다. 내용 패널의 자식은 픽셀이나 `default`로 준다. 병합 기록은 근거를 엔진 코드가 아니라 편집기 저자의 주석으로 보고 수준을 `바닐라, 미검증`(바닐라 0/1,972 집계가 근거)으로 낮췄다. 같은 병합에서 LAY-17에 \"오른쪽·아래 앵커여도 축은 뒤집히지 않는다\"는 보강(C-49 해소)이 함께 제안되었다: 바닐라 206개 파일 분포에서 오른쪽 앵커 x는 음수 104 대 양수 37, 아래 앵커 y는 음수 190 대 양수 45이고 `common.close_button`이 `top_right` 앵커에 `[-2, 2]`를 쓴다(`ui_common.json:3239-3246`).",
       "en": "(proposal) Do not give a child inside a `\"100%c\"` parent a `%` size on the same axis. The child size decides the parent and the parent size decides the child, making a cycle where nothing is drawn, according to a record by a tool author. Give children of a content panel pixels or `default`. The merge record treated the evidence as a comment by the editor author, not engine code, and lowered the level to `vanilla, unverified` (the basis is the vanilla 0/1,972 tally). In the same merge, a reinforcement to LAY-17, \"the axis is not flipped even for right and bottom anchors\" (C-49 resolved), was proposed together: in the distribution over 206 vanilla files, right-anchor x is negative 104 to positive 37 and bottom-anchor y is negative 190 to positive 45, and `common.close_button` uses `[-2, 2]` with a `top_right` anchor (`ui_common.json:3239-3246`)."
     },
     "sources": "jua-jsonforge, bedrock-samples"
@@ -7794,17 +7794,17 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "LAY",
     "page": "json-ui/controls-and-layout",
     "anchor": "lay-47",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "바닐라",
       "미검증"
     ],
     "title": {
-      "ko": "(반영안) 화면의 UI 픽셀 크기는 고정값이 아니다.",
+      "ko": "화면의 UI 픽셀 크기는 고정값이 아니다.",
       "en": "(proposal) The UI pixel size of a screen is not a fixed value."
     },
     "detail": {
-      "ko": "(반영안) 화면의 UI 픽셀 크기는 고정값이 아니다. 창 크기와 GUI 배율에 따라 달라지고 시각 편집기들도 서로 다른 값을 가정한다(w1zardz 427×240·520×240·320×240, JsonForge 384×216). 고정 px는 정수 배율을 곱해 그려지고, 바닐라 레이아웃은 최소 가상 화면을 포켓 320×210, 데스크톱 376×250으로 가정한다(`ui_common.json:6380`, `6430` 주석). 최상위 창을 이 크기 안에 두면 어떤 해상도에서도 잘리지 않는다. 화면 가장자리에 붙는 요소는 해당 모서리 앵커와 작은 픽셀 offset으로 놓는다. 단 1.26.0에서 배율 체계가 바뀌어(최소 배율은 최대의 절반, 휴대 기기는 DPI 기반) 배율 계산식 자체는 1.26.50에서 다시 확인해야 한다(MS Learn Update1.26.0).",
+      "ko": "화면의 UI 픽셀 크기는 고정값이 아니다. 창 크기와 GUI 배율에 따라 달라지고 시각 편집기들도 서로 다른 값을 가정한다(w1zardz 427×240·520×240·320×240, JsonForge 384×216). 고정 px는 정수 배율을 곱해 그려지고, 바닐라 레이아웃은 최소 가상 화면을 포켓 320×210, 데스크톱 376×250으로 가정한다(`ui_common.json:6380`, `6430` 주석). 최상위 창을 이 크기 안에 두면 어떤 해상도에서도 잘리지 않는다. 화면 가장자리에 붙는 요소는 해당 모서리 앵커와 작은 픽셀 offset으로 놓는다. 단 1.26.0에서 배율 체계가 바뀌어(최소 배율은 최대의 절반, 휴대 기기는 DPI 기반) 배율 계산식 자체는 1.26.50에서 다시 확인해야 한다(MS Learn Update1.26.0).",
       "en": "(proposal) The UI pixel size of a screen is not a fixed value. It varies with window size and GUI scale, and visual editors also assume different values (w1zardz 427x240, 520x240, 320x240, JsonForge 384x216). Fixed px are drawn multiplied by an integer scale, and vanilla layouts assume minimum virtual screens of pocket 320x210 and desktop 376x250 (comments at `ui_common.json:6380` and `6430`). If you keep the top-level window within this size it is not cut off at any resolution. Elements attached to the screen edge are placed with the corresponding corner anchor and a small pixel offset. But the scale system changed in 1.26.0 (the minimum scale is half the maximum, and handheld devices are DPI based), so the scale calculation itself must be rechecked in 1.26.50 (MS Learn Update1.26.0)."
     },
     "sources": "jua-netease-docs, ms-learn, jua-bedrock-json-ui-editor, jua-jsonforge"
@@ -7814,16 +7814,16 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "LAY",
     "page": "json-ui/controls-and-layout",
     "anchor": "lay-48",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "바닐라"
     ],
     "title": {
-      "ko": "(반영안) `common.scrolling_panel`은 `$touch`에 따라 `scroll_touch`(터치)와 `scroll_mouse`(마우스) 하위 트리 중 하나만 만든다(`ui_common.json:4718-4750`).",
+      "ko": "`common.scrolling_panel`은 `$touch`에 따라 `scroll_touch`(터치)와 `scroll_mouse`(마우스) 하위 트리 중 하나만 만든다(`ui_common.json:4718-4750`).",
       "en": "(proposal) `common.scrolling_panel` creates only one of the `scroll_touch` (touch) and `scroll_mouse` (mouse) subtrees depending on `$touch` (`ui_common.json:4718-4750`)."
     },
     "detail": {
-      "ko": "(반영안) `common.scrolling_panel`은 `$touch`에 따라 `scroll_touch`(터치)와 `scroll_mouse`(마우스) 하위 트리 중 하나만 만든다(`ui_common.json:4718-4750`). 스크롤 내용까지의 경로와 크기 변수(`_touch` 짝)가 입력 모드마다 다르므로, 경로 키나 `source_control_name`으로 스크롤 안을 가리키면 두 경로를 다 고려하거나 인스턴스에 `\"$touch\": true`를 넘겨 한쪽으로 고정한다(`resource_packs_screen.json:2685`도 그렇게 한다).",
+      "ko": "`common.scrolling_panel`은 `$touch`에 따라 `scroll_touch`(터치)와 `scroll_mouse`(마우스) 하위 트리 중 하나만 만든다(`ui_common.json:4718-4750`). 스크롤 내용까지의 경로와 크기 변수(`_touch` 짝)가 입력 모드마다 다르므로, 경로 키나 `source_control_name`으로 스크롤 안을 가리키면 두 경로를 다 고려하거나 인스턴스에 `\"$touch\": true`를 넘겨 한쪽으로 고정한다(`resource_packs_screen.json:2685`도 그렇게 한다).",
       "en": "(proposal) `common.scrolling_panel` creates only one of the `scroll_touch` (touch) and `scroll_mouse` (mouse) subtrees depending on `$touch` (`ui_common.json:4718-4750`). The path to the scroll content and the size variables (the `_touch` pair) differ per input mode, so when pointing inside a scroll with path keys or `source_control_name`, consider both paths or pin one side by passing `\"$touch\": true` to the instance (`resource_packs_screen.json:2685` does the same)."
     },
     "sources": "jua-netease-docs, bedrock-samples"
@@ -7833,18 +7833,18 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "LAY",
     "page": "json-ui/controls-and-layout",
     "anchor": "lay-49",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "코드",
       "미검증",
       "충돌"
     ],
     "title": {
-      "ko": "(반영안) `#anchored_offset_value_x/y`는 `use_anchored_offset: true`인 컨트롤에서 값 곱하기 부모 크기만큼 앵커 방향으로 민다.",
+      "ko": "`#anchored_offset_value_x/y`는 `use_anchored_offset: true`인 컨트롤에서 값 곱하기 부모 크기만큼 앵커 방향으로 민다.",
       "en": "(proposal) `#anchored_offset_value_x/y` pushes in the anchor direction by value times the parent size on a control with `use_anchored_offset: true`."
     },
     "detail": {
-      "ko": "(반영안) `#anchored_offset_value_x/y`는 `use_anchored_offset: true`인 컨트롤에서 값 곱하기 부모 크기만큼 앵커 방향으로 민다. `anchor_from`이 `center`면 효과가 없다. 정적 컨트롤에서 쓰려면 모서리·가장자리 앵커를 준다. 충돌 C-61.",
+      "ko": "`#anchored_offset_value_x/y`는 `use_anchored_offset: true`인 컨트롤에서 값 곱하기 부모 크기만큼 앵커 방향으로 민다. `anchor_from`이 `center`면 효과가 없다. 정적 컨트롤에서 쓰려면 모서리·가장자리 앵커를 준다. 충돌 C-61.",
       "en": "(proposal) `#anchored_offset_value_x/y` pushes in the anchor direction by value times the parent size on a control with `use_anchored_offset: true`. It has no effect if `anchor_from` is `center`. To use it on a static control, give a corner or edge anchor. Conflict C-61."
     },
     "sources": "jua-cinnabar, jua-json-ui-examples, jua-bedrock-core"
@@ -7854,18 +7854,18 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "LAY",
     "page": "json-ui/controls-and-layout",
     "anchor": "lay-50",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "코드",
       "미검증",
       "충돌"
     ],
     "title": {
-      "ko": "(반영안) 엔진 컬렉션 그리드(`hotbar_items` 등)를 다른 모양으로 그릴 때는 바닐라 정의를 복사하면서 `grid_dimension_binding` 속성 자체를 지우고 `grid_dimensions`를 고정한다.",
+      "ko": "엔진 컬렉션 그리드(`hotbar_items` 등)를 다른 모양으로 그릴 때는 바닐라 정의를 복사하면서 `grid_dimension_binding` 속성 자체를 지우고 `grid_dimensions`를 고정한다.",
       "en": "(proposal) When drawing an engine collection grid (`hotbar_items`, etc.) in another shape, copy the vanilla definition while removing the `grid_dimension_binding` property itself and fixing `grid_dime"
     },
     "detail": {
-      "ko": "(반영안) 엔진 컬렉션 그리드(`hotbar_items` 등)를 다른 모양으로 그릴 때는 바닐라 정의를 복사하면서 `grid_dimension_binding` 속성 자체를 지우고 `grid_dimensions`를 고정한다. `bindings`만 비우면 Cinnabar 모델에서는 차원 바인딩이 자동으로 다시 붙는다. 충돌 C-62.",
+      "ko": "엔진 컬렉션 그리드(`hotbar_items` 등)를 다른 모양으로 그릴 때는 바닐라 정의를 복사하면서 `grid_dimension_binding` 속성 자체를 지우고 `grid_dimensions`를 고정한다. `bindings`만 비우면 Cinnabar 모델에서는 차원 바인딩이 자동으로 다시 붙는다. 충돌 C-62.",
       "en": "(proposal) When drawing an engine collection grid (`hotbar_items`, etc.) in another shape, copy the vanilla definition while removing the `grid_dimension_binding` property itself and fixing `grid_dimensions`. Just emptying `bindings` makes the dimension binding automatically reattach in the Cinnabar model. Conflict C-62."
     },
     "sources": "jua-cinnabar, jua-json-ui-examples, bedrock-samples"
@@ -8380,16 +8380,16 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "MOD",
     "page": "json-ui/modifying-vanilla",
     "anchor": "mod-20",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "추론"
     ],
     "title": {
-      "ko": "(반영안) Marketplace 협력형 애드온 공식 지침은 `ui/`와 `font/` 파일 덮어쓰기를 금지한다(여러 애드온이 같은 자산을 함께 고칠 수 없어서).",
+      "ko": "Marketplace 협력형 애드온 공식 지침은 `ui/`와 `font/` 파일 덮어쓰기를 금지한다(여러 애드온이 같은 자산을 함께 고칠 수 없어서).",
       "en": "(proposal) The official guideline for Marketplace cooperative add-ons forbids overriding `ui/` and `font/` files (because several add-ons cannot modify the same asset together)."
     },
     "detail": {
-      "ko": "(반영안) Marketplace 협력형 애드온 공식 지침은 `ui/`와 `font/` 파일 덮어쓰기를 금지한다(여러 애드온이 같은 자산을 함께 고칠 수 없어서). 협력형으로 낼 팩은 MOD-13의 `modifications`조차 피하고 JSON UI 밖의 우회를 먼저 고른다. 실측이 아니라 정책 문서이므로 실제 심사에서 `modifications`만 쓴 팩도 거부되는지는 확인이 필요하다.",
+      "ko": "Marketplace 협력형 애드온 공식 지침은 `ui/`와 `font/` 파일 덮어쓰기를 금지한다(여러 애드온이 같은 자산을 함께 고칠 수 없어서). 협력형으로 낼 팩은 MOD-13의 `modifications`조차 피하고 JSON UI 밖의 우회를 먼저 고른다. 실측이 아니라 정책 문서이므로 실제 심사에서 `modifications`만 쓴 팩도 거부되는지는 확인이 필요하다.",
       "en": "(proposal) The official guideline for Marketplace cooperative add-ons forbids overriding `ui/` and `font/` files (because several add-ons cannot modify the same asset together). A pack to be released as cooperative should avoid even the `modifications` of MOD-13 and first choose a workaround outside JSON UI. It is a policy document, not a measurement, so whether a pack using only `modifications` is also rejected in actual review needs to be checked."
     },
     "sources": "ms-learn, Guidelines for Building Cooperative Add-Ons"
@@ -8399,17 +8399,17 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "MOD",
     "page": "json-ui/modifying-vanilla",
     "anchor": "mod-21",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "작동팩",
       "추론"
     ],
     "title": {
-      "ko": "(반영안) 같은 경로에서 `server_form.long_form`의 `controls`를 바꾸는 서버 폼 팩(Chest-UI, upgrader)은 서로 공존하지 못한다.",
+      "ko": "같은 경로에서 `server_form.long_form`의 `controls`를 바꾸는 서버 폼 팩(Chest-UI, upgrader)은 서로 공존하지 못한다.",
       "en": "(proposal) Server form packs that change the `controls` of `server_form.long_form` at the same path (Chest-UI, upgrader) cannot coexist with each other."
     },
     "detail": {
-      "ko": "(반영안) 같은 경로에서 `server_form.long_form`의 `controls`를 바꾸는 서버 폼 팩(Chest-UI, upgrader)은 서로 공존하지 못한다. 두 팩 모두 `long_form`을 같은 경로에서 `@` 없이 재선언하고(`type: panel`, `controls` 두 개) 제목 접두사 검사식으로 바닐라 모양과 자기 화면을 가른다. 팩 순서상 나중 것의 `controls`만 남는다(FILE-21). 공존이 필요하면 MOD-09 감싸기나 MOD-13 `modifications`만 쓰기로 바꾼다.",
+      "ko": "같은 경로에서 `server_form.long_form`의 `controls`를 바꾸는 서버 폼 팩(Chest-UI, upgrader)은 서로 공존하지 못한다. 두 팩 모두 `long_form`을 같은 경로에서 `@` 없이 재선언하고(`type: panel`, `controls` 두 개) 제목 접두사 검사식으로 바닐라 모양과 자기 화면을 가른다. 팩 순서상 나중 것의 `controls`만 남는다(FILE-21). 공존이 필요하면 MOD-09 감싸기나 MOD-13 `modifications`만 쓰기로 바꾼다.",
       "en": "(proposal) Server form packs that change the `controls` of `server_form.long_form` at the same path (Chest-UI, upgrader) cannot coexist with each other. Both packs redeclare `long_form` at the same path without `@` (`type: panel`, two `controls`) and split the vanilla look and their own screen with a title prefix check expression. Only the `controls` of the later pack in pack order remain (FILE-21). If coexistence is needed, switch to MOD-09 wrapping or MOD-13 `modifications` only."
     },
     "sources": "jua-chest-ui, jua-upgrader"
@@ -8419,16 +8419,16 @@ export const RULE_INFO: Record<RuleId, RuleInfo> = {
     "category": "MOD",
     "page": "json-ui/modifying-vanilla",
     "anchor": "mod-22",
-    "proposal": false,
+    "proposal": true,
     "evidence": [
       "작동팩"
     ],
     "title": {
-      "ko": "(반영안) 여러 바닐라 컨트롤이 함께 쓰는 텍스처를 교체할 때는 원본을 `_original` 같은 다른 이름으로 복사하고, 바꾸지 않을 컨트롤은 같은 경로 UI 파일의 경로 키(`\"부모/자식\": {\"texture\": \"…_original\"}`)로 사본에 다시 연결한다.",
+      "ko": "여러 바닐라 컨트롤이 함께 쓰는 텍스처를 교체할 때는 원본을 `_original` 같은 다른 이름으로 복사하고, 바꾸지 않을 컨트롤은 같은 경로 UI 파일의 경로 키(`\"부모/자식\": {\"texture\": \"…_original\"}`)로 사본에 다시 연결한다.",
       "en": "(proposal) When replacing a texture shared by several vanilla controls, copy the original under another name such as `_original`, and relink the controls you will not change to the copy with path keys"
     },
     "detail": {
-      "ko": "(반영안) 여러 바닐라 컨트롤이 함께 쓰는 텍스처를 교체할 때는 원본을 `_original` 같은 다른 이름으로 복사하고, 바꾸지 않을 컨트롤은 같은 경로 UI 파일의 경로 키(`\"부모/자식\": {\"texture\": \"…_original\"}`)로 사본에 다시 연결한다.",
+      "ko": "여러 바닐라 컨트롤이 함께 쓰는 텍스처를 교체할 때는 원본을 `_original` 같은 다른 이름으로 복사하고, 바꾸지 않을 컨트롤은 같은 경로 UI 파일의 경로 키(`\"부모/자식\": {\"texture\": \"…_original\"}`)로 사본에 다시 연결한다.",
       "en": "(proposal) When replacing a texture shared by several vanilla controls, copy the original under another name such as `_original`, and relink the controls you will not change to the copy with path keys in a same-path UI file (`\"parent/child\": {\"texture\": \"…_original\"}`)."
     },
     "sources": "jua-small-packs"

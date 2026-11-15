@@ -8,6 +8,11 @@ describe("typed intrinsics", () => {
     expect(render(<Label name="l" text="a" />)).toEqual(render(<label name="l" text="a" />));
     expect(render(<Use name="u" def="a.b" collection_index={1} />)).toEqual(render(<use name="u" def="a.b" collection_index={1} />));
   });
+  it("toggle: def 로 상태를 물려받으면 8개 키 없이 허용 (거짓 타입 오류 회귀)", () => {
+    expect(render(<toggle name="t" def="common.toggle" toggle_name="g" />)).toBeTruthy();
+    // @ts-expect-error def 없이 정의하면 INP-10 의 8개 키가 필요하다
+    render(<toggle name="t" toggle_name="g" />);
+  });
   it("타입 오류 (tsc 에서만 검사)", () => {
     // @ts-expect-error COL-02: label 에는 collection_index 불가
     render(<label name="l" text="a" collection_index={1} />);

@@ -9,6 +9,12 @@ const BR = "/home/user/bedrock-research";
 const bad = (s: string) => s as RuleId;
 
 describe("registry", () => {
+  it("proposal_flags: 반영안/제안/보강안 표기와 (반영안) 접두를 인식", () => {
+    for (const id of ["INP-25", "FILE-40", "LAY-44", "MOD-20", "HOST-35", "DBG-24"]) expect(RULE_INFO[id as RuleId].proposal).toBe(true);
+    for (const id of ["LAY-05", "BND-30", "FILE-39", "HOST-34", "EXP-38"]) expect(RULE_INFO[id as RuleId].proposal).toBe(false);
+    for (const r of Object.values(RULE_INFO)) expect(r.title.ko.startsWith("(반영안)")).toBe(false);
+  });
+
   it("catalog_count", () => {
     expect(RULE_IDS.length).toBeGreaterThanOrEqual(395);
     expect([...RULE_IDS]).toEqual([...RULE_IDS].sort());

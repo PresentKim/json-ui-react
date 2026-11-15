@@ -36,19 +36,26 @@ function parseTable(text) {
   return out;
 }
 
+const PROPOSAL = /반영안|제안|보강안|상향안|미적용/;
+
 function parseBullets(text) {
   const out = {};
   for (const line of text.split("\n")) {
     const m = line.match(/^- \*\*\[([A-Z]{1,5}-\d{2,3})([^\]]*)\]\*\*\s*(.*)$/);
-    if (!m || !okId(m[1]) || m[1] in out) continue;
+    if (!m || !okId(m[1])) continue;
     let body = m[3];
+    const lead = /^\((?:반영안|제안|보강안|수준 상향안)[^)]*\)\s*/;
+    const proposal = PROPOSAL.test(m[2]) || lead.test(body);
+    body = body.replace(lead, "");
+    // 같은 ID가 여러 번 나오면 반영안이 아닌 서술을 우선한다
+    if (m[1] in out && (!out[m[1]].proposal || proposal)) continue;
     let evidence = [], sources = "";
     const src = body.match(/\((?:출처|Source)\s*:\s*([^)]*)\)/);
     if (src) sources = clean(src[1]);
     const tag = body.match(/`(?:\{|&#123;)([^`]*?)(?:\}|&#125;)`/);
     if (tag) evidence = tag[1].split(",").map((s) => clean(s)).filter(Boolean);
     const detail = clean(body.replace(/`(?:\{|&#123;)[^`]*?(?:\}|&#125;)`/, "").replace(/\((?:출처|Source)\s*:[^)]*\)/, ""));
-    out[m[1]] = { detail, evidence, sources, proposal: m[2].includes("반영안") };
+    out[m[1]] = { detail, evidence, sources, proposal };
   }
   return out;
 }
@@ -66,7 +73,7 @@ function loadLang(base) {
     for (const f of fs.readdirSync(dir).filter((f) => f.endsWith(".mdx")).sort()) {
       const page = "json-ui/" + f.replace(/\.mdx$/, "");
       for (const [id, b] of Object.entries(parseBullets(fs.readFileSync(path.join(dir, f), "utf8")))) {
-        if (!(id in bullets)) bullets[id] = { ...b, page };
+        if (!(id in bullets) || (bullets[id].proposal && !b.proposal)) bullets[id] = { ...b, page };
       }
     }
   }

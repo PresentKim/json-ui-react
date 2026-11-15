@@ -50,7 +50,14 @@ export interface ExtraProps {
   collection_panel: Pick<FactoryProps, "factory">;
 }
 
-export type ElementProps<T extends keyof ControlPropsMap> = ControlPropsMap[T] &
+/**
+ * toggle 은 `def`(예: common.toggle)로 상태 자식을 물려받으면 8개 상태 키를 다시 쓰지 않는다.
+ * def 없이 정의할 때만 INP-10 의 8개 키를 요구한다.
+ */
+type ToggleElement = (ToggleProps & { def?: undefined }) | (Partial<ToggleProps> & { def: string });
+type BaseProps<T extends keyof ControlPropsMap> = T extends "toggle" ? ToggleElement : ControlPropsMap[T];
+
+export type ElementProps<T extends keyof ControlPropsMap> = BaseProps<T> &
   (T extends keyof ExtraProps ? ExtraProps[T] : unknown) &
   ElementBase;
 
