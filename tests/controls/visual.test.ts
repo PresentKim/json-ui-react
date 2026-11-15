@@ -55,4 +55,9 @@ describe("visual 타입 (tsc 로 검사)", () => {
     ok.push(sizes, bad1, colors, st, gr, im, lb, c, fa, cu, p, b2, b3, b4, b5, b6, b7, b8, b9, a, r);
     expect(ok).toHaveLength(21);
   });
+
+  it("vanilla-valid props are accepted: use_child_anchors", () => {
+    const sp: StackPanelProps = { size: ["100% - 4px", "100%c + 2px"], use_child_anchors: true };
+    expect(sp.use_child_anchors).toBe(true);
+  });
 });

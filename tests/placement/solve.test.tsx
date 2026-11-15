@@ -37,7 +37,7 @@ describe("solvePlacement", () => {
     const input = [N("S", { type: "stack_panel", collection_name: "c" }, [N("L", { type: "label", collection_index: 1, offset: [2, 0], size: [5, 5] })])];
     const r = solvePlacement(input);
     const w = r.nodes[0]!.children[0]!;
-    expect(w.props).toEqual({ type: "panel", collection_index: 1, size: [5, 5], offset: [2, 0] });
+    expect(w.props).toEqual({ type: "panel", collection_index: 1, size: [5, 5] }); // 스택 부모가 무시하는 offset은 옮기지 않는다
     expect(w.children[0]!.props).toEqual({ type: "label", size: [5, 5] });
   });
 
@@ -120,7 +120,7 @@ describe("solvePlacement", () => {
       const input = [N("S", { type: "stack_panel", collection_name: "container_items" }, [
         N("L", { type: "label", $$slot: 1, offset: [2, 0] }), N("C", { type: "custom", $$slot: 2 })])];
       const r = solvePlacement(input, o);
-      expect(r.nodes[0]!.children[0]!.props).toEqual({ type: "panel", collection_index: 1, offset: [2, 0] });
+      expect(r.nodes[0]!.children[0]!.props).toEqual({ type: "panel", collection_index: 1 });
       expect(r.nodes[0]!.children[1]!.props).toEqual({ type: "custom", collection_index: 2 });
     });
 
@@ -147,5 +147,22 @@ describe("solvePlacement", () => {
       expect(b.nodes).toEqual(a.nodes);
       expect(b.diagnostics).toEqual([]);
     });
+  });
+
+  it("wrapper under a stack parent drops ignored offset/anchors, so a second run is a no-op", () => {
+    const input = [N("S", { type: "stack_panel" }, [N("C", { type: "panel", $$slot: 1, offset: [3, 3], size: [5, 5] })])];
+    const o = { collection: "k", wrapAnyParent: true, slotMarker: "$$slot" };
+    const a = solvePlacement(input, o);
+    expect(a.nodes[0]!.children[0]!.props.offset).toBeUndefined();
+    const b = solvePlacement(a.nodes, o);
+    expect(b.nodes).toEqual(a.nodes);
+    expect(b.diagnostics).toEqual([]);
+  });
+
+  it("use_child_anchors on the stack parent: anchors are honored, no LAY-38 wrap", () => {
+    const input = [N("S", { type: "stack_panel", use_child_anchors: true }, [N("C", { type: "panel", anchor_from: "top_left", anchor_to: "top_left" })])];
+    const r = solvePlacement(input);
+    expect(r.nodes).toEqual(input);
+    expect(r.diagnostics).toEqual([]);
   });
 });

@@ -73,6 +73,8 @@ export interface PanelProps extends CommonProps, ChildPosProps {}
 export interface StackPanelProps extends CommonProps, ChildPosProps, CollectionNameProps {
   /** 쌓는 방향 */
   orientation?: OrVar<Orientation>;
+  /** true면 자식의 앵커를 따른다(LAY-38). 없으면 스택 자식의 앵커는 무시된다 */
+  use_child_anchors?: BoolOrExpr;
 }
 
 /** grid: 격자 배치. 자식은 grid_item_template 로 만든다 */

@@ -21,7 +21,7 @@ export interface SolveOptions {
 }
 
 interface Ctx {
-  parent: { type: string; collection_name?: string } | null;
+  parent: { type: string; collection_name?: string; use_child_anchors?: boolean } | null;
   /** 가장 가까운 조상의 collection_name */
   coll: string | undefined;
   /** 조상이 이미 정한 collection_index */
@@ -32,10 +32,14 @@ interface Ctx {
 /** 래퍼로 옮기는 속성 */
 const MOVED = ["size", "offset", "anchor_from", "anchor_to", "layer"];
 
+import { CAPABILITIES } from "./capabilities.ts";
+import type { ControlType } from "../controls/visual.ts";
+
 const typeOf = (n: ControlNode): string => (typeof n.props.type === "string" ? n.props.type : "");
 
-function pickMoved(props: JsonObject, into: JsonObject): void {
-  for (const k of MOVED) if (props[k] !== undefined) into[k] = props[k];
+/** skip: 부모가 어차피 무시하는 속성(스택 아래 offset/앵커)은 래퍼에 옮기지 않는다 */
+function pickMoved(props: JsonObject, into: JsonObject, skip?: ReadonlySet<string>): void {
+  for (const k of MOVED) if (props[k] !== undefined && !skip?.has(k)) into[k] = props[k];
 }
 
 export function solvePlacement(nodes: ControlNode[], opts?: SolveOptions): { nodes: ControlNode[]; diagnostics: Diagnostic[] } {
@@ -99,7 +103,7 @@ export function solvePlacement(nodes: ControlNode[], opts?: SolveOptions): { nod
 
     const ownColl = typeof props.collection_name === "string" ? props.collection_name : ctx.coll;
     const nextIndex = props.collection_index !== undefined ? props.collection_index : ctx.index;
-    const childCtx: Ctx = { parent: { type: ctype, ...(typeof props.collection_name === "string" ? { collection_name: props.collection_name } : {}) }, coll: ownColl, index: nextIndex, path };
+    const childCtx: Ctx = { parent: { type: ctype, ...(typeof props.collection_name === "string" ? { collection_name: props.collection_name } : {}), ...(props.use_child_anchors === true ? { use_child_anchors: true } : {}) }, coll: ownColl, index: nextIndex, path };
     const base = (p: JsonObject, kids: ControlNode[]): ControlNode => ({ name: n.name, ...(n.def !== undefined ? { def: n.def } : {}), props: p, children: kids });
     const index = props.collection_index;
 
@@ -109,12 +113,16 @@ export function solvePlacement(nodes: ControlNode[], opts?: SolveOptions): { nod
       const inner: JsonObject = {};
       for (const [k, v] of Object.entries(props)) if (k !== "offset" && k !== "anchor_from" && k !== "anchor_to") inner[k] = v;
       if (moveIdx) delete inner.collection_index;
-      const kidsCtx: Ctx = { ...childCtx, parent: { type: ctype, ...(typeof inner.collection_name === "string" ? { collection_name: inner.collection_name } : {}) } };
+      const kidsCtx: Ctx = { ...childCtx, parent: { type: ctype, ...(typeof inner.collection_name === "string" ? { collection_name: inner.collection_name } : {}), ...(inner.use_child_anchors === true ? { use_child_anchors: true } : {}) } };
+      // 스택 부모가 무시하는 offset/앵커는 래퍼로 옮기지 않는다(옮기면 LAY-38이 다시 걸려 두 번째 실행이 또 감싼다)
+      const skip: Set<string> | undefined = opts?.offsetBox !== false && ctx.parent && CAPABILITIES[ctx.parent.type as ControlType]?.childrenPositioned === "stack"
+        ? new Set(["offset", ...(ctx.parent.use_child_anchors === true ? [] : ["anchor_from", "anchor_to"])])
+        : undefined;
       const kids = (): ControlNode[] => n.children.map((c) => place(c, kidsCtx));
       const innerNode = (kids_: ControlNode[]): ControlNode => base(inner, kids_);
       const stackProps = (): JsonObject => {
         const w: JsonObject = { type: "stack_panel", orientation: "vertical", collection_name: stackName! };
-        pickMoved(props, w);
+        pickMoved(props, w, skip);
         return w;
       };
       if (idxProb && moveIdx) info(idxProb, path, "(인덱스를 패널로 옮겼다)");
@@ -125,7 +133,7 @@ export function solvePlacement(nodes: ControlNode[], opts?: SolveOptions): { nod
       }
       const idx: JsonObject = { type: "panel", collection_index: index! };
       if (!stackOk) {
-        pickMoved(props, idx);
+        pickMoved(props, idx, skip);
         return { name: `${n.name}_slot`, props: idx, children: [innerNode(kids())] };
       }
       if (props.size !== undefined) idx.size = props.size;

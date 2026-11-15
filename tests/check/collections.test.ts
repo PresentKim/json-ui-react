@@ -94,6 +94,8 @@ describe("collection checks", () => {
     expect(run(f({ type: "panel", factory: { name: "n", control_name: "a.b" } }), "COL-45")).toEqual([]);
     expect(ids(run(f({ type: "panel", factory: { name: "n", control_name: "a.b", control_ids: { x: "a.c" } } }), "COL-43"))).toEqual(["COL-43"]);
     expect(ids(run(f({ type: "panel", factory: { name: "n", control_name: "a.b", insert_location: "top" } }), "COL-43"))).toEqual(["COL-43"]);
+    // 변수로 넘기는 insert_location은 오탐이 아니어야 한다
+    expect(run(f({ type: "panel", factory: { name: "n", control_name: "a.b", insert_location: "$loc" } }), "COL-43")).toEqual([]);
   });
 
   it("FILE-01 / FILE-05 / FILE-25 파일 등록과 namespace", () => {

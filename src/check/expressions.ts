@@ -197,7 +197,7 @@ const EXP27: RuleCheck = {
     if (Array.isArray(body.bindings)) {
       body.bindings = body.bindings.map((b: JsonValue) => {
         if (!isObj(b)) return b;
-        for (const [k, v] of Object.entries(b)) if (typeof v === "string") b[k] = fix(v);
+        for (const [k, v] of Object.entries(b)) if (typeof v === "string" && v.startsWith("(")) b[k] = fix(v); // 식만 고친다
         return b;
       });
     }

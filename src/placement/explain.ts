@@ -12,7 +12,7 @@ export interface PlacementProblem {
 }
 
 export interface PlacementQuery {
-  parent: { type: string; collection_name?: string } | null;
+  parent: { type: string; collection_name?: string; use_child_anchors?: boolean } | null;
   child: { type: string; props?: JsonObject };
 }
 
@@ -40,7 +40,7 @@ export function explainPlacement(q: PlacementQuery): { ok: boolean; problems: Pl
 
   if (q.parent && CAPABILITIES[q.parent.type as ControlType]?.childrenPositioned === "stack") {
     const ignoresOffset = props.offset !== undefined && !isZero(props.offset);
-    const ignoresAnchor = (props.anchor_from !== undefined || props.anchor_to !== undefined) && props.use_child_anchors !== true;
+    const ignoresAnchor = (props.anchor_from !== undefined || props.anchor_to !== undefined) && props.use_child_anchors !== true && q.parent.use_child_anchors !== true;
     if (ignoresOffset || ignoresAnchor)
       problems.push({ rule: "LAY-38", level: "warn", fix: "wrap-panel", message: "스택 패널의 자식은 offset과 앵커를 무시한다. panel로 감싸 그 안에서 배치한다." });
   }

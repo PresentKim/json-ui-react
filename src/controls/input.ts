@@ -190,6 +190,11 @@ export interface ScrollViewProps extends CommonProps {
   scrollbar_track_button?: Ref;
   scrollbar_touch_button?: Ref;
   scroll_content?: Ref;
+  /** LAY-42: 스크롤 역할 컨트롤 이름(네 개 모두 있어야 스크롤한다) */
+  scrolling_view_port?: Ref;
+  scrolling_content?: Ref;
+  scrollbar_track?: Ref;
+  scrollbar_box?: Ref;
   scroll_box_and_track_panel?: Ref;
   scroll_box_mouse?: Ref;
   scroll_box_touch?: Ref;

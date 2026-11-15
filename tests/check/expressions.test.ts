@@ -55,6 +55,13 @@ describe("expression checks", () => {
     expect(rules(view("(not ((#a - #b) = 'z'))"))).toContain("BND-34:warn");
     expect(rules(view("((#a - 'z') = #a)"))).toEqual([]);
   });
+  it("EXP-27 rewrite leaves non-expression binding strings alone", () => {
+    const b = { binding_type: "view", source_property_name: "(#a * 0.5)", target_property_name: "#visible", binding_name: "note 0.5" };
+    const r = run({ type: "panel", bindings: [b] }, true);
+    const out = (r.files["ui/t.json"]!.main as any).bindings[0];
+    expect(out.source_property_name).toBe("(#a * .5)");
+    expect(out.binding_name).toBe("note 0.5");
+  });
   it("EXP-27 rewrite", () => {
     const src = "(#a * 0.5)";
     expect(rules(view(src))).not.toContain("EXP-27:info");

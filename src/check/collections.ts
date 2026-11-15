@@ -96,7 +96,7 @@ export const COLLECTION_CHECKS: RuleCheck[] = [
       if (typeof src.control_name === "string" && src.control_name && isObj(src.control_ids))
         report("warn", "control_name이 있으면 control_ids는 읽히지 않는다. 둘 중 하나만 쓴다.");
       const loc = src.insert_location;
-      if (typeof loc === "string" && loc !== "front" && loc !== "back")
+      if (typeof loc === "string" && !loc.startsWith("$") && loc !== "front" && loc !== "back")
         report("warn", `insert_location "${loc}"은 뒤(back)로 처리된다. "front" 또는 "back"만 쓴다.`);
     },
   },

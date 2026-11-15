@@ -35,3 +35,11 @@ describe("controls/input", () => {
     expect([bad, ok, b].length).toBe(3);
   });
 });
+
+import type { ScrollViewProps as _SV } from "../../src/controls/input.ts";
+describe("scroll_view 역할 속성", () => {
+  it("scrolling_view_port 등 네 역할 이름을 받는다", () => {
+    const sv: _SV = { scrolling_view_port: "a", scrolling_content: "b", scrollbar_track: "c", scrollbar_box: "d" };
+    expect(Object.keys(sv)).toHaveLength(4);
+  });
+});
