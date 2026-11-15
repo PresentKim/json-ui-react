@@ -8,6 +8,7 @@
     "test": "vitest run",
     "build:example": "tsx examples/research/build.ts",
     "typecheck": "tsc --noEmit",
+    "build:entity-addon": "tsx --tsconfig site/tsconfig.build.json example-entity/pack.ts",
     "build:addon": "tsx --tsconfig site/tsconfig.build.json example/pack-addon.ts",
     "site:build": "npm run build:addon && node site/prebuild.mjs && npm run site:sources && docusaurus build site",
     "site:start": "npm run build:addon && node site/prebuild.mjs && npm run site:sources && docusaurus start site",

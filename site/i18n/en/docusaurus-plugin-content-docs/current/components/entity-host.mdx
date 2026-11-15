@@ -1,0 +1,101 @@
+---
+title: "Entity host (container entity chest screen)"
+description: "Using the chest screen of a container entity as a second host: the shared shell, the automatic placement solver and its diagnostic rules, data and interaction components, the server runtime API and four examples."
+sidebar_position: 9
+sources:
+  - json-ui-react
+  - bedrock-research
+---
+
+# Entity host (container entity chest screen)
+
+The entity host draws UI in the **chest screen of a container entity** instead of an action form. The server writes items into the entity's slots (name, lore, count, durability) and the screen's JSON UI reads those slots and draws text, icons and bars. The only thing a player presses is a quick-move button, and the server notices a press when the marker item disappears from the slot. `buildEntityScreens` generates the screen JSON, and the screen code is written with the TSX components of `json-ui-react`.
+
+## Shared shell
+
+There is one shell however many screens you have. It never overwrites vanilla definitions, it only uses `modifications`.
+
+- One overlay per screen is inserted with `insert_back` into `controls` of `small_chest_panel` in `chest_screen.json` and `pocket_containers.json`.
+- The vanilla marker `entity_ui_hide_vanilla` and the property `#entity_ui_vanilla_visible` add a hide binding to `bindings` of `root_panel` with `insert_back`, which hides the vanilla slot grid.
+- The `host` inside an overlay has an `ignored` expression on the container title so it shows only for its own screen. The entity name tag is `§b§w` followed by two format-code pairs (for example `§m§l`). The parent overlay holds a copy of `$bwiki_title`.
+- An invisible sync grid (the `container_items` collection) makes the slots readable. The overlay and cover use layer 1 and the window uses layer 2.
+
+## Screen code
+
+```tsx
+import { EntityScreen, At, SlotText, QuickButton, buildEntityScreens } from "json-ui-react";
+
+const screen = (
+  <EntityScreen id="demo" code="dm" title="Demo" size={[200, 120]}>
+    <At name="t_at" x={8} y={8}><SlotText name="t" slot="title" /></At>
+    <QuickButton name="go" slot="go" size={[80, 18]} />
+  </EntityScreen>
+);
+const built = buildEntityScreens([screen], { namespace: "demo" });
+```
+
+`built.files` holds `ui/*.json` and `built.serverModule` is a server module exporting `SCREENS` (slot numbers by name, and the name tag). Slot numbers are never written in code, you read them from `SCREENS`. If numbers must match exactly, reserve them first with `useEntity(id).slots.claim(name, count, start)`.
+
+## Automatic placement solver
+
+Controls that read slots must follow many constraints in entity UI. The solver walks the control tree, fixes what can be fixed and returns diagnostics for what it changed and what it could not. A diagnostic is `{ rule, level, path, message }` and `level` is `error`, `warn` or `info`. A rewrite is `info`, an unfixable problem is `error`. With `strict: false` an `error` is lowered to `warn` and the build goes on.
+
+| Rule | Level | Meaning |
+| --- | --- | --- |
+| COL-50 | info | If the parent of a `collection_index` panel is not a `container_items` stack, it is wrapped in one |
+| COL-02 | info | A `label` cannot have `collection_index`, so the index goes on a panel with the label inside |
+| EXP-27 | info | Real literals must start with `.` (`0.1` evaluates to 0), so it is rewritten as `.1` |
+| ENT-SIZE | error | A variable inside a size array becomes 0. Pass the whole array as one variable |
+| ENT-CLIP | error | If `#clip_ratio` is a constant that reads no slot, nothing is drawn |
+| ANI-38 | info | An ancestor of an item renderer with layer above 50 is lowered to 1 |
+
+## Components
+
+Data components read a slot and draw it.
+
+| Component | What it does |
+| --- | --- |
+| `At` | A frame that places children by coordinates (x, y, w, h) |
+| `Label` | Fixed text |
+| `SlotText` | Item name or lore text of a slot (processed `#hover_text`) |
+| `SlotIcon` | Item icon of a slot |
+| `SlotCount` | Slot count as a number or as digit images |
+| `SlotTexture` | Texture chosen by the slot value |
+| `SlotBar` | Bar filled from a slot value (durability, count, numeric text) |
+| `ShowWhen` | Children shown only when the slot matches a condition (`contains`, `lacks`, `filled`, `empty`) |
+
+Interaction components create presses and selection.
+
+| Component | What it does |
+| --- | --- |
+| `QuickButton` | Quick-move button whose press reaches the server. A marker item sits in its slot |
+| `SelectCells` | A row of cells to choose from, with a detail for the chosen one |
+| `PickGrid` | A set of buttons to pick one from a grid |
+| `EntityTabs` | A tab row with per-tab content |
+| `EntityPager` | Previous and next page buttons |
+| `KeyedCell` | A cell whose look changes with a key text |
+| `anim` | Builds an animation definition and returns its name |
+
+## Server runtime
+
+`src/entity/runtime.js` is a static module copied to `scripts/runtime.js` at build time. It owns the session loop, slot button polling, diffed writes and leak cleanup.
+
+| Name | Description |
+| --- | --- |
+| `createEntityMenu(opts)` | Builds a menu from `screen`, `entityType`, `tag`, `mark`, `onPress`, `render` and more, and runs with `start()`. Returns `sessions` too |
+| `paper(name, lore)` | A paper item with name and lore |
+| `stack(typeId, amount, name, lore)` | An item stack |
+| `writeSlots(s, entries)` | Diffed write: nothing is written when name, count, name tag and lore are equal |
+| `s.put(name, i, item)` | Write by slot name and index |
+| `s.buttons()` | Refills the marker items of the button slots |
+
+## Four examples
+
+`npm run build:entity-addon` builds `dist/json-ui-react-entity-examples.mcaddon` (two builds give the same bytes). The four screens share the namespace `jure` and run together in one world. `example-entity/bp/scripts/main.js` reads `SCREENS` and passes each entry to its `setup`.
+
+| Example | Screen | What you see |
+| --- | --- | --- |
+| menu-lab | `example-entity/screens/menu-lab.tsx` | Name and lore inspection menu (8 cells, bars, press count) |
+| research | `example-entity/screens/research.tsx` | Research list with detail, tabs and pages |
+| e2048 | `example-entity/screens/e2048.tsx` | 4x4 board with arrow buttons |
+| matchmaking | `example-entity/screens/matchmaking.tsx` | Lobby list and ready-check cells |

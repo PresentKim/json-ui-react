@@ -1,0 +1,101 @@
+---
+title: "엔티티 호스트 (컨테이너 엔티티 상자 화면)"
+description: "컨테이너 엔티티의 상자 화면을 두 번째 호스트로 쓰는 법. 공통 껍데기, 자동 배치 해결기와 진단 규칙, 데이터·상호작용 부품, 서버 런타임 API, 예시 4개."
+sidebar_position: 9
+sources:
+  - json-ui-react
+  - bedrock-research
+---
+
+# 엔티티 호스트 (컨테이너 엔티티 상자 화면)
+
+엔티티 호스트는 폼(ActionForm) 대신 **컨테이너 엔티티의 상자 화면**에 UI를 그린다. 서버가 엔티티의 칸에 아이템을 쓰면(이름, 로어, 개수, 내구도) 화면의 JSON UI가 그 칸을 읽어 글자, 아이콘, 막대로 그린다. 플레이어가 누르는 곳은 빠른 이동 버튼 하나뿐이며, 서버가 칸에서 표식 아이템이 사라진 것을 보고 눌림을 알아챈다. 화면 JSON은 `buildEntityScreens`가 만들고, 화면 코드는 `json-ui-react`의 TSX 부품으로 쓴다.
+
+## 공통 껍데기
+
+화면이 몇 개든 껍데기는 하나다. 바닐라 정의는 덮어쓰지 않고 `modifications`만 쓴다.
+
+- `chest_screen.json`, `pocket_containers.json`의 `small_chest_panel`에 화면마다 오버레이 하나를 `controls`의 `insert_back`으로 끼운다.
+- 바닐라 상자 표식 `entity_ui_hide_vanilla`와 속성 `#entity_ui_vanilla_visible`로 `root_panel`의 `bindings`에 숨김 바인딩을 `insert_back`으로 더해 바닐라 칸 격자를 가린다.
+- 오버레이 안의 `host`는 컨테이너 제목에 `ignored`를 걸어 자기 화면일 때만 보인다. 엔티티 이름표는 `§b§w` 뒤에 서식 코드 두 쌍(예: `§m§l`)이다. 부모 오버레이에 `$bwiki_title` 사본을 둔다.
+- 칸 읽기가 가능하도록 안 보이는 동기화 격자(`container_items` 컬렉션)를 둔다. 오버레이와 덮개는 layer 1, 창은 layer 2다.
+
+## 화면 코드
+
+```tsx
+import { EntityScreen, At, SlotText, QuickButton, buildEntityScreens } from "json-ui-react";
+
+const screen = (
+  <EntityScreen id="demo" code="dm" title="Demo" size={[200, 120]}>
+    <At name="t_at" x={8} y={8}><SlotText name="t" slot="title" /></At>
+    <QuickButton name="go" slot="go" size={[80, 18]} />
+  </EntityScreen>
+);
+const built = buildEntityScreens([screen], { namespace: "demo" });
+```
+
+`built.files`는 `ui/*.json`, `built.serverModule`은 `SCREENS`(칸 이름별 번호와 이름표)를 내보내는 서버 모듈이다. 칸 번호는 코드에 쓰지 않고 `SCREENS`에서 읽는다. 번호를 꼭 맞춰야 하면 `useEntity(id).slots.claim(이름, 개수, 시작 번호)`로 미리 잡는다.
+
+## 자동 배치 해결기
+
+엔티티 UI에는 칸을 읽는 컨트롤이 지켜야 할 제약이 많다. 해결기는 컨트롤 트리를 훑어 고칠 수 있는 것은 고치고, 고친 내용과 못 고친 것을 진단으로 돌려준다. 진단은 `{ rule, level, path, message }`이고 `level`은 `error`, `warn`, `info`다. 고쳐 쓴 것은 `info`, 못 고친 것은 `error`다. `strict: false`를 주면 `error`가 `warn`으로 내려가 빌드가 계속된다.
+
+| 규칙 | 수준 | 내용 |
+| --- | --- | --- |
+| COL-50 | info | `collection_index` 패널의 부모가 `container_items` 스택이 아니면 스택으로 감싼다 |
+| COL-02 | info | `label`은 `collection_index`를 가질 수 없어 패널에 인덱스를 주고 label을 안에 둔다 |
+| EXP-27 | info | 실수 리터럴은 `.`으로 시작해야 한다(`0.1`은 0으로 계산됨). `.1`로 고친다 |
+| ENT-SIZE | error | 크기 배열 안에 변수를 넣으면 0이 된다. 배열 전체를 변수로 넘겨야 한다 |
+| ENT-CLIP | error | `#clip_ratio`가 칸을 읽지 않는 상수면 아무것도 그려지지 않는다 |
+| ANI-38 | info | 아이템 렌더러 위 조상의 layer가 50을 넘으면 1로 낮춘다 |
+
+## 부품
+
+데이터 부품은 칸을 읽어 그린다.
+
+| 부품 | 하는 일 |
+| --- | --- |
+| `At` | 좌표(x, y, w, h)로 자식을 놓는 틀 |
+| `Label` | 고정 글자 |
+| `SlotText` | 칸 아이템 이름이나 로어 글자(`#hover_text`를 가공) |
+| `SlotIcon` | 칸 아이템 아이콘 |
+| `SlotCount` | 칸 개수를 숫자나 자릿수 그림으로 |
+| `SlotTexture` | 칸 값에 따라 고르는 텍스처 |
+| `SlotBar` | 칸 값(내구도, 개수, 글자 숫자)으로 채우는 막대 |
+| `ShowWhen` | 칸 값이 조건(`contains`, `lacks`, `filled`, `empty`)일 때만 보이는 자식 |
+
+상호작용 부품은 누름과 선택을 만든다.
+
+| 부품 | 하는 일 |
+| --- | --- |
+| `QuickButton` | 눌림이 서버로 가는 빠른 이동 버튼. 칸에 표식 아이템이 놓인다 |
+| `SelectCells` | 칸 여러 개를 고르는 줄과 선택한 칸의 상세 |
+| `PickGrid` | 격자에서 하나를 고르는 버튼 모음 |
+| `EntityTabs` | 탭 줄과 탭별 내용 |
+| `EntityPager` | 이전·다음 페이지 버튼 |
+| `KeyedCell` | 키 글자에 따라 모양이 바뀌는 칸 |
+| `anim` | 애니메이션 정의를 만들고 이름을 돌려준다 |
+
+## 서버 런타임
+
+`src/entity/runtime.js`는 빌드 때 `scripts/runtime.js`로 복사되는 정적 모듈이다. 세션 루프, 칸 버튼 폴링, 차등 쓰기, 누수 정리를 맡는다.
+
+| 이름 | 설명 |
+| --- | --- |
+| `createEntityMenu(opts)` | `screen`, `entityType`, `tag`, `mark`, `onPress`, `render` 등으로 메뉴를 만들고 `start()`로 돌린다. 반환값에 `sessions` |
+| `paper(name, lore)` | 이름과 로어가 있는 종이 아이템 |
+| `stack(typeId, amount, name, lore)` | 아이템 묶음 |
+| `writeSlots(s, entries)` | 이름, 개수, 이름표, 로어가 같으면 쓰지 않는 차등 쓰기 |
+| `s.put(name, i, item)` | 칸 이름과 순번으로 쓰기 |
+| `s.buttons()` | 버튼 칸의 표식 아이템을 다시 채움 |
+
+## 예시 4개
+
+`npm run build:entity-addon`이 `dist/json-ui-react-entity-examples.mcaddon`을 만든다(두 번 만들어도 바이트가 같다). 네 화면이 한 네임스페이스 `jure`에 들어가 한 월드에서 같이 돈다. `example-entity/bp/scripts/main.js`가 `SCREENS`를 읽어 각 `setup`에 넘긴다.
+
+| 예시 | 화면 | 보이는 것 |
+| --- | --- | --- |
+| menu-lab | `example-entity/screens/menu-lab.tsx` | 이름·로어 검사 메뉴(칸 8개, 막대, 눌림 횟수) |
+| research | `example-entity/screens/research.tsx` | 연구 목록과 상세, 탭, 페이지 |
+| e2048 | `example-entity/screens/e2048.tsx` | 4x4 보드와 화살표 버튼 |
+| matchmaking | `example-entity/screens/matchmaking.tsx` | 로비 목록, 준비 확인 칸 |

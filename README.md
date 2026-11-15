@@ -155,6 +155,16 @@ npm run build:example    # tsx examples/research/build.ts
 - 옛 주소: 폴더 재구성으로 `/getting-started`, `/custom-component`, `/api`는 `/basics/getting-started`, `/components/custom-component`, `/reference/api`로 옮겼고, 옛 주소는 새 주소로 넘어간다(`@docusaurus/plugin-client-redirects`).
 - 실측 사진: `site/static/img/components/<예시id>/01-설명.png` 형식으로 넣으면 그 컴포넌트 페이지에 표시된다. 없으면 "실측 사진 준비 중" 상자가 보인다.
 
+## 엔티티 호스트
+
+폼 대신 컨테이너 엔티티의 상자 화면에 UI를 그리는 두 번째 호스트다(`src/entity/`, 문서: `site/docs/components/entity-host.mdx`). 서버가 엔티티 칸에 아이템을 쓰면(이름, 로어, 개수, 내구도) 화면이 그 칸을 읽어 글자, 아이콘, 막대로 그리고, 누름은 빠른 이동 버튼 하나로 서버에 닿는다.
+
+- 껍데기: `buildEntityScreens`가 `chest_screen.json`, `pocket_containers.json`의 `modifications`만으로 오버레이를 끼우고(바닐라 정의는 덮어쓰지 않음), 표식 `entity_ui_hide_vanilla`로 바닐라 칸을 숨기며, 동기화 격자를 둔다. 이름표는 `§b§w` + 서식 코드 두 쌍이다.
+- 자동 배치 해결기: 칸을 읽는 컨트롤을 고쳐 쓰고 진단 `{ rule, level, path, message }`를 돌려준다. COL-50, COL-02, EXP-27, ANI-38은 고쳐 쓴 `info`, ENT-SIZE, ENT-CLIP은 못 고친 `error`다(`strict: false`면 `warn`).
+- 데이터 부품: `At`, `Label`, `SlotText`, `SlotIcon`, `SlotCount`, `SlotTexture`, `SlotBar`, `ShowWhen`. 상호작용 부품: `QuickButton`, `SelectCells`, `PickGrid`, `EntityTabs`, `EntityPager`, `KeyedCell`, `anim`.
+- 서버 런타임(`src/entity/runtime.js`): `createEntityMenu`, `paper`, `stack`, `writeSlots`, `s.put`, `s.buttons`.
+- 예시 4개(`example-entity/`): menu-lab, research, e2048, matchmaking. `npm run build:entity-addon`이 `dist/json-ui-react-entity-examples.mcaddon`을 만든다(두 번 빌드해도 바이트가 같고, 네 화면이 한 월드에서 같이 돈다).
+
 ## 한계
 
 - 런타임 조건부 렌더는 할 수 없다. 조건은 빌드 시점에 정하고, 게임 안에서 바뀌는 분기는 바인딩과 식으로만 표현한다.

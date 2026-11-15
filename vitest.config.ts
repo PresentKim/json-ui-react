@@ -8,6 +8,7 @@ export default defineConfig({
     alias: [
       { find: /^json-ui-react\/jsx-(dev-)?runtime$/, replacement: src("jsx-runtime.ts") },
       { find: /^json-ui-react$/, replacement: src("index.ts") },
+      { find: /^json-ui-react\/(.+)$/, replacement: src("$1") },
     ],
   },
   esbuild: {
