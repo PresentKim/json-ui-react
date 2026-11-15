@@ -3,7 +3,7 @@ import type { JsonObject, JsonValue } from "./types.ts";
 
 export interface Diagnostic {
   rule: string;
-  level: "error" | "warn";
+  level: "error" | "warn" | "info";
   path: string;
   message: string;
 }
