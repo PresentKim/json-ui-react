@@ -68,3 +68,46 @@ chain("fx", {
 ```
 
 `duration`이 0 이하이거나 `flip_book`에 `frame_count`가 없으면 규칙 ID가 붙은 오류를 던진다. 규칙 조회와 빌드 검사(`runChecks`), 배치 질의(`explainPlacement`, `solvePlacement`)는 [규칙 API](../reference/rules-api.mdx)를 본다.
+
+## 계층 구조
+
+```text
+규칙 레지스트리 (src/rules)
+  → 타입 컨트롤, PascalCase (src/controls)
+  → 빌더: bind / E / anim / modify
+  → 배치 solvePlacement / 검사 runChecks
+  → 고수준: src/high, src/entity, src/components
+  → 예시
+```
+
+위에서 아래로만 의존한다. 고수준 부품은 PascalCase 컨트롤과 빌더만으로 짜고, 소문자 태그나 `binding_type` 객체를 직접 쓰지 않는다. 예시도 고수준과 타입 컨트롤만 가져온다.
+
+## modify 빌더
+
+```ts
+import { modify, modifications } from "json-ui-react";
+
+modifications(
+  modify.insertBack("controls", [{ hud_extra: {} }]),
+  modify.insertAfter("controls", { hud_a: {} }, [{ hud_b: {} }]),
+  modify.remove("bindings", { binding_name: "#old" }),
+);
+// { modifications: [{ array_name: "controls", operation: "insert_back", value: [...] }, ...] }
+```
+
+연산 11개(`insertBack`, `insertFront`, `insertAfter`, `insertBefore`, `moveBack`, `moveFront`, `moveAfter`, `moveBefore`, `swap`, `replace`, `remove`)가 MOD-14와 같고, 타입 `Modification`, `ModOperation`, `ModArray`를 함께 낸다.
+
+## 고수준 부품은 어떻게 짜이나
+
+`src/entity/data.tsx`의 `SlotText`는 PascalCase `Label`과 바인딩 빌더만으로 쓴다. 배치(칸 읽기 래퍼)는 `reader`가 `solvePlacement`에 맡긴다.
+
+```tsx
+export function SlotText(p: SlotTextProps): JuiElement {
+  const slot = pick("SlotText", p.slot, p.index);
+  return reader(
+    <LabelCtl {...({ name: p.name, text: "#text", localize: false, ...textProps(p),
+      bindings: [collect("#hover_text"), view(p.raw ? "#hover_text" : CLEAN, "#text")] } as ElementProps<"label">)} />,
+    slot,
+  );
+}
+```

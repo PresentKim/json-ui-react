@@ -50,3 +50,5 @@ export { runChecks, buildIndex } from "./check/engine.ts";
 export { ALL_CHECKS, allChecks } from "./check/index.ts";
 export type { RuleCheck, NodeCtx, DefIndex, Report } from "./check/types.ts";
 export * from "./placement/index.ts";
+export { modify, modifications } from "./modify.ts";
+export type { Modification, ModOperation, ModArray } from "./modify.ts";

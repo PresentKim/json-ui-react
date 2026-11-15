@@ -68,3 +68,46 @@ chain("fx", {
 ```
 
 A `duration` of 0 or less, or a `flip_book` without `frame_count`, throws an error carrying the rule ID. For rule lookup, build checks (`runChecks`) and placement (`explainPlacement`, `solvePlacement`) see the [Rules API](../reference/rules-api.mdx).
+
+## Layering
+
+```text
+Rule registry (src/rules)
+  → Typed controls, PascalCase (src/controls)
+  → Builders: bind / E / anim / modify
+  → Placement solvePlacement / checks runChecks
+  → High-level: src/high, src/entity, src/components
+  → Examples
+```
+
+Dependencies only point downward. High-level components are written only with PascalCase controls and the builders, never with lowercase tags or hand-written `binding_type` objects. Examples import only high-level components and typed controls.
+
+## The modify builder
+
+```ts
+import { modify, modifications } from "json-ui-react";
+
+modifications(
+  modify.insertBack("controls", [{ hud_extra: {} }]),
+  modify.insertAfter("controls", { hud_a: {} }, [{ hud_b: {} }]),
+  modify.remove("bindings", { binding_name: "#old" }),
+);
+// { modifications: [{ array_name: "controls", operation: "insert_back", value: [...] }, ...] }
+```
+
+The 11 operations (`insertBack`, `insertFront`, `insertAfter`, `insertBefore`, `moveBack`, `moveFront`, `moveAfter`, `moveBefore`, `swap`, `replace`, `remove`) match MOD-14. The types `Modification`, `ModOperation` and `ModArray` are exported too.
+
+## How a high-level component is composed
+
+`SlotText` in `src/entity/data.tsx` is written with the PascalCase `Label` and the binding builders only. Placement (the slot-reader wrapper) is delegated by `reader` to `solvePlacement`.
+
+```tsx
+export function SlotText(p: SlotTextProps): JuiElement {
+  const slot = pick("SlotText", p.slot, p.index);
+  return reader(
+    <LabelCtl {...({ name: p.name, text: "#text", localize: false, ...textProps(p),
+      bindings: [collect("#hover_text"), view(p.raw ? "#hover_text" : CLEAN, "#text")] } as ElementProps<"label">)} />,
+    slot,
+  );
+}
+```
