@@ -27,11 +27,11 @@ Each rule also has a `status`: `enforced` when code in this repo really checks i
 
 | Stage | Rules | enforced | planned |
 | --- | ---: | ---: | ---: |
-| `type` | 37 | 0 | 37 |
-| `rewrite` | 8 | 5 | 3 |
-| `forbid` | 70 | 5 | 65 |
-| `doc` | 331 | 0 | 331 |
-| Total | 446 | 10 | 436 |
+| `type` | 37 | 14 | 23 |
+| `rewrite` | 8 | 8 | 0 |
+| `forbid` | 72 | 66 | 6 |
+| `doc` | 329 | 0 | 329 |
+| Total | 446 | 88 | 358 |
 
 The table was counted with `listRules` when this page was written. Recount with `listRules({ stage, status }).length` after code changes.
 
@@ -57,3 +57,35 @@ d.url; // the wiki link comes along
 - `RULE_IDS` is the sorted list of IDs, `RULE_INFO` the raw info per ID, `STAGES` the stage table.
 - `RuleId` is a literal union of all IDs, so typos fail at compile time.
 - A rule missing from the stage table counts as `{ stage: "doc", status: "planned" }`.
+
+## Check engine (runChecks, ALL_CHECKS)
+
+`forbid` and `rewrite` rules are implemented as checks in `src/check/`. `runChecks` walks a set of generated files and collects each check's diagnostics, sorted by path then rule, with `url` attached. The high-level and entity builds run `ALL_CHECKS` automatically.
+
+```ts
+import { runChecks, ALL_CHECKS } from "json-ui-react";
+
+const { diagnostics } = runChecks(files, ALL_CHECKS);
+// Rewrite checks run only with { rewrite: true } and fix a deep copy, returned as new files.
+const fixed = runChecks(files, ALL_CHECKS, { rewrite: true, only: ["HOST-34"] });
+fixed.files; // the fixed copy (the input is untouched)
+```
+
+`only` narrows the rules. When you know the router roots, build the check list with `allChecks(routedRoots)`.
+
+## Placement query and solver (explainPlacement, solvePlacement)
+
+`CAPABILITIES` is a table of the props each control type accepts. `explainPlacement` tells which rules a child under a parent would hit, and `solvePlacement` fixes those problems in a control tree.
+
+```ts
+import { explainPlacement, solvePlacement } from "json-ui-react";
+
+explainPlacement({
+  parent: { type: "stack_panel", collection_name: "form" },
+  child: { type: "image", props: { collection_index: 1 } },
+});
+// { ok: false, problems: [{ rule: "COL-02", level: "error", fix: "move-index", message }] }
+
+const { nodes, diagnostics } = solvePlacement(tree, { strict: true });
+// A fixed new tree plus info diagnostics. Unfixable errors become warn with strict: false.
+```

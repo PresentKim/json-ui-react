@@ -55,7 +55,7 @@ TSX 화면(`<Screen>`) → `buildScreens` → 자체 JSX 런타임 → ControlNo
 - `toEntry`, `toBody`가 ControlNode를 JSON UI의 `controls` 항목 모양으로 낮춘다.
 - `Pack`이 네임스페이스(`jur`, `ffr` 등)별로 정의를 모아 `ui/*.json` 파일 묶음을 만든다.
 - `Slots`가 서버 버튼 번호를 할당하고, 그 배치를 담은 서버 모듈(JS, ESM)을 만든다.
-- `lintFiles`가 생성된 JSON을 규칙 ID가 붙은 진단으로 검사한다.
+- `lintFiles`가 생성된 JSON을 규칙 ID가 붙은 진단으로 검사한다. 고수준과 엔티티 빌드는 `runChecks(files, ALL_CHECKS)`로 `forbid`/`rewrite` 규칙 검사를 돌린다.
 
 `src/index.ts`(공개 진입점)는 고수준 API를 기본 이름으로, 저수준 API를 같은 이름이나 `Low` 접두 이름으로 내보낸다. 이름이 겹치는 `SlotGrid`, `VirtualList`, `Tabs`(훅 타입)의 저수준판은 `LowSlotGrid`, `LowVirtualList`, `LowTabs`이고, 원래 이름은 `json-ui-react/components/grid`, `json-ui-react/hooks` 같은 하위 경로에서 가져온다.
 
@@ -116,7 +116,7 @@ TSX 화면(`<Screen>`) → `buildScreens` → 자체 JSX 런타임 → ControlNo
 
 ## 검사 규칙
 
-`lintFiles(files)`가 돌려주는 진단은 `{ rule, level, path, message }` 꼴이다. 진단 메시지는 한국어다.
+`lintFiles(files)`가 돌려주는 진단은 `{ rule, level, path, message }` 꼴이고 위키 링크 `url`이 더해질 수 있다. 아래 표는 기존 여섯 규칙이고, `runChecks`와 `ALL_CHECKS`(`src/check/`)가 나머지 `forbid` 규칙까지 검사한다. `rewrite` 검사는 `{ rewrite: true }`일 때만 깊은 복사본을 고쳐 쓴다. 진단 메시지는 한국어다.
 
 | 규칙 | 수준 | 뜻 |
 | --- | --- | --- |
@@ -129,7 +129,7 @@ TSX 화면(`<Screen>`) → `buildScreens` → 자체 JSX 런타임 → ControlNo
 
 ## 규칙 API와 타입이 붙은 저수준 컨트롤
 
-bedrock-research의 JSON UI 규칙 446개를 코드로 조회한다. `getRule(id)`, `listRules({ category, stage, status })`, `ruleUrl(id, lang)`, `diag(id, level, path)`, `RULE_IDS`, `STAGES`를 `json-ui-react`에서 가져온다. 규칙마다 강제 단계(`type`, `rewrite`, `forbid`, `doc`)와 상태(`enforced`, `planned`)가 있다.
+bedrock-research의 JSON UI 규칙 446개를 코드로 조회한다. `getRule(id)`, `listRules({ category, stage, status })`, `ruleUrl(id, lang)`, `diag(id, level, path)`, `RULE_IDS`, `STAGES`를 `json-ui-react`에서 가져온다. 강제된 규칙은 type 14/37, rewrite 8/8, forbid 66/72, doc 0/329(전체 88/446)다. 배치는 `explainPlacement`(부모 아래 자식이 걸리는 규칙)와 `solvePlacement`(컨트롤 트리를 고쳐 쓰는 일반 해결기)가 맡고 `CAPABILITIES`가 타입별 속성 표다. 규칙마다 강제 단계(`type`, `rewrite`, `forbid`, `doc`)와 상태(`enforced`, `planned`)가 있다.
 
 바닐라 컨트롤 타입마다 속성 타입이 있어 `<stack_panel>`, `<StackPanel>` 같은 JSX가 COL-01, COL-02, INP-10을 컴파일 때 거절한다. 고수준과 이름이 겹치는 부품은 `LowScreen`, `LowLabel`처럼 `Low` 접두로 낸다. 빌더는 `bind.*`와 `checkBindings`, `E`와 `checkExpr`, `animation`과 `chain`이다. 자세한 설명은 문서의 규칙 API와 타입이 붙은 저수준 컨트롤 쪽을 본다.
 

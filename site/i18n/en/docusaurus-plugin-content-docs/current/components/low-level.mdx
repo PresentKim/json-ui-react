@@ -67,4 +67,4 @@ chain("fx", {
 }, ["a", "b"], { loop: true }); // a.next = "@fx.b", b.next = "@fx.a"
 ```
 
-A `duration` of 0 or less, or a `flip_book` without `frame_count`, throws an error carrying the rule ID. For rule lookup see the [Rules API](../reference/rules-api.mdx).
+A `duration` of 0 or less, or a `flip_book` without `frame_count`, throws an error carrying the rule ID. For rule lookup, build checks (`runChecks`) and placement (`explainPlacement`, `solvePlacement`) see the [Rules API](../reference/rules-api.mdx).

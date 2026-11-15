@@ -3,7 +3,9 @@
 // 서버 모듈(SCREENS)을 만든다. 바닐라 속성은 건드리지 않고 `modifications`만 쓴다.
 import { createPack } from "../pack.ts";
 import { render, toEntry } from "../render.ts";
-import { lintFiles, type Diagnostic } from "../lint.ts";
+import type { Diagnostic } from "../lint.ts";
+import { runChecks } from "../check/engine.ts";
+import { ALL_CHECKS } from "../check/index.ts";
 import type { JsonObject, JsonValue, JuiElement, JuiNode } from "../types.ts";
 import { createEntitySlots, withEntity, type EntityCtx } from "./context.ts";
 import { placeEntityTree } from "./solver.ts";
@@ -170,7 +172,7 @@ export function buildEntityScreens(screens: JuiNode[], opts: BuildEntityScreensO
 
   const files = pack.files();
   const parsed = Object.fromEntries(Object.entries(files).map(([f, t]) => [f, JSON.parse(t) as JsonObject]));
-  const lint = lintFiles(parsed);
+  const lint = runChecks(parsed, ALL_CHECKS).diagnostics;
   diagnostics.push(...lint);
   const errors = lint.filter((d) => d.level === "error");
   if (errors.length && strict) throw new Error(`buildEntityScreens: lint 오류\n${errors.map((d) => `${d.rule} ${d.path}: ${d.message}`).join("\n")}`);

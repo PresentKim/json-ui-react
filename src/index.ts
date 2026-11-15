@@ -45,3 +45,8 @@ export {
 } from "./controls/components.tsx";
 // 애니메이션 빌더
 export * from "./anim.ts";
+// 규칙 검사 엔진과 범주별 검사(2단계), 범용 배치 표·설명·해결기.
+export { runChecks, buildIndex } from "./check/engine.ts";
+export { ALL_CHECKS, allChecks } from "./check/index.ts";
+export type { RuleCheck, NodeCtx, DefIndex, Report } from "./check/types.ts";
+export * from "./placement/index.ts";

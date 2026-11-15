@@ -5,7 +5,9 @@ import { render, toBody, toEntry } from "../render.ts";
 import { ScreenRouter } from "../components/router.tsx";
 import { global, view } from "../bind.ts";
 import { lit, prefixEq } from "../expr.ts";
-import { lintFiles, type Diagnostic } from "../lint.ts";
+import type { Diagnostic } from "../lint.ts";
+import { runChecks } from "../check/engine.ts";
+import { allChecks } from "../check/index.ts";
 import type { JsonObject, JuiNode } from "../types.ts";
 import { footerBar, paneSize, plannedSlots, recordingSlots, ref, withScreen, type ScreenCtx, type ScreenLayout } from "./context.ts";
 import { isScreen, type ScreenProps } from "./components.tsx";
@@ -179,7 +181,7 @@ export function buildScreens(screens: JuiNode[], opts: BuildScreensOptions = {})
 
   const files = pack.files();
   const parsed = Object.fromEntries(Object.entries(files).map(([f, t]) => [f, JSON.parse(t) as JsonObject]));
-  const diagnostics = lintFiles(parsed, { routedRoots: [`${N}.root`] });
+  const diagnostics = runChecks(parsed, allChecks([`${N}.root`])).diagnostics;
   const errors = diagnostics.filter((d) => d.level === "error");
   if (errors.length) throw new Error(`buildScreens: lint 오류\n${errors.map((d) => `${d.rule} ${d.path}: ${d.message}`).join("\n")}`);
 

@@ -38,13 +38,19 @@ describe("solver", () => {
   it("non-label under panel gets COL-50", () => {
     const r = placeEntityTree([panel([readsSlot(n("i", { type: "image" }), 2)])]);
     expect(r.diagnostics[0]!.rule).toBe("COL-50");
-    expect(r.nodes[0]!.children[0]!.props.collection_name).toBe("container_items");
+    const w = r.nodes[0]!.children[0]!;
+    expect(w.props.collection_name).toBe("container_items");
+    // stack > 인덱스 패널 > image (image에는 collection_index 없음)
+    expect(w.children[0]!.props.collection_index).toBe(2);
+    expect(w.children[0]!.children[0]!.props.collection_index).toBeUndefined();
   });
   it("stack of readers gets collection_name in place", () => {
     const r = placeEntityTree([n("row", { type: "stack_panel", orientation: "horizontal" }, [readsSlot(n("a", { type: "image" }), 1), readsSlot(n("b", { type: "image" }), 2)])]);
     expect(r.diagnostics).toEqual([]);
     expect(r.nodes[0]!.props.collection_name).toBe("container_items");
+    // image는 collection_index를 직접 갖지 못하므로(COL-02) 인덱스 패널 > image로 감싼다
     expect(r.nodes[0]!.children.map((c) => c.props.collection_index)).toEqual([1, 2]);
+    expect(r.nodes[0]!.children.every((c) => c.props.type === "panel" && c.children[0]!.props.collection_index === undefined)).toBe(true);
   });
   it("solver_nested_inherit", () => {
     const inner = readsSlot(n("x", { type: "label" }), 5);

@@ -4,6 +4,8 @@ import type { Diagnostic } from "../lint.ts";
 import type { ControlNode, JsonObject, JsonValue } from "../types.ts";
 
 const SLOT = "$$slot";
+// ENT-*는 레지스트리 id가 아니므로 diag 대신 엔티티 호스트 문서 주소를 직접 붙인다
+const ENTITY_URL = "https://presentkim.github.io/json-ui-react/components/entity-host";
 const COLLECTION = "container_items";
 const SLOT_PROPS = ["#hover_text", "#item_durability_current_amount", "#item_durability_max_amount", "#inventory_stack_count"];
 
@@ -13,6 +15,9 @@ const isObj = (v: unknown): v is JsonObject => typeof v === "object" && v !== nu
 export function readsSlot(node: ControlNode, slot: number | string): ControlNode {
   return { ...node, props: { ...node.props, [SLOT]: slot } };
 }
+
+/** collection_index를 직접 받을 수 없는 컨트롤(label, image; COL-02) */
+const noIndex = (p: JsonObject): boolean => p.type === "label" || p.type === "image";
 
 const isReader = (n: ControlNode): boolean => n.props[SLOT] !== undefined;
 
@@ -30,7 +35,7 @@ interface Inh {
 }
 
 function push(st: State, rule: string, level: Diagnostic["level"], path: string, message: string): void {
-  st.diags.push({ rule, level: level === "error" && !st.strict ? "warn" : level, path, message });
+  st.diags.push({ rule, level: level === "error" && !st.strict ? "warn" : level, path, message, url: ENTITY_URL });
 }
 
 function hasRenderer(n: ControlNode): boolean {
@@ -102,7 +107,8 @@ const MOVED = ["size", "offset", "anchor_from", "anchor_to", "layer"];
  * 인덱스 패널의 부모는 늘 스택이라 COL-50도 나지 않는다.
  */
 function wrapperFor(n: ControlNode, props: JsonObject, parentOk: boolean): Wrapped {
-  const isLabel = props.type === "label";
+  // label과 image는 collection_index를 가질 수 없다(COL-02): 인덱스 패널 > 자식 모양으로 감싼다
+  const isLabel = noIndex(props);
   const inner: JsonObject = {};
   for (const [k, v] of Object.entries(props)) if (k !== "offset" && k !== "anchor_from" && k !== "anchor_to") inner[k] = v;
   delete inner[SLOT];
@@ -155,13 +161,14 @@ function place(n: ControlNode, inh: Inh, st: State): ControlNode {
   if (slot !== undefined) {
     if (inh.index !== undefined && inh.index === slot) {
       delete props[SLOT];
-    } else if (inh.parentOk && props.type !== "label") {
+    } else if (inh.parentOk && !noIndex(props)) {
       props.collection_index = slot;
       delete props[SLOT];
       index = slot;
     } else {
       const isLabel = props.type === "label";
-      push(
+      const quiet = props.type === "image" && inh.parentOk; // 스택 안의 image는 인덱스 패널만 덧댄다
+      if (!quiet) push(
         st,
         isLabel ? "ENT-LABEL" : "COL-50",
         "info",

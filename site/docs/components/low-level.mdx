@@ -67,4 +67,4 @@ chain("fx", {
 }, ["a", "b"], { loop: true }); // a.next = "@fx.b", b.next = "@fx.a"
 ```
 
-`duration`이 0 이하이거나 `flip_book`에 `frame_count`가 없으면 규칙 ID가 붙은 오류를 던진다. 규칙 조회는 [규칙 API](../reference/rules-api.mdx)를 본다.
+`duration`이 0 이하이거나 `flip_book`에 `frame_count`가 없으면 규칙 ID가 붙은 오류를 던진다. 규칙 조회와 빌드 검사(`runChecks`), 배치 질의(`explainPlacement`, `solvePlacement`)는 [규칙 API](../reference/rules-api.mdx)를 본다.
