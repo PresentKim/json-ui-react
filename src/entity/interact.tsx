@@ -2,7 +2,11 @@
 // 칸을 읽는 노드는 readsSlot으로 표시만 하고, collection_name 감싸기는 placeEntityTree가 맡는다.
 import type { JsonObject, JsonValue, JuiElement, JuiNode } from "../types.ts";
 import type { Size } from "../controls/common.ts";
+import type { ElementProps } from "../controls/elements.ts";
 import { render, toBody } from "../render.ts";
+import { bind } from "../bind.ts";
+import { E, Expr, lit } from "../expr.ts";
+import { Panel, StackPanel, Image, Toggle, Use } from "../controls/components.tsx";
 import { radioToggleBody } from "../components/toggle.tsx";
 import { fromNode } from "../high/components.tsx";
 import { useEntity, type EntityCtx } from "./context.ts";
@@ -10,10 +14,13 @@ import { readsSlot } from "./solver.ts";
 
 const COLLECTION = "container_items";
 const CLEAN = "(#hover_text - '§o' - '§f' - '§r')";
-const hoverText = { binding_type: "collection", binding_collection_name: COLLECTION, binding_name: "#hover_text", binding_condition: "always" } as const;
+const hoverText = bind.collection("#hover_text", COLLECTION, { condition: "always" });
+/** 바인딩 빌더 결과를 JSON 정의 본문에 넣는다. */
+// 바인딩 인터페이스는 인덱스 시그니처가 없어 JsonObject로 좁혀 준다(값은 그대로)
+const json = <T extends object>(b: T): JsonObject => b as unknown as JsonObject;
 const FULL: Size = ["100%", "100%"];
 
-const view = (source: string, target: string): JsonObject => ({ binding_type: "view", source_property_name: source, target_property_name: target });
+const view = (source: string, target: `#${string}`) => bind.view(source, target);
 
 /** 요소를 그리고 칸 읽기로 표시한 뒤 다시 요소로 돌려준다. */
 function reader(el: JuiElement, slot: number): JuiElement {
@@ -44,14 +51,14 @@ const iconDef = (ctx: EntityCtx): string =>
     type: "custom", renderer: "inventory_item_renderer", size: "$icon_size", layer: 2,
     "$icon_size|default": [16, 16],
     property_bag: { "#item_id_aux": 0 },
-    bindings: [{ binding_type: "collection", binding_collection_name: COLLECTION, binding_name: "#item_id_aux", binding_condition: "always" }],
+    bindings: [json(bind.collection("#item_id_aux", COLLECTION, { condition: "always" }))],
   });
 
 const textDef = (ctx: EntityCtx): string =>
   once(ctx, "ent_text", {
     type: "label", size: "$text_size", layer: 3, localize: false, color: "$text_color", font_scale_factor: 0.8, text: "#text",
     "$text_size|default": ["100%", "default"], "$text_color|default": [0.95, 0.95, 0.95],
-    bindings: [hoverText, view(CLEAN, "#text")],
+    bindings: [json(hoverText), json(view(CLEAN, "#text"))],
   });
 
 const buttonDef = (ctx: EntityCtx): string =>
@@ -100,15 +107,15 @@ export function QuickButton(p: QuickButtonProps): JuiElement {
   const face = p.face ?? "dark";
   const tex = face === "none" ? undefined : typeof face === "string" ? FACES[face] : face;
   const state = (key: "default" | "hover" | "pressed") => (
-    <panel name={key} size={FULL}>
-      {tex ? <image name="bg" texture={tex[key]} size={FULL} /> : null}
+    <Panel name={key} size={FULL}>
+      {tex ? <Image name="bg" texture={tex[key]} size={FULL} /> : null}
       {p.children}
-    </panel>
+    </Panel>
   );
-  const bindings: JsonObject[] = [{ binding_type: "collection_details", binding_collection_name: COLLECTION }];
-  if (p.hideWhenEmpty) bindings.push(hoverText, view(`(not (${CLEAN} = ''))`, "#visible"));
+  const bindings: JsonObject[] = [json(bind.details(COLLECTION))];
+  if (p.hideWhenEmpty) bindings.push(json(hoverText), json(view(new Expr(CLEAN).neq(E.str("")).src, "#visible")));
   const el = (
-    <use
+    <Use
       name={index === 0 ? p.name : `${p.name}${index}`}
       def={buttonDef(ctx)}
       size={p.size}
@@ -121,7 +128,7 @@ export function QuickButton(p: QuickButtonProps): JuiElement {
       {state("default")}
       {tex ? state("hover") : null}
       {tex ? state("pressed") : null}
-    </use>
+    </Use>
   );
   return reader(el, slot);
 }
@@ -141,7 +148,7 @@ export interface SelectCellsProps {
 
 const CELL = 18;
 
-const cellBg = () => <image name="bg" texture="textures/ui/cell_image" size={FULL} />;
+const cellBg = () => <Image name="bg" texture="textures/ui/cell_image" size={FULL} />;
 
 /** 클라이언트만 도는 라디오 칸 줄. 고른 칸은 테두리가 생기고 상세가 항상 같은 자리에 뜬다. */
 export function SelectCells(p: SelectCellsProps): JuiElement {
@@ -152,36 +159,37 @@ export function SelectCells(p: SelectCellsProps): JuiElement {
   const [dx, dy] = p.detailAt ?? [p.count * CELL + 4, 0];
   const cells = Array.from({ length: p.count }, (_, i) => {
     const off = (
-      <panel name="off" size={FULL}>
+      <Panel name="off" size={FULL}>
         {cellBg()}
-        <use name="icon" def={icon} />
-      </panel>
+        <Use name="icon" def={icon} />
+      </Panel>
     );
     const offHover = (
-      <panel name="off_hover" size={FULL}>
+      <Panel name="off_hover" size={FULL}>
         {cellBg()}
-        <use name="icon" def={icon} />
-      </panel>
+        <Use name="icon" def={icon} />
+      </Panel>
     );
     const on = (
-      <panel name="on" size={FULL}>
+      <Panel name="on" size={FULL}>
         {cellBg()}
-        <use name="icon" def={icon} />
-        <image name="sel" layer={4} texture="textures/ui/focus_border_white" size={FULL} color={[1, 0.85, 0.1]} />
+        <Use name="icon" def={icon} />
+        <Image name="sel" layer={4} texture="textures/ui/focus_border_white" size={FULL} color={[1, 0.85, 0.1]} />
         {p.detail ? (
-          <panel name="detail" layer={20} anchor_from="top_left" anchor_to="top_left" offset={[dx - i * CELL, dy]}>
+          <Panel name="detail" layer={20} anchor_from="top_left" anchor_to="top_left" offset={[dx - i * CELL, dy]}>
             {p.detail(i)}
-          </panel>
+          </Panel>
         ) : null}
-      </panel>
+      </Panel>
     );
     const body = radioToggleBody({ group, size: [CELL, CELL], forcedIndex: i, defaultSelected: -1, extra: { layer: 1 } });
-    return reader({ type: "toggle", props: { name: `${p.name}${i}`, ...body, children: [on, off, offHover] } }, slots[i]!);
+    // 토글 본문은 radioToggleBody가 만든 속성 묶음이라 타입을 좁힐 수 없다
+    return reader(<Toggle {...({ name: `${p.name}${i}`, ...body, children: [on, off, offHover] } as ElementProps<"toggle">)} />, slots[i]!);
   });
   return (
-    <stack_panel name={p.name} orientation="horizontal" size={[p.count * CELL, CELL]} anchor_from="top_left" anchor_to="top_left">
+    <StackPanel name={p.name} orientation="horizontal" size={[p.count * CELL, CELL]} anchor_from="top_left" anchor_to="top_left">
       {cells}
-    </stack_panel>
+    </StackPanel>
   );
 }
 
@@ -208,40 +216,40 @@ export function PickGrid(p: PickGridProps): JuiElement {
   slotsOf(ctx, p.picks, n);
   const icon = iconDef(ctx);
   const rows = Array.from({ length: p.rows }, (_, r) => (
-    <stack_panel name={`${p.name}_r${r}`} orientation="horizontal" size={[p.cols * CELL, CELL]}>
+    <StackPanel name={`${p.name}_r${r}`} orientation="horizontal" size={[p.cols * CELL, CELL]}>
       {Array.from({ length: p.cols }, (_, c) => {
         const k = r * p.cols + c;
         const look = (
-          <panel
+          <Panel
             name="look"
             size={[CELL, CELL]}
-            bindings={[hoverText, view("(not (#hover_text = ''))", "#visible")]}
+            bindings={[hoverText, view(E.prop("#hover_text").neq(E.str("")).src, "#visible")]}
           >
             {cellBg()}
-            <use name="icon" def={icon} />
-            <panel
+            <Use name="icon" def={icon} />
+            <Panel
               name="chosen"
               size={FULL}
               layer={1}
-              bindings={[hoverText, view(`(not ((#hover_text - '${p.chosen}') = #hover_text))`, "#visible")]}
+              bindings={[hoverText, view(E.prop("#hover_text").strip(p.chosen).eq(E.prop("#hover_text")).not().src, "#visible")]}
             >
-              <image name="sel" layer={4} texture="textures/ui/focus_border_white" size={FULL} color={[1, 0.85, 0.1]} />
-            </panel>
-          </panel>
+              <Image name="sel" layer={4} texture="textures/ui/focus_border_white" size={FULL} color={[1, 0.85, 0.1]} />
+            </Panel>
+          </Panel>
         );
         return (
-          <panel name={`${p.name}_c${k}`} size={[CELL, CELL]}>
+          <Panel name={`${p.name}_c${k}`} size={[CELL, CELL]}>
             {reader(look, cells[k]!)}
             <QuickButton name={p.name} slot={p.picks} index={k} size={[CELL, CELL]} face="none" layer={6} />
-          </panel>
+          </Panel>
         );
       })}
-    </stack_panel>
+    </StackPanel>
   ));
   return (
-    <stack_panel name={p.name} orientation="vertical" size={[p.cols * CELL, p.rows * CELL]} anchor_from="top_left" anchor_to="top_left">
+    <StackPanel name={p.name} orientation="vertical" size={[p.cols * CELL, p.rows * CELL]} anchor_from="top_left" anchor_to="top_left">
       {rows}
-    </stack_panel>
+    </StackPanel>
   );
 }
 
@@ -267,44 +275,46 @@ export function EntityTabs(p: EntityTabsProps): JuiElement {
   const text = textDef(ctx);
   const group = `${ctx.ns.name}_${p.name}`;
   const face = (key: string, tex: string, color: [number, number, number]) => (
-    <panel name={key} size={FULL}>
-      <image name="bg" texture={tex} size={["100%", "100% + 6px"]} anchor_from="top_left" anchor_to="top_left" />
-      <use name="icon" def={icon} {...{ $icon_size: [12, 12] }} offset={[4, 0]} anchor_from="left_middle" anchor_to="left_middle" />
-      <use name="text" def={text} {...{ $text_color: color }} size={["100% - 20px", "default"]} offset={[19, 0]} anchor_from="left_middle" anchor_to="left_middle" />
-    </panel>
+    <Panel name={key} size={FULL}>
+      <Image name="bg" texture={tex} size={["100%", "100% + 6px"]} anchor_from="top_left" anchor_to="top_left" />
+      <Use name="icon" def={icon} {...{ $icon_size: [12, 12] }} offset={[4, 0]} anchor_from="left_middle" anchor_to="left_middle" />
+      <Use name="text" def={text} {...{ $text_color: color }} size={["100% - 20px", "default"]} offset={[19, 0]} anchor_from="left_middle" anchor_to="left_middle" />
+    </Panel>
   );
   const heads = p.tabs.map((_, i) => {
     const body = radioToggleBody({ group, size: [TAB_W, TAB_H], forcedIndex: i, defaultSelected: 0, extra: { layer: 1, toggle_default_state: i === 0 } });
     const on = face("on", "textures/ui/TabTopFront", [0.2, 0.2, 0.2]);
     const off = face("off", "textures/ui/TabTopBack", [0.95, 0.95, 0.95]);
     const hover = face("off_hover", "textures/ui/TabTopBackHover", [0.95, 0.95, 0.95]);
-    return reader({ type: "toggle", props: { name: `${p.name}_t${i}`, ...body, children: [on, off, hover] } }, slots[i]!);
+    // 토글 본문은 radioToggleBody가 만든 속성 묶음이라 타입을 좁힐 수 없다
+    return reader(<Toggle {...({ name: `${p.name}_t${i}`, ...body, children: [on, off, hover] } as ElementProps<"toggle">)} />, slots[i]!);
   });
   const last = `${p.name}_t${n - 1}`;
   const paneBindings = (i: number): JsonObject[] => {
-    const ctl = (name: string, prop: string): JsonObject => ({ binding_type: "view", source_control_name: name, source_property_name: "#toggle_state", target_property_name: prop, binding_condition: "always" });
+    const ctl = (name: string, prop: `#${string}`): JsonObject => json(bind.view("#toggle_state", prop, { control: name, condition: "always" }));
     if (n === 2) {
-      return [{ binding_type: "view", binding_condition: "always", source_control_name: last, source_property_name: i === 0 ? "(not #toggle_state)" : "#toggle_state", target_property_name: "#visible" }];
+      return [json(bind.view(i === 0 ? E.not(E.prop("#toggle_state")).src : "#toggle_state", "#visible", { control: last, condition: "always" }))];
     }
-    if (i > 0) return [{ ...ctl(`${p.name}_t${i}`, "#visible") }];
+    if (i > 0) return [ctl(`${p.name}_t${i}`, "#visible")];
     // 첫 탭: 나머지 탭이 모두 꺼졌을 때 보인다.
-    const others = Array.from({ length: n - 1 }, (_, j) => `#s${j + 1}`);
-    return [...others.map((o, j) => ctl(`${p.name}_t${j + 1}`, o)), view(`(not (${others.join(" or ")}))`, "#visible")];
+    // 템플릿 문자열을 `#...` 리터럴 타입으로 좁힌다(타입 전용)
+    const others = Array.from({ length: n - 1 }, (_, j) => `#s${j + 1}` as const);
+    return [...others.map((o, j) => ctl(`${p.name}_t${j + 1}`, o)), json(view(E.not(others.map((o) => E.prop(o)).reduce((a, b) => a.or(b))).src, "#visible"))];
   };
   const panes = p.tabs.map((t, i) => (
-    <panel name={`${p.name}_p${i}`} size={FULL} bindings={paneBindings(i)}>
+    <Panel name={`${p.name}_p${i}`} size={FULL} bindings={paneBindings(i)}>
       {t.children}
-    </panel>
+    </Panel>
   ));
   return (
-    <panel name={p.name} size={FULL} anchor_from="top_left" anchor_to="top_left">
-      <stack_panel name={`${p.name}_bar`} orientation="horizontal" size={[TAB_W * n, TAB_H]} anchor_from="top_left" anchor_to="top_left">
+    <Panel name={p.name} size={FULL} anchor_from="top_left" anchor_to="top_left">
+      <StackPanel name={`${p.name}_bar`} orientation="horizontal" size={[TAB_W * n, TAB_H]} anchor_from="top_left" anchor_to="top_left">
         {heads}
-      </stack_panel>
-      <panel name={`${p.name}_panes`} size={["100%", `100% - ${TAB_H}px`]} offset={[0, TAB_H]} anchor_from="top_left" anchor_to="top_left">
+      </StackPanel>
+      <Panel name={`${p.name}_panes`} size={["100%", `100% - ${TAB_H}px`]} offset={[0, TAB_H]} anchor_from="top_left" anchor_to="top_left">
         {panes}
-      </panel>
-    </panel>
+      </Panel>
+    </Panel>
   );
 }
 
@@ -316,22 +326,22 @@ export interface EntityPagerProps {
   slot: string;
 }
 
-const arrow = (tex: string) => <image name="arrow" texture={tex} size={[10, 10]} layer={3} anchor_from="center" anchor_to="center" />;
+const arrow = (tex: string) => <Image name="arrow" texture={tex} size={[10, 10]} layer={3} anchor_from="center" anchor_to="center" />;
 
 /** 이전/다음 쪽 넘김 줄(144x18): 버튼 칸 + 가운데 빈 틈 + 버튼 칸. */
 export function EntityPager(p: EntityPagerProps): JuiElement {
   const ctx = useEntity("EntityPager");
   slotsOf(ctx, p.slot, 2);
   return (
-    <stack_panel name={p.name} orientation="horizontal" size={[144, CELL]} anchor_from="top_left" anchor_to="top_left">
+    <StackPanel name={p.name} orientation="horizontal" size={[144, CELL]} anchor_from="top_left" anchor_to="top_left">
       <QuickButton name={p.name} slot={p.slot} index={0} size={[CELL, CELL]}>
         {arrow("textures/ui/arrowLeft")}
       </QuickButton>
-      <panel name="gap" size={["fill", CELL]} />
+      <Panel name="gap" size={["fill", CELL]} />
       <QuickButton name={p.name} slot={p.slot} index={1} size={[CELL, CELL]}>
         {arrow("textures/ui/arrowRight")}
       </QuickButton>
-    </stack_panel>
+    </StackPanel>
   );
 }
 
@@ -362,12 +372,12 @@ export function KeyedCell(p: KeyedCellProps): JuiElement {
   }
   const factoryName = `${ctx.ns.name}_${p.name}`;
   const el = (
-    <stack_panel
+    <StackPanel
       name={p.name}
       size={p.size}
       factory={{ name: factoryName, control_ids: ids }}
       property_bag={bag}
-      bindings={[hoverText, { binding_type: "view", binding_condition: "always", source_property_name: `('#k' + ${CLEAN})`, target_property_name: "#collection_length" }]}
+      bindings={[hoverText, bind.view(`(${lit("#k")} + ${CLEAN})`, "#collection_length", { condition: "always" })]}
     />
   );
   return reader(el, slot);

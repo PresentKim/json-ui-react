@@ -1,9 +1,10 @@
 // buildScreens: 고수준 화면들을 한 팩으로 묶는다(단일 라우터, server_form 훅, _ui_defs, 테마 정의, 서버 모듈).
 import { createPack, type Pack } from "../pack.ts";
+import { Panel, Use } from "../controls/components.tsx";
 import type { SlotLayout } from "../slots.ts";
 import { render, toBody, toEntry } from "../render.ts";
 import { ScreenRouter } from "../components/router.tsx";
-import { global, view } from "../bind.ts";
+import { bind } from "../bind.ts";
 import { lit, prefixEq } from "../expr.ts";
 import type { Diagnostic } from "../lint.ts";
 import { runChecks } from "../check/engine.ts";
@@ -15,6 +16,9 @@ import { defineTheme } from "./theme.ts";
 import { serverModuleSource, serverTypesSource, type ScreenInfo } from "./server.ts";
 
 /** 고수준 팩에 같이 넣는 저수준 화면(연구 화면처럼 정의를 직접 만든 것). */
+// 바인딩 인터페이스에는 인덱스 시그니처가 없어 JsonValue 로 좁히려면 형 변환이 필요하다
+const asJson = (b: unknown[]) => b as JsonObject[];
+
 export interface LowLevelScreen {
   id: string;
   /** 라우터가 만들 컨트롤 참조(`네임스페이스.이름`). */
@@ -161,22 +165,22 @@ export function buildScreens(screens: JuiNode[], opts: BuildScreensOptions = {})
   ns.define("screen_router", bodyOf(ScreenRouter({ name: "screen_router", factory: `${N}_screen`, prefixBytes, routes })));
   const gate = `(not ${prefixEq("#title_text", prefix)})`;
   ns.define("root", bodyOf(
-    <panel name="root" size={["100%", "100%"]}>
-      <panel name="vanilla" size={["100%", "100%"]} bindings={[global("#title_text"), view(gate, "#visible")]}>
-        <use name="content" def="server_form.main_screen_content" />
-      </panel>
-      <use name="screen_router" def={`${N}.screen_router`} />
-    </panel>,
+    <Panel name="root" size={["100%", "100%"]}>
+      <Panel name="vanilla" size={["100%", "100%"]} bindings={[bind.global("#title_text"), bind.view(gate, "#visible")]}>
+        <Use name="content" def="server_form.main_screen_content" />
+      </Panel>
+      <Use name="screen_router" def={`${N}.screen_router`} />
+    </Panel>,
   ));
 
   // server_form 훅: 라우터 루트를 화면 내용으로 꽂고, 접두가 붙은 제목이면 기본 폼 본문을 숨긴다.
   pack.modify("server_form.json", "server_form", "third_party_server_screen", { "$screen_content": `${N}.root` });
   pack.modify("server_form.json", "server_form", "long_form_scrolling_content/wrapping_panel", {
     visible: false,
-    bindings: [{ binding_name: "#title_text", binding_condition: "always" }, view(gate, "#visible", { condition: "always" })],
+    bindings: asJson([bind.global("#title_text", { condition: "always" }), bind.view(gate, "#visible", { condition: "always" })]),
   });
   pack.modify("server_form.json", "server_form", "long_form_dynamic_buttons_panel", {
-    bindings: [{ binding_name: "#form_button_contents", binding_name_override: "#collection_length", binding_condition: "visible" }],
+    bindings: asJson([bind.global("#form_button_contents", { override: "#collection_length", condition: "visible" })]),
   });
 
   const files = pack.files();

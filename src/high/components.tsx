@@ -6,7 +6,8 @@ import { render, toBody } from "../render.ts";
 import { SlotGrid as LowSlotGrid, VirtualList as LowVirtualList } from "../components/grid.tsx";
 import { TabBar } from "../components/toggle.tsx";
 import { useTabs, type TabMode } from "../hooks.ts";
-import { view } from "../bind.ts";
+import { bind } from "../bind.ts";
+import { Image, Label, Panel, StackPanel, Use } from "../controls/components.tsx";
 import { GEOM, PHASE, TOP_LEFT, footerBar, key, paneSize, ref, useScreen, type ScreenLayout } from "./context.ts";
 
 /** buildScreens가 Screen 요소를 알아보는 표식(모듈 사본이 둘이어도 같은 값). */
@@ -84,7 +85,7 @@ export function ButtonList(p: ButtonListProps): JuiElement {
       rowHeight={GEOM.buttonRow}
       rowWidth={w}
       props={TOP_LEFT}
-      cell={(pos) => <use name={`b${pos}`} def={ref(ctx, "btn")} collection_index={range.at(pos)} />}
+      cell={(pos) => <Use name={`b${pos}`} def={ref(ctx, "btn")} collection_index={range.at(pos)} />}
     />
   );
 }
@@ -159,10 +160,10 @@ export function Tabs(p: TabsProps): JuiElement {
       const paneKey = key(ctx, `pane_${i}`);
       ctx.ns.define(paneKey, toBody(pane));
       ctx.ns.define(key(ctx, `on_${i}`), (
-        <panel name={key(ctx, `on_${i}`)} size={["100%", "100%"]}>
-          <use name="face" def={ref(ctx, "tab_face_on")} />
-          <use name="pane" def={ref(ctx, paneKey)} anchor_from="top_left" anchor_to="top_left" offset={[dx - tw * i, dy]} />
-        </panel>
+        <Panel name={key(ctx, `on_${i}`)} size={["100%", "100%"]}>
+          <Use name="face" def={ref(ctx, "tab_face_on")} />
+          <Use name="pane" def={ref(ctx, paneKey)} anchor_from="top_left" anchor_to="top_left" offset={[dx - tw * i, dy]} />
+        </Panel>
       ));
     });
   } else if (p.mode === "follow") {
@@ -177,20 +178,20 @@ export function Tabs(p: TabsProps): JuiElement {
       const paneKey = key(ctx, `pane_${i}`);
       if (i === 0) {
         ctx.ns.define(paneKey, toBody(addBinding(pane, hook.paneBinding(0))));
-        uses.push(<use name="g0" def={ref(ctx, paneKey)} />);
+        uses.push(<Use name="g0" def={ref(ctx, paneKey)} />);
         return;
       }
       ctx.ns.define(paneKey, toBody(pane));
       const lazyKey = key(ctx, `lazy_${i}`);
       ctx.ns.define(lazyKey, (
-        <stack_panel
+        <StackPanel
           name={lazyKey}
           size={size}
           factory={{ name: `${N}_${ctx.code}${i}`, control_name: ref(ctx, paneKey) }}
-          bindings={[view("(#toggle_state * 1)", "#collection_length", { condition: "always", control: hook.tabName(i) })]}
+          bindings={[bind.view("(#toggle_state * 1)", "#collection_length", { condition: "always", control: hook.tabName(i) })]}
         />
       ));
-      uses.push(<use name={`g${i}`} def={ref(ctx, lazyKey)} />);
+      uses.push(<Use name={`g${i}`} def={ref(ctx, lazyKey)} />);
     });
     out = uses;
   }
@@ -237,28 +238,28 @@ export function SlotGrid(p: SlotGridProps): JuiElement {
     const [rw, rh] = GEOM.right;
     // 오른쪽 판: 고르기 전 안내 글자. 상세가 같은 자리를 배경으로 덮는다.
     ctx.ns.define(rightKey, (
-      <panel name={rightKey} size={[rw, rh]}>
+      <Panel name={rightKey} size={[rw, rh]}>
         {typeof p.detail === "string" && (
-          <label name="hint" layer={3} localize={false} text={p.detail} color={[0.4, 0.4, 0.4]} font_scale_factor={0.8} anchor_from="top_left" anchor_to="top_left" />
+          <Label name="hint" layer={3} localize={false} text={p.detail} color={[0.4, 0.4, 0.4]} font_scale_factor={0.8} anchor_from="top_left" anchor_to="top_left" />
         )}
-      </panel>
+      </Panel>
     ));
     ctx.rightDef = ref(ctx, rightKey);
     // 상세: 오른쪽 판 크기의 배경을 깔고 그 칸 버튼의 아이콘과 이름을 보인다. $cell은 칸 토글이 내려 주는 버튼 번호.
     const detailKey = key(ctx, "detail");
     ctx.ns.define(detailKey, (
-      <image name={detailKey} texture="textures/ui/jur/panel" size={[rw + 8, rh + 8]}>
-        <stack_panel name="card" orientation="horizontal" size={[rw, 28]} offset={[4, 4]} anchor_from="top_left" anchor_to="top_left">
-          <stack_panel name="icon_row" orientation="horizontal" size={[28, 28]} collection_name="form_buttons">
-            <use name="icon" def={ref(ctx, "detail_icon")} collection_index="$cell" />
-          </stack_panel>
-          <panel name="gap" size={[4, 28]} />
-          <stack_panel name="info" orientation="vertical" size={["fill", 28]} collection_name="form_buttons">
-            <panel name="pad" size={["100%", 9]} />
-            <use name="name" def={ref(ctx, "text_item")} collection_index="$cell" />
-          </stack_panel>
-        </stack_panel>
-      </image>
+      <Image name={detailKey} texture="textures/ui/jur/panel" size={[rw + 8, rh + 8]}>
+        <StackPanel name="card" orientation="horizontal" size={[rw, 28]} offset={[4, 4]} anchor_from="top_left" anchor_to="top_left">
+          <StackPanel name="icon_row" orientation="horizontal" size={[28, 28]} collection_name="form_buttons">
+            <Use name="icon" def={ref(ctx, "detail_icon")} collection_index="$cell" />
+          </StackPanel>
+          <Panel name="gap" size={[4, 28]} />
+          <StackPanel name="info" orientation="vertical" size={["fill", 28]} collection_name="form_buttons">
+            <Panel name="pad" size={["100%", 9]} />
+            <Use name="name" def={ref(ctx, "text_item")} collection_index="$cell" />
+          </StackPanel>
+        </StackPanel>
+      </Image>
     ));
     detailDef = ref(ctx, detailKey);
   }
@@ -275,7 +276,7 @@ export function SlotGrid(p: SlotGridProps): JuiElement {
       rowWidth={p.cols * C}
       props={TOP_LEFT}
       cell={(pos, row, col) => (
-        <use
+        <Use
           name={`i${pos}`}
           def={ref(ctx, "item_toggle")}
           collection_index={cells.at(pos)}

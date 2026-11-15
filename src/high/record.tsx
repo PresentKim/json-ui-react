@@ -7,6 +7,7 @@
 // 부품은 useRecord().field(...)로 필드를 밝히고 그 칸 상세 블록 안의 버튼 번호를 받는다.
 import type { ControlNode, JuiElement, JuiNode } from "../types.ts";
 import { createPack } from "../pack.ts";
+import { Image, Panel, StackPanel, Use } from "../controls/components.tsx";
 import { render, toBody } from "../render.ts";
 import { SlotGrid as LowSlotGrid } from "../components/grid.tsx";
 import { GEOM, PHASE, TOP_LEFT, key, paneSize, ref, useRecord, useScreen, withRecord, type ScreenCtx } from "./context.ts";
@@ -82,7 +83,7 @@ export function SelectGrid(p: SelectGridProps): JuiElement {
       rowWidth={p.cols * C}
       props={TOP_LEFT}
       cell={(pos, row, col) => (
-        <use
+        <Use
           name={`i${pos}`}
           def={ref(ctx, "item_toggle")}
           collection_index={cells.at(pos)}
@@ -142,9 +143,9 @@ export function DetailPanel(p: DetailPanelProps): JuiElement {
   // footer는 아래 image 자식으로 한 번만 렌더한다(여기서 렌더하면 필드가 두 번 잡힌다).
   const hasFooter = p.footer !== undefined && p.footer !== null && p.footer !== false && !(Array.isArray(p.footer) && p.footer.length === 0);
   return (
-    <image name={`${rec.grid}_detail_${rec.index}`} texture={`${THEME_TEXTURES}/panel`} size={[DETAIL_W + 8, GEOM.right[1] + 8]}>
-      <panel name="body" size={["100% - 6px", "100% - 6px"]} offset={[3, 3]} {...TOP_LEFT}>
-        <use
+    <Image name={`${rec.grid}_detail_${rec.index}`} texture={`${THEME_TEXTURES}/panel`} size={[DETAIL_W + 8, GEOM.right[1] + 8]}>
+      <Panel name="body" size={["100% - 6px", "100% - 6px"]} offset={[3, 3]} {...TOP_LEFT}>
+        <Use
           name="scroll"
           def="common.scrolling_panel"
           anchor_to="top_left"
@@ -157,9 +158,9 @@ export function DetailPanel(p: DetailPanelProps): JuiElement {
           $scroll_bar_right_padding_size={[0, 0]}
           $scrolling_content={ref(ctx, bodyKey)}
         />
-      </panel>
+      </Panel>
       {p.footer}
-    </image>
+    </Image>
   );
 }
 
@@ -196,18 +197,18 @@ export function IconTitle(p: IconTitleProps): JuiElement {
   const lines = sub === undefined ? 1 : 2;
   const pad = (CARD_H - lines * LINE_H - (lines - 1) * LINE_GAP) / 2;
   return (
-    <stack_panel name="card" orientation="horizontal" size={["100%", CARD_H]}>
-      <stack_panel name="icon_row" orientation="horizontal" size={[CARD_H, CARD_H]} collection_name="form_buttons">
-        <use name="icon" def={ref(ctx, "detail_icon")} collection_index={head} />
-      </stack_panel>
-      <panel name="gap" size={[4, CARD_H]} />
-      <stack_panel name="info" orientation="vertical" size={["fill", CARD_H]} collection_name="form_buttons">
-        <panel name="pad" size={["100%", pad]} />
-        <use name="title" def={ref(ctx, "text_item")} collection_index={head} />
-        {sub !== undefined && <panel name="pad2" size={["100%", LINE_GAP]} />}
-        {sub !== undefined && <use name="subtitle" def={ref(ctx, "text_item")} collection_index={sub} />}
-      </stack_panel>
-    </stack_panel>
+    <StackPanel name="card" orientation="horizontal" size={["100%", CARD_H]}>
+      <StackPanel name="icon_row" orientation="horizontal" size={[CARD_H, CARD_H]} collection_name="form_buttons">
+        <Use name="icon" def={ref(ctx, "detail_icon")} collection_index={head} />
+      </StackPanel>
+      <Panel name="gap" size={[4, CARD_H]} />
+      <StackPanel name="info" orientation="vertical" size={["fill", CARD_H]} collection_name="form_buttons">
+        <Panel name="pad" size={["100%", pad]} />
+        <Use name="title" def={ref(ctx, "text_item")} collection_index={head} />
+        {sub !== undefined && <Panel name="pad2" size={["100%", LINE_GAP]} />}
+        {sub !== undefined && <Use name="subtitle" def={ref(ctx, "text_item")} collection_index={sub} />}
+      </StackPanel>
+    </StackPanel>
   );
 }
 
@@ -225,9 +226,9 @@ export function TextBlock(p: TextBlockProps): JuiElement {
   const ctx = useScreen("TextBlock");
   const at = useRecord("TextBlock").field({ field: p.name, kind: "text", key: p.name });
   return (
-    <stack_panel name={p.name} orientation="vertical" size={["100%", "100%c"]} collection_name="form_buttons">
-      <use name="text" def={ref(ctx, "text_block")} collection_index={at} />
-    </stack_panel>
+    <StackPanel name={p.name} orientation="vertical" size={["100%", "100%c"]} collection_name="form_buttons">
+      <Use name="text" def={ref(ctx, "text_block")} collection_index={at} />
+    </StackPanel>
   );
 }
 
@@ -257,10 +258,10 @@ export function IconRow(p: IconRowProps): JuiElement {
   const slots = Array.from({ length: p.count }, (_, j) => rec.field({ field: `${p.name}${j}`, kind: "icon", key: p.name, index: j, ...(p.badge === undefined ? {} : { badge: p.badge }) }));
   return (
     <>
-      <use name={`${p.name}_head`} def={ref(ctx, "header_label")} text={p.label} />
-      <stack_panel name={p.name} orientation="horizontal" size={["100%", C]} collection_name="form_buttons">
-        {slots.map((at, j) => <use name={`s${j}`} def={ref(ctx, "icon_slot")} collection_index={at} />)}
-      </stack_panel>
+      <Use name={`${p.name}_head`} def={ref(ctx, "header_label")} text={p.label} />
+      <StackPanel name={p.name} orientation="horizontal" size={["100%", C]} collection_name="form_buttons">
+        {slots.map((at, j) => <Use name={`s${j}`} def={ref(ctx, "icon_slot")} collection_index={at} />)}
+      </StackPanel>
     </>
   );
 }
@@ -272,7 +273,7 @@ export interface SpacerProps {
 
 /** 본문 부품 사이 세로 간격. 낮춤: 폭 100% 빈 panel. */
 export function Spacer(p: SpacerProps): JuiElement {
-  return <panel name="gap" size={["100%", p.h]} />;
+  return <Panel name="gap" size={["100%", p.h]} />;
 }
 
 export interface ActionButtonProps {
@@ -289,7 +290,7 @@ export function ActionButton(p: ActionButtonProps): JuiElement {
   const ctx = useScreen("ActionButton");
   const at = useRecord("ActionButton").field({ field: p.name, kind: "text", key: p.name });
   return (
-    <stack_panel
+    <StackPanel
       name={p.name}
       orientation="horizontal"
       size={[DETAIL_W, ACTION_H]}
@@ -298,7 +299,7 @@ export function ActionButton(p: ActionButtonProps): JuiElement {
       anchor_to="bottom_middle"
       collection_name="form_buttons"
     >
-      <use name="button" def={ref(ctx, "action_button")} collection_index={at} />
-    </stack_panel>
+      <Use name="button" def={ref(ctx, "action_button")} collection_index={at} />
+    </StackPanel>
   );
 }

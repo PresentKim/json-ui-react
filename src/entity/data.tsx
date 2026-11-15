@@ -8,7 +8,9 @@
 import type { ElementProps } from "../controls/elements.ts";
 import type { ControlNode, JsonObject, JuiElement, JuiNode } from "../types.ts";
 import { render } from "../render.ts";
-import { lit, lacks } from "../expr.ts";
+import { lit, lacks, E, Expr } from "../expr.ts";
+import { bind } from "../bind.ts";
+import { Panel, Label as LabelCtl, Custom, Image } from "../controls/components.tsx";
 import { fromNode } from "../high/components.tsx";
 import { useEntity } from "./context.ts";
 import { readsSlot } from "./solver.ts";
@@ -34,17 +36,8 @@ function pick(who: string, name: string, index: number | undefined): number {
   return s;
 }
 
-const collect = (prop: string): JsonObject => ({
-  binding_type: "collection",
-  binding_collection_name: COLLECTION,
-  binding_name: prop,
-  binding_condition: "always",
-});
-const view = (source: string, target: string): JsonObject => ({
-  binding_type: "view",
-  source_property_name: source,
-  target_property_name: target,
-});
+const collect = (prop: string) => bind.collection(prop, COLLECTION, { condition: "always" });
+const view = (source: string, target: `#${string}`) => bind.view(source, target);
 
 /** JSX 요소 하나를 만들어 노드로 바꾸고 칸 읽기 표시를 달아 다시 요소로 돌려준다. */
 function reader(el: JuiElement, slot: number): JuiElement {
@@ -74,9 +67,9 @@ export function At(p: AtProps): JuiElement {
   const size = p.w !== undefined || p.h !== undefined ? [p.w ?? "100%", p.h ?? "100%"] : undefined;
   const anchor = p.anchor ?? "top_left";
   return (
-    <panel {...(defined({ name: p.name, size, offset: [p.x, p.y], anchor_from: anchor, anchor_to: anchor, layer: p.layer }) as ElementProps<"panel">)}>
+    <Panel {...(defined({ name: p.name, size, offset: [p.x, p.y], anchor_from: anchor, anchor_to: anchor, layer: p.layer }) as ElementProps<"panel">)}>
       {p.children}
-    </panel>
+    </Panel>
   );
 }
 
@@ -114,7 +107,7 @@ export interface LabelProps extends TextStyle {
 
 /** 고정 글자. */
 export function Label(p: LabelProps): JuiElement {
-  return <label {...{ name: p.name, text: p.text, localize: false, ...textProps(p) }} />;
+  return <LabelCtl {...({ name: p.name, text: p.text, localize: false, ...textProps(p) } as ElementProps<"label">)} />;
 }
 
 export interface SlotTextProps extends TextStyle {
@@ -132,7 +125,7 @@ export interface SlotTextProps extends TextStyle {
 export function SlotText(p: SlotTextProps): JuiElement {
   const slot = pick("SlotText", p.slot, p.index);
   return reader(
-    <label {...{ name: p.name, text: "#text", localize: false, ...textProps(p), bindings: [collect("#hover_text"), view(p.raw ? "#hover_text" : CLEAN, "#text")] }} />,
+    <LabelCtl {...({ name: p.name, text: "#text", localize: false, ...textProps(p), bindings: [collect("#hover_text"), view(p.raw ? "#hover_text" : CLEAN, "#text")] } as ElementProps<"label">)} />,
     slot,
   );
 }
@@ -160,7 +153,7 @@ export function SlotCount(p: SlotCountProps): JuiElement {
     ...defined({ size: p.size === undefined ? undefined : toSize(p.size), layer: p.layer }),
     bindings: [{ ...collect("#inventory_stack_count"), binding_name_override: "#text" }],
   };
-  return reader(<label {...(props as ElementProps<"label">)} />, slot);
+  return reader(<LabelCtl {...(props as ElementProps<"label">)} />, slot);
 }
 
 // ---------------------------------------------------------------- 그림
@@ -176,7 +169,7 @@ export interface SlotIconProps {
 export function SlotIcon(p: SlotIconProps): JuiElement {
   const slot = pick("SlotIcon", p.slot, p.index);
   return reader(
-    <custom
+    <Custom
       {...({
         name: p.name,
         renderer: "inventory_item_renderer",
@@ -203,7 +196,7 @@ export interface SlotTextureProps {
 export function SlotTexture(p: SlotTextureProps): JuiElement {
   const slot = pick("SlotTexture", p.slot, p.index);
   return reader(
-    <image {...({ name: p.name, size: toSize(p.size), bindings: [collect("#hover_text"), view(`(${lit(p.prefix)} + ${CLEAN})`, "#texture")] } as ElementProps<"image">)} />,
+    <Image {...({ name: p.name, size: toSize(p.size), bindings: [collect("#hover_text"), view(`(${lit(p.prefix)} + ${CLEAN})`, "#texture")] } as ElementProps<"image">)} />,
     slot,
   );
 }
@@ -235,12 +228,12 @@ function mult(per: number): string {
 export function SlotBar(p: SlotBarProps): JuiElement {
   const slot = pick("SlotBar", p.slot, p.index);
   const dur = p.source === "durability";
-  const m = mult(p.per ?? 10);
+  const k = E.num(Number(mult(p.per ?? 10))); // mult가 per를 검증하고 .으로 시작하는 리터럴을 돌려준다
   const bindings = dur
-    ? [collect("#item_durability_current_amount"), view(`(1 - (#item_durability_current_amount * ${m}))`, "#clip_ratio")]
-    : [collect("#hover_text"), view(`(1 - (${CLEAN} * ${m}))`, "#clip_ratio")];
+    ? [collect("#item_durability_current_amount"), view(E.num(1).sub(E.prop("#item_durability_current_amount").mul(k)).src, "#clip_ratio")]
+    : [collect("#hover_text"), view(E.num(1).sub(new Expr(CLEAN).mul(k)).src, "#clip_ratio")];
   return reader(
-    <image {...({ name: p.name, size: toSize(p.size), ...defined({ texture: p.texture, color: p.color }), clip_direction: "left", clip_pixelperfect: false, bindings } as ElementProps<"image">)} />,
+    <Image {...({ name: p.name, size: toSize(p.size), ...defined({ texture: p.texture, color: p.color }), clip_direction: "left", clip_pixelperfect: false, bindings } as ElementProps<"image">)} />,
     slot,
   );
 }
@@ -258,9 +251,10 @@ export interface ShowWhenProps {
 }
 
 function cond(when: When): string {
-  if (when === "filled") return "(not (#hover_text = ''))";
-  if (when === "empty") return "(#hover_text = '')";
-  if ("contains" in when) return `(not ((#hover_text - ${lit(when.contains)}) = #hover_text))`;
+  const hover = E.prop("#hover_text");
+  if (when === "filled") return hover.neq(E.str("")).src;
+  if (when === "empty") return hover.eq(E.str("")).src;
+  if ("contains" in when) return hover.strip(when.contains).eq(hover).not().src;
   return lacks("#hover_text", when.lacks);
 }
 
@@ -269,7 +263,7 @@ export function ShowWhen(p: ShowWhenProps): JuiElement {
   const slot = pick("ShowWhen", p.slot, p.index);
   const expr = cond(p.when);
   return reader(
-    <panel {...{ name: p.name, bindings: [collect("#hover_text"), view(expr, "#visible")] }}>{p.children}</panel>,
+    <Panel {...({ name: p.name, bindings: [collect("#hover_text"), view(expr, "#visible")] } as ElementProps<"panel">)}>{p.children}</Panel>,
     slot,
   );
 }

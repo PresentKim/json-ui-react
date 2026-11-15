@@ -2,6 +2,7 @@
 // 둘 다 놓인 자리에는 아무것도 그리지 않고 화면 문맥에 등록한다(Pager -> 판 아래 줄, Placeholder -> 오른쪽 판).
 import type { JuiElement } from "../types.ts";
 import { render } from "../render.ts";
+import { Label, Panel, StackPanel, Use } from "../controls/components.tsx";
 import { GEOM, PHASE, key, paneSize, ref, useScreen } from "./context.ts";
 import { CELL_TEXT } from "./server.ts";
 
@@ -23,11 +24,11 @@ export function Pager(p: PagerProps): JuiElement {
   ctx.defaults[p.name] = [CELL_TEXT, CELL_TEXT];
   const [pw] = paneSize(ctx);
   ctx.footer.push(...render(
-    <stack_panel name={p.name} orientation="horizontal" size={[pw, GEOM.cell]} collection_name="form_buttons">
-      <use name="prev" def={ref(ctx, "pager")} collection_index={range.at(0)} $arrow_tex="textures/ui/arrowLeft" />
-      <panel name="gap" size={["fill", GEOM.cell]} />
-      <use name="next" def={ref(ctx, "pager")} collection_index={range.at(1)} $arrow_tex="textures/ui/arrowRight" />
-    </stack_panel>,
+    <StackPanel name={p.name} orientation="horizontal" size={[pw, GEOM.cell]} collection_name="form_buttons">
+      <Use name="prev" def={ref(ctx, "pager")} collection_index={range.at(0)} $arrow_tex="textures/ui/arrowLeft" />
+      <Panel name="gap" size={["fill", GEOM.cell]} />
+      <Use name="next" def={ref(ctx, "pager")} collection_index={range.at(1)} $arrow_tex="textures/ui/arrowRight" />
+    </StackPanel>,
   ));
   return <></>;
 }
@@ -48,7 +49,7 @@ export function Placeholder(p: PlaceholderProps): JuiElement {
   if (ctx.rightDef) throw new Error(`화면 "${ctx.id}": 오른쪽 판은 하나만 쓸 수 있습니다(SlotGrid detail, Placeholder)`);
   const k = key(ctx, "right");
   ctx.ns.define(k, (
-    <label name={k} layer={3} localize={false} color={[0.4, 0.4, 0.4]} font_scale_factor={0.8} size={[GEOM.right[0], "default"]} text={p.text} />
+    <Label name={k} layer={3} localize={false} color={[0.4, 0.4, 0.4]} font_scale_factor={0.8} size={[GEOM.right[0], "default"]} text={p.text} />
   ));
   ctx.rightDef = ref(ctx, k);
   return <></>;

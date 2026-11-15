@@ -1,6 +1,7 @@
 // 자동 배치 해결기: 칸을 읽는 컨트롤(readsSlot)이 항상 합법적인 자리에 오도록 트리를 고쳐 쓴다.
 // 입력 노드는 바꾸지 않고 새 노드를 돌려준다. 키 순서는 결정적이다.
 import type { Diagnostic } from "../lint.ts";
+import { solvePlacement } from "../placement/solve.ts";
 import type { ControlNode, JsonObject, JsonValue } from "../types.ts";
 
 const SLOT = "$$slot";
@@ -91,53 +92,10 @@ function clipIsConstant(props: JsonObject): boolean {
   return false;
 }
 
-interface Wrapped {
-  /** 트리에 들어가는 가장 바깥 노드 */
-  wrapper: ControlNode;
-  /** inner를 자식으로 받는 노드(wrapper 자신이거나 그 안의 인덱스 패널) */
-  holder: ControlNode;
-  inner: ControlNode;
-}
-
-const MOVED = ["size", "offset", "anchor_from", "anchor_to", "layer"];
-
-/**
- * 칸 읽기 노드를 감싼다. label은 collection_index를 가질 수 없으므로(COL-02) 인덱스를 패널에 주고 label은 인덱스 없이 안에 둔다.
- * 부모가 이미 container_items 스택이면 인덱스 패널만 두고, 아니면 container_items 세로 stack_panel > 인덱스 패널로 감싼다.
- * 인덱스 패널의 부모는 늘 스택이라 COL-50도 나지 않는다.
- */
-function wrapperFor(n: ControlNode, props: JsonObject, parentOk: boolean): Wrapped {
-  // label과 image는 collection_index를 가질 수 없다(COL-02): 인덱스 패널 > 자식 모양으로 감싼다
-  const isLabel = noIndex(props);
-  const inner: JsonObject = {};
-  for (const [k, v] of Object.entries(props)) if (k !== "offset" && k !== "anchor_from" && k !== "anchor_to") inner[k] = v;
-  delete inner[SLOT];
-  const innerNode: ControlNode = { name: n.name, ...(n.def !== undefined ? { def: n.def } : {}), props: inner, children: [] };
-  if (!isLabel) {
-    const w: JsonObject = { type: "stack_panel", orientation: "vertical", collection_name: COLLECTION };
-    for (const k of MOVED) if (props[k] !== undefined) w[k] = props[k];
-    inner.collection_index = props[SLOT]!;
-    const wrapper: ControlNode = { name: `${n.name}_slot`, props: w, children: [] };
-    return { wrapper, holder: wrapper, inner: innerNode };
-  }
-  const idx: JsonObject = { type: "panel", collection_index: props[SLOT]! };
-  if (parentOk) {
-    for (const k of MOVED) if (props[k] !== undefined) idx[k] = props[k];
-    const wrapper: ControlNode = { name: `${n.name}_slot`, props: idx, children: [] };
-    return { wrapper, holder: wrapper, inner: innerNode };
-  }
-  const w: JsonObject = { type: "stack_panel", orientation: "vertical", collection_name: COLLECTION };
-  for (const k of MOVED) if (props[k] !== undefined) w[k] = props[k];
-  if (props.size !== undefined) idx.size = props.size;
-  const holder: ControlNode = { name: `${n.name}_idx`, props: idx, children: [] };
-  const wrapper: ControlNode = { name: `${n.name}_slot`, props: w, children: [holder] };
-  return { wrapper, holder, inner: innerNode };
-}
-
-function place(n: ControlNode, inh: Inh, st: State): ControlNode {
-  const path = `${inh.path}/${n.name}`;
-  let props: JsonObject = { ...n.props };
-
+/** 엔티티 전용 검사와 고쳐 쓰기(크기 변수, 실수 리터럴, 상수 clip, layer 상한). 배치 감싸기는 solvePlacement가 한다. */
+function check(n: ControlNode, path0: string, st: State): ControlNode {
+  const path = `${path0}/${n.name}`;
+  const props: JsonObject = { ...n.props };
   if (Array.isArray(props.size) && props.size.some((v) => typeof v === "string" && v.startsWith("$"))) {
     push(st, "ENT-SIZE", "error", path, "크기 배열 안에 변수를 넣으면 0이 된다. 배열 전체를 변수로 넘겨야 한다(size: \"$size\").");
   }
@@ -149,54 +107,22 @@ function place(n: ControlNode, inh: Inh, st: State): ControlNode {
     props.layer = 1;
     push(st, "ANI-38", "info", path, `아이템 렌더러 위 조상의 layer는 50을 넘으면 안 된다. layer를 1로 낮췄다.`);
   }
-
-  // 자식이 모두 칸 읽기인 스택은 제자리에서 container_items를 받는다.
-  if (props.type === "stack_panel" && props.collection_name === undefined && n.children.length > 0 && n.children.every(isReader)) {
-    props.collection_name = COLLECTION;
-  }
-  const slot = props[SLOT];
-  const ownIndex = props.collection_index;
-  let wrapped: Wrapped | undefined;
-  let index = inh.index;
-  if (slot !== undefined) {
-    if (inh.index !== undefined && inh.index === slot) {
-      delete props[SLOT];
-    } else if (inh.parentOk && !noIndex(props)) {
-      props.collection_index = slot;
-      delete props[SLOT];
-      index = slot;
-    } else {
-      const isLabel = props.type === "label";
-      const quiet = props.type === "image" && inh.parentOk; // 스택 안의 image는 인덱스 패널만 덧댄다
-      if (!quiet) push(
-        st,
-        isLabel ? "ENT-LABEL" : "COL-50",
-        "info",
-        path,
-        isLabel
-          ? "label에는 collection_index를 직접 줄 수 없다. 패널로 감싸 패널에 인덱스를 줬다."
-          : "부모가 container_items 스택이 아니면 칸마다 다른 인덱스를 줘도 모두 0번을 읽는다. 칸마다 container_items 세로 stack_panel로 감쌌다.",
-      );
-      wrapped = wrapperFor(n, props, inh.parentOk);
-      props = wrapped.inner.props;
-      index = slot;
-    }
-  } else if (ownIndex !== undefined) index = ownIndex;
-  delete props[SLOT];
-
-  const parentOk = props.type === "stack_panel" && props.collection_name === COLLECTION;
-  const kids = n.children.map((c) => place(c, { parentOk, index, path }, st));
-  const node: ControlNode = { name: n.name, ...(n.def !== undefined ? { def: n.def } : {}), props, children: kids };
-  if (!wrapped) return node;
-  wrapped.inner.props = props;
-  wrapped.inner.children = kids;
-  wrapped.holder.children = [wrapped.inner];
-  if (props.layer !== undefined && wrapped.wrapper.props.layer !== undefined) wrapped.wrapper.props.layer = props.layer;
-  return wrapped.wrapper;
+  return { name: n.name, ...(n.def !== undefined ? { def: n.def } : {}), props, children: n.children.map((c) => check(c, path, st)) };
 }
 
 export function placeEntityTree(nodes: ControlNode[], opts?: { strict?: boolean }): { nodes: ControlNode[]; diagnostics: Diagnostic[] } {
   const st: State = { diags: [], strict: opts?.strict !== false };
-  const out = nodes.map((n) => place(n, { parentOk: false, index: undefined, path: "" }, st));
-  return { nodes: out, diagnostics: st.diags };
+  const checked = nodes.map((n) => check(n, "", st));
+  const solved = solvePlacement(checked, { strict: st.strict, collection: COLLECTION, wrapAnyParent: true, slotMarker: SLOT, inPlace: true, offsetBox: false });
+  const labelPaths = new Set(solved.diagnostics.filter((d) => d.rule === "COL-02" && d.message.includes("label")).map((d) => d.path));
+  for (const d of solved.diagnostics) {
+    if (d.rule === "COL-50" && labelPaths.has(d.path)) continue; // label은 ENT-LABEL 하나로 합친다
+    // 레지스트리 id를 엔티티 문서 id로 옮긴다(label 인덱스 이동은 ENT-LABEL)
+    if (d.rule === "COL-02") {
+      if (d.message.includes("label")) st.diags.push({ ...d, rule: "ENT-LABEL", url: ENTITY_URL });
+      continue; // image 인덱스 패널은 조용히 덧댄다
+    }
+    st.diags.push(d);
+  }
+  return { nodes: solved.nodes, diagnostics: st.diags };
 }

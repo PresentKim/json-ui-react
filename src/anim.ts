@@ -41,6 +41,8 @@ export interface AnimCommon {
   end_event?: string;
   reset_event?: string;
   resettable?: boolean;
+  reversible?: boolean;
+  looping?: boolean;
   activated?: boolean;
   easing?: Easing | `$${string}`;
 }

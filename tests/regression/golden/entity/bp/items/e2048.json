@@ -1,0 +1,15 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "jure:e2048",
+      "menu_category": { "category": "items" }
+    },
+    "components": {
+      "minecraft:icon": "jure_e2048",
+      "minecraft:display_name": { "value": "2048" },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": { "tags": ["jure:test_launcher"] }
+    }
+  }
+}

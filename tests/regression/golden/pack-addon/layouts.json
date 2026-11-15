@@ -1,0 +1,195 @@
+{
+  "router": {
+    "total": 4,
+    "ranges": [
+      {
+        "name": "buttons",
+        "start": 0,
+        "count": 4
+      }
+    ],
+    "blocks": []
+  },
+  "tabs-inside": {
+    "total": 6,
+    "ranges": [
+      {
+        "name": "tabs",
+        "start": 0,
+        "count": 2
+      },
+      {
+        "name": "tab1",
+        "start": 2,
+        "count": 2
+      },
+      {
+        "name": "tab2",
+        "start": 4,
+        "count": 2
+      }
+    ],
+    "blocks": []
+  },
+  "tabs-follow": {
+    "total": 6,
+    "ranges": [
+      {
+        "name": "tabs",
+        "start": 0,
+        "count": 2
+      },
+      {
+        "name": "tab1",
+        "start": 2,
+        "count": 2
+      },
+      {
+        "name": "tab2",
+        "start": 4,
+        "count": 2
+      }
+    ],
+    "blocks": []
+  },
+  "tabs-lazy": {
+    "total": 6,
+    "ranges": [
+      {
+        "name": "tabs",
+        "start": 0,
+        "count": 2
+      },
+      {
+        "name": "tab1",
+        "start": 2,
+        "count": 2
+      },
+      {
+        "name": "tab2",
+        "start": 4,
+        "count": 2
+      }
+    ],
+    "blocks": []
+  },
+  "slot-grid": {
+    "total": 24,
+    "ranges": [
+      {
+        "name": "cells",
+        "start": 0,
+        "count": 24
+      }
+    ],
+    "blocks": []
+  },
+  "virtual-list-500": {
+    "total": 500,
+    "ranges": [
+      {
+        "name": "list",
+        "start": 0,
+        "count": 500
+      }
+    ],
+    "blocks": []
+  },
+  "virtual-list-2000": {
+    "total": 2000,
+    "ranges": [
+      {
+        "name": "list",
+        "start": 0,
+        "count": 2000
+      }
+    ],
+    "blocks": []
+  },
+  "research": {
+    "total": 2022,
+    "ranges": [
+      {
+        "name": "needed",
+        "start": 0,
+        "count": 48
+      },
+      {
+        "name": "done",
+        "start": 48,
+        "count": 48
+      },
+      {
+        "name": "tabs",
+        "start": 96,
+        "count": 2
+      },
+      {
+        "name": "neededPages",
+        "start": 98,
+        "count": 2
+      },
+      {
+        "name": "donePages",
+        "start": 100,
+        "count": 2
+      }
+    ],
+    "blocks": [
+      {
+        "name": "needed.detail",
+        "start": 102,
+        "count": 48,
+        "fields": [
+          "name",
+          "status",
+          "desc",
+          "mats0",
+          "mats1",
+          "mats2",
+          "mats3",
+          "mats4",
+          "mats5",
+          "mats6",
+          "mats7",
+          "rewards0",
+          "rewards1",
+          "rewards2",
+          "rewards3",
+          "rewards4",
+          "rewards5",
+          "rewards6",
+          "rewards7",
+          "action"
+        ]
+      },
+      {
+        "name": "done.detail",
+        "start": 1062,
+        "count": 48,
+        "fields": [
+          "name",
+          "status",
+          "desc",
+          "mats0",
+          "mats1",
+          "mats2",
+          "mats3",
+          "mats4",
+          "mats5",
+          "mats6",
+          "mats7",
+          "rewards0",
+          "rewards1",
+          "rewards2",
+          "rewards3",
+          "rewards4",
+          "rewards5",
+          "rewards6",
+          "rewards7",
+          "action"
+        ]
+      }
+    ]
+  }
+}

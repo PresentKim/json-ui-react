@@ -14,5 +14,6 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "tests", "examples", "example", "example-entity"]
+  "include": ["src", "tests", "examples", "example", "example-entity"],
+  "exclude": ["tests/regression/golden"]
 }

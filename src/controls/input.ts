@@ -4,6 +4,13 @@ import type { CommonProps, Size, Var, Color } from "./common.ts";
 /** 바닐라/문서에 나오는 버튼 id 목록(value-dictionary 및 json-ui 문서 실측 기준). */
 export const BUTTON_IDS = [
   "button.menu_select",
+  "button.menu_emote_slot_0",
+  "button.menu_emote_slot_1",
+  "button.menu_emote_slot_2",
+  "button.menu_emote_slot_3",
+  "button.menu_alternate_tab_right",
+  "button.menu_autocomplete_back",
+  "button.menu_textedit_down",
   "button.menu_ok",
   "button.menu_cancel",
   "button.menu_exit",
@@ -48,6 +55,8 @@ export const BUTTON_IDS = [
 ] as const;
 
 export type ButtonId = (typeof BUTTON_IDS)[number];
+/** INP-33: 엔진의 `button.menu_*` 버튼 ID */
+export type MenuButtonId = Extract<ButtonId, `button.menu_${string}`>;
 export type MappingType = "pressed" | "global" | "focused" | "double_pressed";
 export type InputModeCondition = "gamepad" | "gamepad_and_not_gaze" | "not_gamepad" | "not_gaze";
 
@@ -97,9 +106,12 @@ export interface ToggleStateKeys {
   unchecked_locked_hover_control: Ref;
 }
 
-export interface ToggleProps extends ButtonProps, ToggleStateKeys {
-  toggle_name?: string | Var;
-  radio_toggle_group?: Bool;
+/** INP-12: 라디오 그룹(`radio_toggle_group: true`)은 그룹 이름 `toggle_name` 이 필수다 */
+export type RadioGroupKeys =
+  | { radio_toggle_group: true; toggle_name: string | Var }
+  | { radio_toggle_group?: false | Var; toggle_name?: string | Var };
+
+export interface ToggleBaseProps extends ButtonProps, ToggleStateKeys {
   toggle_group_forced_index?: Num | string;
   toggle_group_default_selected?: Num | string;
   toggle_default_state?: Bool;
@@ -109,6 +121,8 @@ export interface ToggleProps extends ButtonProps, ToggleStateKeys {
   toggle_grid_collection_name?: string | Var;
   toggle_property_bag?: Record<string, unknown>;
 }
+
+export type ToggleProps = ToggleBaseProps & RadioGroupKeys;
 
 export interface InputPanelProps extends CommonProps {
   modal?: Bool;

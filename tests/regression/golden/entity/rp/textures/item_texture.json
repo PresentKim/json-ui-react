@@ -1,0 +1,18 @@
+{
+  "resource_pack_name": "jure_entity_examples",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "jure_menu_lab": {
+      "textures": "textures/items/book_writable"
+    },
+    "jure_research": {
+      "textures": "textures/items/book_enchanted"
+    },
+    "jure_e2048": {
+      "textures": "textures/ui/e2048/t11"
+    },
+    "jure_matchmaking": {
+      "textures": "textures/items/compass_item"
+    }
+  }
+}

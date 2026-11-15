@@ -1,5 +1,7 @@
 // 제목 접두 바이트로 화면을 고르는 사전 조회 라우터(collection_panel + factory).
 import type { JsonObject, JuiElement } from "../types.ts";
+import { CollectionPanel } from "../controls/components.tsx";
+import { bind } from "../bind.ts";
 
 export function ScreenRouter(props: {
   name: string;
@@ -24,18 +26,14 @@ export function ScreenRouter(props: {
     bag[`#${r.title}`] = [r.id];
   }
   return (
-    <collection_panel
+    <CollectionPanel
       name={props.name}
       size={["100%", "100%"]}
       factory={{ name: props.factory, control_ids: controlIds as { [k: string]: string } }}
       property_bag={bag}
       bindings={[
-        { binding_name: "#title_text" },
-        {
-          binding_type: "view",
-          source_property_name: `('#' + ('%.${props.prefixBytes}s' * #title_text))`,
-          target_property_name: "#collection_length",
-        },
+        bind.global("#title_text"),
+        bind.view(`('#' + ('%.${props.prefixBytes}s' * #title_text))`, "#collection_length"),
       ]}
     />
   );

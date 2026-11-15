@@ -1,5 +1,6 @@
 // 라디오 토글 본문과 탭 줄 컴포넌트.
 import type { JsonObject, JuiElement } from "../types.ts";
+import { StackPanel, Use } from "../controls/components.tsx";
 
 export function radioToggleBody(opts: {
   group: string;
@@ -45,10 +46,10 @@ export function TabBar(props: {
   tabs: { name: string; index: number; vars?: JsonObject }[];
 }): JuiElement {
   return (
-    <stack_panel name={props.name} orientation="horizontal" size={props.size} collection_name="form_buttons">
+    <StackPanel name={props.name} orientation="horizontal" size={props.size} collection_name="form_buttons">
       {props.tabs.map((t, i) => (
-        <use name={t.name} def={props.toggleDef} collection_index={t.index} {...{ $tab_index: i }} {...(t.vars ?? {})} />
+        <Use name={t.name} def={props.toggleDef} collection_index={t.index} {...{ $tab_index: i }} {...(t.vars ?? {})} />
       ))}
-    </stack_panel>
+    </StackPanel>
   );
 }

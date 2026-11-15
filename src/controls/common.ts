@@ -2,6 +2,7 @@
 // 값 목록은 docs/json-ui/value-dictionary.mdx B.3, 제외 이름은 B.1 기준.
 
 import type { JsonValue } from "../types.ts";
+import type { BindingCondition } from "../bind.ts";
 
 export type { JsonValue };
 
@@ -48,7 +49,8 @@ export interface BindingObj {
   binding_type?: "global" | "view" | "collection" | "collection_details" | "none" | Var;
   binding_name?: string;
   binding_name_override?: string;
-  binding_condition?: string;
+  /** BND-23/BND-35: 엔진 이름표 6종 또는 `$변수` */
+  binding_condition?: BindingCondition | Var;
   binding_collection_name?: string;
   binding_collection_prefix?: string;
   source_property_name?: string;
@@ -121,9 +123,13 @@ export interface CommonProps {
   /** 애니메이션 참조 (`@네임스페이스.이름`) */
   anims?: string[] | Var;
   /** 팩토리가 만드는 컨트롤에 넘기는 변수 (바닐라 사용, 공식 자료에는 없음) */
-  factory_variables?: JsonValue;
+  factory_variables?: Var[];
   /** 자식 컨트롤 정의 */
   controls?: JsonValue[];
+  /** 애니메이션 리셋 이름 (ANI-19) */
+  animation_reset_name?: string;
+  /** 그리드 칸에 정적 자식을 놓는 [행, 열] (LAY-29, 0부터) */
+  grid_position?: [number, number] | Var;
   /** 포커스 가능 여부 */
   focus_enabled?: BoolOrExpr;
   /** 포커스 식별자 */

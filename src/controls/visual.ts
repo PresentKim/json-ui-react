@@ -89,8 +89,6 @@ export interface GridProps extends CommonProps, ChildPosProps, CollectionNamePro
   maximum_grid_items?: number | Var;
   /** 격자 크기를 바인딩으로 받는 이름 (`#...`) */
   grid_dimension_binding?: string;
-  /** 격자 안 자식 위치 [행, 열] */
-  grid_position?: Pair;
 }
 
 /** image: 텍스처 그리기. collection_index 불가 (COL-02), collection_name 불가 (COL-01) */
@@ -104,7 +102,7 @@ export interface ImageProps extends CommonProps {
   /** 9분할 경계: 숫자 하나 또는 [좌, 상, 우, 하] */
   nineslice_size?: number | [number, number, number, number] | Var;
   /** 타일 반복 (true/"x"/"y"/"none") */
-  tiled?: BoolOrExpr;
+  tiled?: boolean | "x" | "y" | Var;
   /** 타일 배율 */
   tiled_scale?: Pair;
   /** 비율 유지 */
@@ -183,16 +181,26 @@ export interface CustomProps extends CommonProps, ChildPosProps {
 }
 
 /** factory 설정 */
-export interface FactorySpec {
+interface FactoryBase {
   /** 팩토리 이름 (예: chat_item_factory) */
   name: string;
-  /** 단일 템플릿 컨트롤 이름 */
-  control_name?: string;
-  /** 바인딩 값에 따라 고르는 템플릿 맵 */
-  control_ids?: { [k: string]: string };
-  /** 최대 자식 수 */
+  /** 최대 자식 수 (0 은 무제한, COL-28) */
   max_children_size?: number;
+  /** 만들어진 컨트롤에 넘길 `$변수` 이름 배열 (COL-41) */
+  factory_variables?: Var[];
 }
+/** COL-28/COL-42: control_name 과 control_ids 는 함께 쓰지 못한다 (control_name 이 있으면 control_ids 는 읽히지 않는다) */
+export type FactorySpec =
+  | (FactoryBase & {
+      /** 단일 템플릿 컨트롤 이름 */
+      control_name: string;
+      control_ids?: never;
+    })
+  | (FactoryBase & {
+      control_name?: never;
+      /** 바인딩 값에 따라 고르는 템플릿 맵 */
+      control_ids: { [k: string]: string };
+    });
 
 /** factory: 템플릿에서 자식을 동적 생성 */
 export interface FactoryProps extends CommonProps, ChildPosProps {

@@ -1,6 +1,8 @@
 // 그리드 컴포넌트: 고정 칸 슬롯 그리드(COL-38, COL-50)와 바인딩 가상 목록(COL-49).
 import type { JsonObject, JuiElement } from "../types.ts";
 import type { ElementProps } from "../controls/elements.ts";
+import { Grid, StackPanel } from "../controls/components.tsx";
+import { bind } from "../bind.ts";
 
 export interface SlotGridProps {
   name: string;
@@ -24,21 +26,22 @@ export function SlotGrid(p: SlotGridProps): JuiElement {
     const cells: JuiElement[] = [];
     for (let c = 0; c < p.cols; c++) cells.push(p.cell(r * p.cols + c, r, c));
     rows.push(
-      <stack_panel
+      <StackPanel
         name={`r${r}`}
         orientation="horizontal"
         size={[p.rowWidth, p.rowHeight]}
         collection_name="form_buttons"
       >
         {cells}
-      </stack_panel>,
+      </StackPanel>,
     );
   }
   // 키 순서: type, orientation, size, (props), bindings, controls
   const attrs: Record<string, unknown> = { name: p.name, orientation: "vertical", size: p.size };
   if (p.props) Object.assign(attrs, p.props);
   if (p.bindings) attrs.bindings = p.bindings;
-  return <stack_panel {...(attrs as unknown as ElementProps<"stack_panel">)}>{rows}</stack_panel>;
+  // attrs는 키 순서 유지용 동적 객체라 타입을 맞춰 단언한다
+  return <StackPanel {...(attrs as unknown as ElementProps<"stack_panel">)}>{rows}</StackPanel>;
 }
 
 export interface VirtualListProps {
@@ -49,6 +52,12 @@ export interface VirtualListProps {
   maxItems: number;
   /** COL-49: 2000칸을 넘는 목록을 의도적으로 허용한다. */
   allowLarge?: boolean;
+}
+
+/** 출력 키 순서(binding_name이 맨 앞)를 유지하려고 bind.collection 결과의 키를 재배열한다. */
+function lengthBinding() {
+  const { binding_name, ...rest } = bind.collection("#form_button_length", "form_buttons");
+  return { binding_name, ...rest };
 }
 
 export const VIRTUAL_LIST_LIMIT = 2000;
@@ -65,7 +74,7 @@ export function VirtualList(p: VirtualListProps): JuiElement {
     );
   }
   return (
-    <grid
+    <Grid
       name={p.name}
       size={[p.columns * p.cellSize[0], "100%c"]}
       grid_rescaling_type="horizontal"
@@ -73,16 +82,8 @@ export function VirtualList(p: VirtualListProps): JuiElement {
       collection_name="form_buttons"
       maximum_grid_items={p.maxItems}
       bindings={[
-        {
-          binding_name: "#form_button_length",
-          binding_type: "collection",
-          binding_collection_name: "form_buttons",
-        },
-        {
-          binding_type: "view",
-          source_property_name: "#form_button_length",
-          target_property_name: "#maximum_grid_items",
-        },
+        lengthBinding(),
+        bind.view("#form_button_length", "#maximum_grid_items"),
       ]}
     />
   );
