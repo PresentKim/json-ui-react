@@ -133,6 +133,10 @@ bedrock-research의 JSON UI 규칙 446개를 코드로 조회한다. `getRule(id
 
 바닐라 컨트롤 타입마다 속성 타입이 있어 `<stack_panel>`, `<StackPanel>` 같은 JSX가 COL-01, COL-02, INP-10을 컴파일 때 거절한다. 고수준과 이름이 겹치는 부품은 `LowScreen`, `LowLabel`처럼 `Low` 접두로 낸다. 빌더는 `bind.*`와 `checkBindings`, `E`와 `checkExpr`, `animation`과 `chain`이다. 자세한 설명은 문서의 규칙 API와 타입이 붙은 저수준 컨트롤 쪽을 본다.
 
+## 컴포넌트 키트
+
+`src/kit`은 레이아웃(Row, Column, Overlay, Padding, GridLayout 등), 시각(Text, Icon, Frame, ProgressBar), 데이터(Repeat, ShowIf, Switch, ItemText), 입력(PushButton, ToggleBox, TabGroup 등), 애니메이션(FadeIn, SlideIn, Pulse) 부품 모음이다. 자식은 `place()`를 거쳐 배치 규칙으로 검사되고, 고칠 수 있으면 고쳐 info 진단(규칙 id와 주소)을 남긴다. `collectKit(fn, { strict })`로 노드와 진단을 모은다. `json-ui-react`에서 `kit` 네임스페이스로 가져오며, 고수준과 겹치는 `Spacer`는 `KitSpacer`다. 예시는 `examples/kit/gallery.tsx`.
+
 ## 빌드 방법
 
 요구 사항: Node 22 이상.

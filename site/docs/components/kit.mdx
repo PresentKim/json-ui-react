@@ -1,0 +1,89 @@
+---
+title: "컴포넌트 키트"
+description: "레이아웃, 시각, 데이터/컬렉션, 입력, 애니메이션 부품을 배치 규칙 검사와 자동 수정을 거쳐 조립하는 중간 수준 컴포넌트 키트. 부품별 속성, 배치 계약, 적용 규칙."
+sidebar_position: 11
+sources:
+  - json-ui-react
+  - bedrock-research
+---
+
+# 컴포넌트 키트
+
+`json-ui-react`의 키트(`kit`)는 PascalCase 컨트롤과 `bind`, `E`, 애니메이션 빌더만으로 만든 재사용 부품 모음이다. 자식을 받는 부품은 모두 `place()`를 거친다. `place()`는 자식을 렌더한 뒤 `explainPlacement`로 부모와의 조합을 검사하고, 고칠 수 있으면 `solvePlacement`로 고쳐 **info** 진단을 남기며, 고칠 수 없으면 error(strict가 아니면 warn)로 보고한다. 진단에는 규칙 id와 위키 주소가 붙는다.
+
+## 사용 예
+
+```tsx
+import { kit, KitSpacer, collectKit, render } from "json-ui-react";
+
+const { result, diagnostics } = collectKit(() =>
+  render(
+    <kit.Repeat name="rep" collection="form_buttons" layout="stack-v" count={1}
+      item={() => <kit.Column name="col"><Label name="bad" text="x" collection_index={0} /></kit.Column>} />,
+  ),
+);
+// result: 라벨은 고쳐진 형태로 들어 있다
+// diagnostics: [{ rule: "COL-02", level: "info", url: ".../rules#col-02", ... }]
+
+// strict: 고칠 수 없는 error는 예외로 던진다
+collectKit(() => render(<kit.ItemText name="t" prop="#x" />), { strict: true }); // COL-44
+```
+
+이름이 고수준과 겹치는 `Spacer`는 최상위에서 `KitSpacer`로 낸다. `kit` 네임스페이스에는 모든 이름이 원래대로 있다. 애니메이션 정의는 `defineAnims`, `takeAnims`로 모아 네임스페이스 파일에 쓴다. 전체 예는 `examples/kit/gallery.tsx`다.
+
+## 레이아웃
+
+| 부품 | 주요 속성 | 배치 계약 | 적용 규칙 |
+| --- | --- | --- | --- |
+| `Row`, `Column` | `gap`, `align` | 자식을 stack_panel에 `place()` | LAY-38, COL-02 |
+| `Spacer` | `w`, `h`, `fill`, `axis` | 자식 없음 | LAY-30 |
+| `Overlay` | `layer` 순서 | panel에 `place()` | 레이어 순서 |
+| `Align`, `Center` | `to` (앵커 9종) | panel에 `place()` | LAY-16 |
+| `Padding` | `inset` | panel, 크기 식 `100% - Npx` | LAY-35 |
+| `Box` | `w`, `h` | panel에 `place()` | LAY-38 |
+| `ScrollArea` | `size`, `speed`, `barWidth` | scroll_view 역할 컨트롤 연결 | LAY-42 |
+| `GridLayout` | `cols`, `rows`, `cell`, `template`, `countFrom` | grid에 `place()` | LAY-30, LAY-32 |
+
+## 시각
+
+| 부품 | 주요 속성 | 배치 계약 | 적용 규칙 |
+| --- | --- | --- | --- |
+| `Text` | `text`(문자열, `{bind}`, `{expr}`), 글꼴, 색 | 자식 없음 | TXT, EXP-30 |
+| `Icon` | `texture`, `uv`, `uvSize`, `tiled`, `nineSlice` | 자식 없음 | LAY-38 |
+| `Frame` | `texture`, `inset` | 배경 + 내용 panel에 `place()` | LAY-38 |
+| `ProgressBar` | `ratio`(식), `source`, `size` | 상수 비율은 진단 | EXP-27 |
+| `ItemIcon` | 없음 (컬렉션 안) | 컬렉션 밖이면 error | COL-44 |
+| `Divider` | `orientation`, `thickness` | 자식 없음 | LAY-38 |
+
+## 데이터와 컬렉션
+
+| 부품 | 주요 속성 | 배치 계약 | 적용 규칙 |
+| --- | --- | --- | --- |
+| `ShowIf` | `when` (식, `{has}`, `{lacks}`) | panel에 `place()` | BND-31 |
+| `Switch`, `Case` | `on`, `value` | Case는 Switch 안에서만, 값 중복은 예외 | BND-31 |
+| `BindText` | `from` (속성 또는 식) | 컬렉션 안이면 속성 읽기 | BND, COL-02 |
+| `Repeat` | `collection`, `layout`, `count`, `cols`, `item` | 항목마다 `collection_index`, `place()` | COL-01, COL-38, COL-50 |
+| `Item` | `index` | 컬렉션 항목 범위를 연다 | COL-02 |
+| `ItemText` | `prop` | 컬렉션 밖이면 error, 라벨은 감싼다 | COL-02, COL-44 |
+| `KeyedFactory` | `variants`, `size` | factory와 `#k` 조회 | COL-28, COL-42, ANI-37 |
+
+## 입력
+
+| 부품 | 주요 속성 | 배치 계약 | 적용 규칙 |
+| --- | --- | --- | --- |
+| `PushButton` | `face`, 상태 얼굴, `sound` | 상태 자식에 `visible` 금지 | INP-02, INP-06 |
+| `ToggleBox` | `on`, `off`, `hover` | 상태 8개 생성 | INP-10, INP-11 |
+| `RadioGroup`, `Radio` | `group`, `selected`, `index` | 같은 `toggle_name` | INP-12, INP-35 |
+| `TabGroup` | `tabs` (`id`, `on`, `off`, `pane`) | 창은 `#toggle_state` 바인딩 | INP-12 |
+| `TextInput` | `textBoxName`, `maxLength`, `placeholder` | edit_box | INP |
+| `SliderControl` | `sliderName`, `size` | 컬렉션 밖이면 warn | HOST-12 |
+
+## 애니메이션
+
+| 부품 | 주요 속성 | 배치 계약 | 적용 규칙 |
+| --- | --- | --- | --- |
+| `defineAnims`, `takeAnims` | 네임스페이스, 정의 | `"@ns.name"` 참조, 레지스트리 | ANI |
+| `Animated` | `anims` | panel에 `place()`, `layer`를 건드리지 않음 | ANI-38 |
+| `FadeIn`, `FadeOut` | `ns`, `duration`, `easing` | 위와 같음 | ANI-09, ANI-10 |
+| `SlideIn` | `from`, `to` | 위와 같음 | ANI-09 |
+| `Pulse` | `ns`, `duration` | 알파 반복 | ANI-09 |

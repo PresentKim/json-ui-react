@@ -52,3 +52,8 @@ export type { RuleCheck, NodeCtx, DefIndex, Report } from "./check/types.ts";
 export * from "./placement/index.ts";
 export { modify, modifications } from "./modify.ts";
 export type { Modification, ModOperation, ModArray } from "./modify.ts";
+// 컴포넌트 키트(3단계 배치 규칙을 거치는 중간 수준 부품). 이름이 겹치면 Kit 접두로 낸다.
+export * from "./kit/index.ts";
+export { Spacer as KitSpacer } from "./kit/index.ts";
+export { Spacer } from "./high/index.ts"; // 이름 충돌: Spacer는 고수준 쪽을 유지한다
+export * as kit from "./kit/index.ts";
