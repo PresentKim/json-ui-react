@@ -1,12 +1,14 @@
 // buildEntityScreens: 엔티티(상자 화면) 호스트용 화면들을 한 팩으로 묶는다.
 // 공통 껍데기(chest_screen/pocket_containers modifications, 화면별 overlay·window, empty_cell)와
 // 서버 모듈(SCREENS)을 만든다. 바닐라 속성은 건드리지 않고 `modifications`만 쓴다.
+import { bind } from "../bind.ts";
+import { modify, modifications } from "../modify.ts";
 import { createPack } from "../pack.ts";
 import { render, toEntry } from "../render.ts";
 import type { Diagnostic } from "../lint.ts";
 import { runChecks } from "../check/engine.ts";
 import { ALL_CHECKS } from "../check/index.ts";
-import type { JsonObject, JsonValue, JuiElement, JuiNode } from "../types.ts";
+import type { JsonObject, JuiElement, JuiNode } from "../types.ts";
 import { createEntitySlots, withEntity, type EntityCtx } from "./context.ts";
 import { placeEntityTree } from "./solver.ts";
 import type { ScreenInfo } from "./runtime.d.ts";
@@ -44,13 +46,10 @@ const SCREEN = Symbol("entity.screen");
 const CODE_RE = /^[a-z0-9]{2}$/;
 const NS_RE = /^[a-z_][a-z0-9_]*$/;
 const MARK = "entity_ui_hide_vanilla";
-const HIDE: JsonObject = {
-  binding_type: "view",
-  source_control_name: MARK,
-  source_property_name: "#entity_ui_vanilla_visible",
-  target_property_name: "#visible",
-  binding_condition: "always",
-};
+// 바닐라 숨김 바인딩(캐스트는 타입 전용: 인터페이스를 JsonObject로 본다). 골든 출력의 키 순서(binding_condition이 맨 뒤)를 지키려고 빌더 결과의 조건 키를 뒤로 보낸다
+const HIDE: JsonObject = (({ binding_condition, ...rest }) => ({ ...rest, binding_condition }))(
+  bind.view("#entity_ui_vanilla_visible", "#visible", { control: MARK, condition: "always" }) as unknown as JsonObject,
+);
 
 /** 화면 하나. buildEntityScreens에 넘기는 최상위 요소로만 쓴다. */
 export function EntityScreen(_p: EntityScreenProps): JuiElement {
@@ -62,7 +61,8 @@ const isEntityScreen = (el: unknown): el is JuiElement & { props: EntityScreenPr
   typeof el === "object" && el !== null && typeof (el as JuiElement).type === "function" &&
   ((el as JuiElement).type as unknown as Record<symbol, boolean>)[SCREEN] === true;
 
-const insertBack = (array: string, value: JsonValue[]): JsonObject => ({ array_name: array, operation: "insert_back", value });
+// 타입만: Modification 인터페이스는 JsonObject 인덱스 시그니처와 맞지 않아 단언한다(값은 JSON 그대로).
+const mods = (...m: Parameters<typeof modifications>): JsonObject => modifications(...m) as unknown as JsonObject;
 
 function windowDef(p: EntityScreenProps, children: JsonObject[]): JsonObject {
   const anchor = p.titleAnchor ?? "top_left";
@@ -164,10 +164,10 @@ export function buildEntityScreens(screens: JuiNode[], opts: BuildEntityScreensO
   }
 
   const entries = overlays.map((k) => ({ [k]: {} }));
-  const hide = (): JsonObject => ({ modifications: [insertBack("bindings", [HIDE])] });
-  pack.modify("chest_screen.json", "chest", "small_chest_panel", { modifications: [insertBack("controls", entries)] });
+  const hide = (): JsonObject => (mods(modify.insertBack("bindings", [HIDE])));
+  pack.modify("chest_screen.json", "chest", "small_chest_panel", mods(modify.insertBack("controls", entries)));
   pack.modify("chest_screen.json", "chest", "small_chest_panel/root_panel", hide());
-  pack.modify("pocket_containers.json", "pocket_containers", "panel", { modifications: [insertBack("controls", entries)] });
+  pack.modify("pocket_containers.json", "pocket_containers", "panel", mods(modify.insertBack("controls", entries)));
   for (const k of ["header_area", "background_panel", "half_screen"]) pack.modify("pocket_containers.json", "pocket_containers", k, hide());
 
   const files = pack.files();

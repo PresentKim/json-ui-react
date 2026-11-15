@@ -2,9 +2,8 @@
 // 원본: bedrock-research entity-matchmaking(tools/gen-ui.mjs). 칸 지도는 원본과 같다.
 //  1~20: 줄 g(0~3)마다 5칸 [버튼, 이름, 부제, 접속자, 상태키 S/Q]   21~28: 게임, 설명, 머리, 타이머, 예상, 인원, 소식, 아래글
 //  29/30: 주/보조 버튼   31: 준비 막대 키(Ta/Tb)   32~41: 점 10개(E/F/Y/A/X)   42/43: 버튼 글자
-import { At, EntityScreen, SlotText, useEntity } from "json-ui-react";
+import { At, EntityScreen, SlotText, useEntity, Panel, StackPanel, Image, KeyedCell, QuickButton, anim } from "json-ui-react";
 import type { JuiElement } from "json-ui-react";
-import { KeyedCell, QuickButton, anim } from "../../src/entity/interact.tsx";
 
 const TEXTURES = "textures/ui/emm";
 const READY_SECONDS = 10;
@@ -58,12 +57,12 @@ const Row = ({ g }: { g: number }): JuiElement => {
   const pulse = anim("pulse_out", { anim_type: "alpha", easing: "in_sine", from: 1, to: 0.25, duration: 0.6, next: `@${ns}.pulse_in` });
   anim("pulse_in", { anim_type: "alpha", easing: "out_sine", from: 0.25, to: 1, duration: 0.6, next: `@${ns}.pulse_out` });
   const frame = (texture: string, dot?: boolean) => (
-    <panel name="state" size={ROW}>
-      <image name="frame" texture={`${TEXTURES}/${texture}`} size={ROW} layer={1} />
+    <Panel name="state" size={ROW}>
+      <Image name="frame" texture={`${TEXTURES}/${texture}`} size={ROW} layer={1} />
       {dot ? (
-        <image name="dot" texture={`${TEXTURES}/dot`} size={[6, 6]} layer={2} anchor_from="top_right" anchor_to="top_right" offset={[-6, 6]} anims={[pulse]} />
+        <Image name="dot" texture={`${TEXTURES}/dot`} size={[6, 6]} layer={2} anchor_from="top_right" anchor_to="top_right" offset={[-6, 6]} anims={[pulse]} />
       ) : null}
-    </panel>
+    </Panel>
   );
   return (
     <At name={`row${g}`} x={LIST[0]} y={LIST[1] + g * (ROW[1] + ROW_GAP)} w={ROW[0]} h={ROW[1]} layer={2}>
@@ -90,11 +89,11 @@ const T = (p: TxtProps): JuiElement => (
 function Pips(): JuiElement {
   const pop = anim("pop", { anim_type: "size", easing: "out_back", from: [0, 0], to: [PIP, PIP], duration: 0.18 });
   const body = (texture: string, animated: boolean) => (
-    <panel name="pip" size={[PIP_CELL, PIP]}>
-      <panel name="holder" size={[PIP, PIP]} anchor_from="top_left" anchor_to="top_left">
-        <image name="icon" texture={`${TEXTURES}/${texture}`} size={[PIP, PIP]} layer={1} anims={animated ? [pop] : undefined} />
-      </panel>
-    </panel>
+    <Panel name="pip" size={[PIP_CELL, PIP]}>
+      <Panel name="holder" size={[PIP, PIP]} anchor_from="top_left" anchor_to="top_left">
+        <Image name="icon" texture={`${TEXTURES}/${texture}`} size={[PIP, PIP]} layer={1} anims={animated ? [pop] : undefined} />
+      </Panel>
+    </Panel>
   );
   const variants = { E: body("pip_empty", false), F: body("pip_filled", true), Y: body("pip_you", true), A: body("pip_accepted", true), X: body("pip_declined", true) };
   // 첫 칸이 정의를 만들고 나머지 칸은 같은 정의를 가리킨다.
@@ -102,11 +101,11 @@ function Pips(): JuiElement {
   const left = Math.floor((DETAIL_W - PIPS * PIP_CELL + (PIP_CELL - PIP)) / 2);
   return (
     <At name="pips" x={DETAIL_X + left} y={102} w={PIPS * PIP_CELL} h={PIP} layer={3}>
-      <stack_panel name="pip_row" orientation="horizontal" size={[PIPS * PIP_CELL, PIP]}>
+      <StackPanel name="pip_row" orientation="horizontal" size={[PIPS * PIP_CELL, PIP]}>
         {Array.from({ length: PIPS }, (_, k) => (
           <KeyedCell name={`pip${k}`} slot="pips" index={k} size={[PIP_CELL, PIP]} variants={k === 0 ? variants : refs} />
         ))}
-      </stack_panel>
+      </StackPanel>
     </At>
   );
 }
@@ -115,10 +114,10 @@ function Pips(): JuiElement {
 function ReadyBar(): JuiElement {
   const drain = anim("ready_drain", { anim_type: "size", from: BAR, to: [0, BAR[1]], duration: READY_SECONDS });
   const body = (
-    <panel name="ready_body" size={BAR}>
-      <image name="track" texture={`${TEXTURES}/bar_track`} size={BAR} layer={1} />
-      <image name="fill" texture={`${TEXTURES}/bar_fill`} size={BAR} layer={2} anchor_from="top_left" anchor_to="top_left" anims={[drain]} />
-    </panel>
+    <Panel name="ready_body" size={BAR}>
+      <Image name="track" texture={`${TEXTURES}/bar_track`} size={BAR} layer={1} />
+      <Image name="fill" texture={`${TEXTURES}/bar_fill`} size={BAR} layer={2} anchor_from="top_left" anchor_to="top_left" anims={[drain]} />
+    </Panel>
   );
   return (
     <At name="ready_at" x={DETAIL_X} y={142} w={BAR[0]} h={BAR[1]} layer={3}>
@@ -141,7 +140,7 @@ function Body(): JuiElement {
   claimAll();
   const d = (y: number, h: number) => ({ x: DETAIL_X, y, w: DETAIL_W, h });
   return (
-    <panel name="matchmaking_body" size={WINDOW}>
+    <Panel name="matchmaking_body" size={WINDOW}>
       <T name="footer" slot="footer" x={70} y={8} w={190} h={9} scale={0.7} />
       {Array.from({ length: GAMES }, (_, g) => (
         <Row g={g} />
@@ -157,7 +156,7 @@ function Body(): JuiElement {
       <ReadyBar />
       <Action name="secondary" x={DETAIL_X} />
       <Action name="primary" x={DETAIL_X + DETAIL_W - BUTTON[0]} />
-    </panel>
+    </Panel>
   );
 }
 

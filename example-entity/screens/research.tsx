@@ -1,7 +1,6 @@
 // 연구 화면(entity-research-screen 재현): 243칸, 탭 2개(To do / Done), 탭마다 8x6 PickGrid + 쪽 넘김 + 상세 블록.
-import { At, Label, SlotCount, SlotIcon, SlotText, ShowWhen, EntityScreen, useEntity } from "json-ui-react";
+import { At, Label, SlotCount, SlotIcon, SlotText, ShowWhen, EntityScreen, useEntity, Panel, StackPanel, Image, EntityPager, EntityTabs, PickGrid, QuickButton } from "json-ui-react";
 import type { JuiElement } from "json-ui-react";
-import { EntityPager, EntityTabs, PickGrid, QuickButton } from "../../src/entity/interact.tsx";
 
 const PAGE = 48;
 const DETAIL_SLOTS = 22;
@@ -41,13 +40,13 @@ function TextIn(p: { name: string; slot: string; index: number; size: [number, n
 /** 재료/보상 칸 하나: 칸이 차 있을 때만 배경 + 아이콘 + 개수. */
 function StackCell(p: { name: string; slot: string; index: number }) {
   return (
-    <panel name={p.name} size={[18, 18]}>
+    <Panel name={p.name} size={[18, 18]}>
       <ShowWhen name="f" slot={p.slot} index={p.index} when="filled">
-        <image name="bg" texture="textures/ui/cell_image" size={["100%", "100%"]} />
+        <Image name="bg" texture="textures/ui/cell_image" size={["100%", "100%"]} />
         <SlotIcon name="icon" slot={p.slot} index={p.index} size={16} />
         <SlotCount name="count" slot={p.slot} index={p.index} />
       </ShowWhen>
-    </panel>
+    </Panel>
   );
 }
 
@@ -56,9 +55,9 @@ function StackRow(p: { name: string; title: string; y: number; slot: string; bas
     <At name={p.name} x={0} y={p.y} w={150} h={30}>
       <ShowWhen name="area" slot={p.slot} index={p.base} when="filled">
         <Label name="head" text={p.title} color={[0.35, 0.35, 0.35]} />
-        <stack_panel name="row" orientation="horizontal" size={[144, 18]} anchor_from="top_left" anchor_to="top_left" offset={[0, 10]}>
+        <StackPanel name="row" orientation="horizontal" size={[144, 18]} anchor_from="top_left" anchor_to="top_left" offset={[0, 10]}>
           {Array.from({ length: COUNT }, (_, j) => <StackCell name={`${p.name}${j}`} slot={p.slot} index={p.base + j} />)}
-        </stack_panel>
+        </StackPanel>
       </ShowWhen>
     </At>
   );
@@ -70,11 +69,11 @@ function StartFace(p: { slot: string }) {
   return (
     <>
       <ShowWhen name="ready" slot={p.slot} index={i} when={{ contains: "READY" }}>
-        <image name="bg" texture="textures/ui/ers/button" size={["100%", "100%"]} color={[0.45, 1, 0.45]} />
+        <Image name="bg" texture="textures/ui/ers/button" size={["100%", "100%"]} color={[0.45, 1, 0.45]} />
         <Label name="t" text="Start research" color={[1, 1, 1]} shadow layer={2} />
       </ShowWhen>
       <ShowWhen name="wait" slot={p.slot} index={i} when={{ contains: "WAIT" }}>
-        <image name="bg" texture="textures/ui/ers/button" size={["100%", "100%"]} color={[0.75, 0.75, 0.75]} />
+        <Image name="bg" texture="textures/ui/ers/button" size={["100%", "100%"]} color={[0.75, 0.75, 0.75]} />
         <Label name="t" text="Not enough materials" color={[0.6, 0.6, 0.6]} layer={2} />
       </ShowWhen>
     </>
@@ -90,10 +89,10 @@ function Detail(p: { t: number }) {
         <Label name="t" text="Pick a research." color={[0.4, 0.4, 0.4]} />
       </ShowWhen>
       <ShowWhen name="card" slot={s} index={D.name} when="filled">
-        <panel name="icon" size={[28, 28]} anchor_from="top_left" anchor_to="top_left">
-          <image name="bg" texture="textures/ui/cell_image" size={["100%", "100%"]} />
+        <Panel name="icon" size={[28, 28]} anchor_from="top_left" anchor_to="top_left">
+          <Image name="bg" texture="textures/ui/cell_image" size={["100%", "100%"]} />
           <SlotIcon name="i" slot={s} index={D.name} size={22} />
-        </panel>
+        </Panel>
         <At name="nm" x={32} y={3} w={118} h={10}>
           <SlotText name="name" slot={s} index={D.name} size={[118, 10]} color={DARK} scale={0.8} />
         </At>
@@ -115,7 +114,7 @@ function Detail(p: { t: number }) {
       ) : (
         <At name="done_note" x={0} y={124} w={150} h={18}>
           <ShowWhen name="note" slot={s} index={D.done} when="filled">
-            <image name="bg" texture="textures/ui/ers/button_pressed" size={["100%", "100%"]} />
+            <Image name="bg" texture="textures/ui/ers/button_pressed" size={["100%", "100%"]} />
             <Label name="t" text="Researched" color={[0.75, 0.95, 0.75]} layer={2} />
           </ShowWhen>
         </At>
@@ -124,10 +123,10 @@ function Detail(p: { t: number }) {
   );
 }
 
-function Panel(p: { name: string; x: number; y: number; w: number; h: number; children?: any }) {
+function Box(p: { name: string; x: number; y: number; w: number; h: number; children?: any }) {
   return (
     <At name={p.name} x={p.x} y={p.y} w={p.w} h={p.h} layer={1}>
-      <image name="bg" texture="textures/ui/ers/panel" size={["100%", "100%"]} />
+      <Image name="bg" texture="textures/ui/ers/panel" size={["100%", "100%"]} />
       {p.children}
     </At>
   );
@@ -138,22 +137,22 @@ function TabPane(p: { t: number }) {
   const t = p.t;
   return (
     <At name={`pane${t}`} x={-8} y={0}>
-      <Panel name="left" x={6} y={22} w={152} h={136}>
+      <Box name="left" x={6} y={22} w={152} h={136}>
         <At name="g" x={4} y={4} w={144} h={108}>
           <PickGrid name={`pick${t}`} cells={`cells${t}`} picks={`picks${t}`} rows={6} cols={8} chosen="SELECTED" />
         </At>
         <At name="pg" x={4} y={114} w={144} h={18}>
           <EntityPager name={`pager${t}`} slot={`pager${t}`} />
         </At>
-      </Panel>
+      </Box>
       <At name="msg" x={6} y={161} w={152} h={20} layer={3}>
         <TextIn name="t" slot={`detail${t}`} index={D.message} size={[152, 20]} />
       </At>
-      <Panel name="right" x={162} y={22} w={158} h={150}>
+      <Box name="right" x={162} y={22} w={158} h={150}>
         <At name="detail" x={4} y={4} w={150} h={142}>
           <Detail t={t} />
         </At>
-      </Panel>
+      </Box>
     </At>
   );
 }
@@ -161,7 +160,7 @@ function TabPane(p: { t: number }) {
 export const research = (
   <EntityScreen id="research" code="rs" title="Research" titleAnchor="top_middle" size={[326, 186]} window={{ offset: [0, 8] }}>
     <Claims />
-    <image name="bevel" texture="textures/ui/ers/panel_bevel" size={["100%", "100%"]} />
+    <Image name="bevel" texture="textures/ui/ers/panel_bevel" size={["100%", "100%"]} />
     <At name="tabs_at" x={8} y={-22} w={318} h={208} layer={3}>
       <EntityTabs name="ers" slot="heads" tabs={[{ children: <TabPane t={0} /> }, { children: <TabPane t={1} /> }]} />
     </At>

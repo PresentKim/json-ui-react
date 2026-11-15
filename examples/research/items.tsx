@@ -1,11 +1,9 @@
 // 연구 화면(FFR) 항목 정의: 방식 E(직접 상세)와 방식 F(지연 상세)의 항목 패널.
 // 버튼 번호는 모두 slots 배치에서 읽는다(숫자 직접 기입 없음).
-import type { JuiElement } from "../../src/types.ts";
-import type { Size1 } from "../../src/controls/common.ts";
-import type { Pack } from "../../src/pack.ts";
-import type { Slots, SlotLayout } from "../../src/slots.ts";
-import { SlotGrid } from "../../src/components/grid.tsx";
-import { view } from "../../src/bind.ts";
+import { Panel, StackPanel, Image, Use, view } from "json-ui-react";
+import type { JuiElement, Pack, Slots, SlotLayout } from "json-ui-react";
+import type { Size1 } from "json-ui-react/controls/common.ts";
+import { SlotGrid } from "json-ui-react/components/grid.tsx";
 
 const ITEMS = 96;
 const PER_TAB = 48;
@@ -33,18 +31,18 @@ function blockAt(layout: SlotLayout, name: string) {
 }
 
 const Gap = (p: { name: string; h: Size1; w?: Size1 }): JuiElement => (
-  <panel name={p.name} size={[p.w ?? "100%", p.h]} />
+  <Panel name={p.name} size={[p.w ?? "100%", p.h]} />
 );
 
 function SlotRow(p: { name: string; at: (j: number) => number; count: number }): JuiElement {
   const cells: JuiElement[] = [];
   for (let j = 0; j < p.count; j++) {
-    cells.push(<use name={`s${j}`} def="ffr.list_slot" collection_index={p.at(j)} />);
+    cells.push(<Use name={`s${j}`} def="ffr.list_slot" collection_index={p.at(j)} />);
   }
   return (
-    <stack_panel name={p.name} orientation="horizontal" size={["100%", CELL]} collection_name="form_buttons">
+    <StackPanel name={p.name} orientation="horizontal" size={["100%", CELL]} collection_name="form_buttons">
       {cells}
-    </stack_panel>
+    </StackPanel>
   );
 }
 
@@ -57,46 +55,46 @@ export interface ItemsText {
 function DetailBody(p: { at: (field: string) => number; mats: number; rewards: number; text?: ItemsText }): JuiElement {
   const { at } = p;
   return (
-    <stack_panel name="detail_body" orientation="vertical" size={["100% - 4px", "100%c"]}>
-      <stack_panel name="card" orientation="horizontal" size={["100%", 28]}>
-        <stack_panel name="icon_row" orientation="horizontal" size={[28, 28]} collection_name="form_buttons">
-          <use name="icon" def="ffr.detail_icon" collection_index={at("head")} />
-        </stack_panel>
+    <StackPanel name="detail_body" orientation="vertical" size={["100% - 4px", "100%c"]}>
+      <StackPanel name="card" orientation="horizontal" size={["100%", 28]}>
+        <StackPanel name="icon_row" orientation="horizontal" size={[28, 28]} collection_name="form_buttons">
+          <Use name="icon" def="ffr.detail_icon" collection_index={at("head")} />
+        </StackPanel>
         <Gap name="gap" w={4} h={28} />
-        <stack_panel name="info" orientation="vertical" size={["fill", 28]} collection_name="form_buttons">
+        <StackPanel name="info" orientation="vertical" size={["fill", 28]} collection_name="form_buttons">
           <Gap name="pad" h={3} />
-          <use name="name" def="ffr.text_item" collection_index={at("head")} />
+          <Use name="name" def="ffr.text_item" collection_index={at("head")} />
           <Gap name="pad2" h={2} />
-          <use name="status" def="ffr.text_item" collection_index={at("status")} />
-        </stack_panel>
-      </stack_panel>
+          <Use name="status" def="ffr.text_item" collection_index={at("status")} />
+        </StackPanel>
+      </StackPanel>
       <Gap name="gap1" h={3} />
-      <stack_panel name="desc" orientation="vertical" size={["100%", "100%c"]} collection_name="form_buttons">
-        <use name="d" def="ffr.desc_item" collection_index={at("desc")} />
-      </stack_panel>
+      <StackPanel name="desc" orientation="vertical" size={["100%", "100%c"]} collection_name="form_buttons">
+        <Use name="d" def="ffr.desc_item" collection_index={at("desc")} />
+      </StackPanel>
       <Gap name="gap2" h={4} />
-      <use name="mat_head" def="ffr.header_label" text={p.text?.materials ?? "필요한 재료"} />
+      <Use name="mat_head" def="ffr.header_label" text={p.text?.materials ?? "필요한 재료"} />
       <SlotRow name="mats" count={p.mats} at={(j) => at(`mat${j}`)} />
       <Gap name="gap3" h={4} />
-      <use name="reward_head" def="ffr.header_label" text={p.text?.rewards ?? "보상 레시피"} />
+      <Use name="reward_head" def="ffr.header_label" text={p.text?.rewards ?? "보상 레시피"} />
       <SlotRow name="rewards" count={p.rewards} at={(j) => at(`rew${j}`)} />
-    </stack_panel>
+    </StackPanel>
   );
 }
 
 function Detail(p: { k: number; progress: number }): JuiElement {
   return (
-    <image name={`detail_${p.k}`} texture="textures/ui/ffr/panel" size={[158, 136]}>
-      <panel
+    <Image name={`detail_${p.k}`} texture="textures/ui/ffr/panel" size={[158, 136]}>
+      <Panel
         name="body"
         size={["100% - 6px", "100% - 6px"]}
         offset={[3, 3]}
         anchor_from="top_left"
         anchor_to="top_left"
       >
-        <use name="scroll" def="ffr.detail_scroll" $scrolling_content={`ffri.detail_body_${p.k}`} />
-      </panel>
-      <stack_panel
+        <Use name="scroll" def="ffr.detail_scroll" $scrolling_content={`ffri.detail_body_${p.k}`} />
+      </Panel>
+      <StackPanel
         name="go"
         orientation="horizontal"
         size={[150, 18]}
@@ -105,9 +103,9 @@ function Detail(p: { k: number; progress: number }): JuiElement {
         anchor_to="bottom_middle"
         collection_name="form_buttons"
       >
-        <use name="b" def="ffr.progress_button" collection_index={p.progress} />
-      </stack_panel>
-    </image>
+        <Use name="b" def="ffr.progress_button" collection_index={p.progress} />
+      </StackPanel>
+    </Image>
   );
 }
 
@@ -127,7 +125,7 @@ function ItemsPanel(p: {
       props={{ anchor_from: "top_left", anchor_to: "top_left" }}
       bindings={[view("#toggle_state", "#visible", { condition: "always", control: `ffr_t${tab}` })]}
       cell={(pos, row, col) => (
-        <use
+        <Use
           name={`i${tab * PER_TAB + pos}`}
           def="ffr.item_toggle"
           collection_index={p.tabStart(tab) + pos}
@@ -139,10 +137,10 @@ function ItemsPanel(p: {
     />
   ));
   return (
-    <panel name={p.name} size={[GRID_COLS * CELL, 128]}>
+    <Panel name={p.name} size={[GRID_COLS * CELL, 128]}>
       {grids}
-      <use name="pagers" def="ffr.pagers_tabs" anchor_from="top_left" anchor_to="top_left" offset={[0, 110]} />
-    </panel>
+      <Use name="pagers" def="ffr.pagers_tabs" anchor_from="top_left" anchor_to="top_left" offset={[0, 110]} />
+    </Panel>
   );
 }
 

@@ -3,7 +3,7 @@
 // 칸 역할: 1~8 아이콘 칸, 12 눌림 횟수, 13 틱 글자(화면에 안 그림), 14 STATE_ON/OFF, 15 색 이름,
 // 16 "0".."10"(막대), 17 철 검 내구도, 26 버튼 표식(빠른 이동으로 빠져나가면 눌림).
 import { EntityScreen, At, Label, SlotText, SlotIcon, SlotTexture, SlotBar, ShowWhen, useEntity } from "json-ui-react";
-import { QuickButton, SelectCells } from "json-ui-react";
+import { QuickButton, SelectCells, bind, Panel, StackPanel, Image, LowLabel } from "json-ui-react";
 import type { JuiElement, JuiNode } from "json-ui-react";
 import type { BindingObj, Color, Size } from "json-ui-react/controls/common.ts";
 import type { ElementProps } from "json-ui-react/controls/elements.ts";
@@ -13,7 +13,7 @@ const CAPTION: Color = [0.35, 0.35, 0.35];
 const FULL: Size = ["100%", "100%"];
 const WORLD_PREFIX = "textures/blocks/wool_colored_";
 const CLEAN = "(#hover_text - '§o' - '§f' - '§r')";
-const collect: BindingObj = { binding_type: "collection", binding_collection_name: "container_items", binding_name: "#hover_text", binding_condition: "always" };
+const collect: BindingObj = bind.collection("#hover_text", "container_items", { condition: "always" });
 
 /** 원본 칸 번호에 맞춰 미리 잡는다(스크립트는 생성된 ScreenInfo로만 읽는다). */
 function Claims(): null {
@@ -34,14 +34,14 @@ const slotOf = (name: string): number => useEntity("menu-lab").slots.map()[name]
 /** 설명 글자 + 값 한 줄(원본 line). */
 function Line(p: { name: string; caption: string; size: [number, number]; captionW: number; children?: JuiNode }): JuiElement {
   return (
-    <stack_panel name={p.name} orientation="horizontal" size={p.size}>
-      <label name="caption" size={[p.captionW, p.size[1]]} layer={3} localize={false} color={CAPTION} font_scale_factor={0.7} text={p.caption} />
+    <StackPanel name={p.name} orientation="horizontal" size={p.size}>
+      <LowLabel name="caption" size={[p.captionW, p.size[1]]} layer={3} localize={false} color={CAPTION} font_scale_factor={0.7} text={p.caption} />
       {p.children}
-    </stack_panel>
+    </StackPanel>
   );
 }
 
-const barBack = () => <image name="back" texture="textures/ui/White" size={FULL} layer={3} color={[0.45, 0.45, 0.45]} />;
+const barBack = () => <Image name="back" texture="textures/ui/White" size={FULL} layer={3} color={[0.45, 0.45, 0.45]} />;
 
 interface ConstBarProps {
   name: string;
@@ -73,22 +73,22 @@ function ConstBar(p: ConstBarProps): JuiElement {
     clip_direction: p.dir ?? "left",
     clip_pixelperfect: p.pixel ?? false,
     ...(p.expr !== undefined
-      ? { bindings: [collect, { binding_type: "view", source_property_name: p.expr, target_property_name: "#clip_ratio" }] }
+      ? { bindings: [collect, bind.view(p.expr, "#clip_ratio")] }
       : { property_bag: { "#clip_ratio": p.ratio ?? 0.5 } }),
     ...(p.slot !== undefined ? { $$slot: slotOf(p.slot) } : {}),
   };
   return (
-    <panel name={p.name} size={p.size ?? [98, 6]}>
+    <Panel name={p.name} size={p.size ?? [98, 6]}>
       {barBack()}
-      <image {...fill} />
-    </panel>
+      <Image {...fill} />
+    </Panel>
   );
 }
 
 /** 칸 값이 아니라 칸 값으로 만든 질감 경로 글자(원본 15 path). */
 function PathText(p: { name: string; slot: string; size: [number, number] }): JuiElement {
   return (
-    <label
+    <LowLabel
       name={p.name}
       size={p.size}
       layer={3}
@@ -97,7 +97,7 @@ function PathText(p: { name: string; slot: string; size: [number, number] }): Ju
       font_scale_factor={0.7}
       text="#text"
       $$slot={slotOf(p.slot)}
-      bindings={[collect, { binding_type: "view", source_property_name: `('${WORLD_PREFIX}' + ${CLEAN})`, target_property_name: "#text" }]}
+      bindings={[collect, bind.view(`('${WORLD_PREFIX}' + ${CLEAN})`, "#text")]}
     />
   );
 }
@@ -107,16 +107,16 @@ function Flag(): JuiElement {
   const part = (name: string, when: { contains: string } | { lacks: string }, color: Color, word: string) => (
     <At name={`${name}_box`} x={0} y={0} w={40} h={8}>
       <ShowWhen name={name} slot="state" when={when}>
-        <image name="dot" texture="textures/ui/White" size={[8, 8]} layer={3} color={color} anchor_from="left_middle" anchor_to="left_middle" />
-        <label name="word" layer={3} localize={false} color={GRAY} font_scale_factor={0.7} text={word} anchor_from="left_middle" anchor_to="left_middle" offset={[10, 0]} />
+        <Image name="dot" texture="textures/ui/White" size={[8, 8]} layer={3} color={color} anchor_from="left_middle" anchor_to="left_middle" />
+        <LowLabel name="word" layer={3} localize={false} color={GRAY} font_scale_factor={0.7} text={word} anchor_from="left_middle" anchor_to="left_middle" offset={[10, 0]} />
       </ShowWhen>
     </At>
   );
   return (
-    <stack_panel name="flag" orientation="horizontal" size={[98, 8]}>
+    <StackPanel name="flag" orientation="horizontal" size={[98, 8]}>
       {part("yes", { contains: "STATE_ON" }, [0.1, 0.75, 0.2], "ON")}
       {part("no", { lacks: "STATE_ON" }, [0.85, 0.15, 0.15], "OFF")}
-    </stack_panel>
+    </StackPanel>
   );
 }
 
@@ -130,7 +130,7 @@ function Lines(): JuiElement {
   );
   return (
     <At name="lines" x={8} y={42} w={160} h={140} layer={1}>
-      <stack_panel name="rows" orientation="vertical" size={[160, 140]}>
+      <StackPanel name="rows" orientation="vertical" size={[160, 140]}>
         <Line name="l12" caption="Slot 12 raw" size={[160, 12]} captionW={62}>
           <SlotText name="v" slot="pressed" raw size={[98, 12]} scale={0.7} color={GRAY} layer={3} />
         </Line>
@@ -151,20 +151,20 @@ function Lines(): JuiElement {
         {row(
           "b7",
           "Slot 16 name",
-          <panel {...bar("v")}>
+          <Panel {...bar("v")}>
             {barBack()}
             <SlotBar name="fill" slot="level" size={FULL} per={10} texture="textures/ui/White" color={[0.1, 0.75, 0.2]} />
-          </panel>,
+          </Panel>,
         )}
         {row(
           "b8",
           "Slot 17 dur",
-          <panel {...bar("v")}>
+          <Panel {...bar("v")}>
             {barBack()}
             <SlotBar name="fill" slot="wear" source="durability" per={250} size={FULL} texture="textures/ui/White" color={[0.1, 0.75, 0.2]} />
-          </panel>,
+          </Panel>,
         )}
-      </stack_panel>
+      </StackPanel>
     </At>
   );
 }
@@ -172,7 +172,7 @@ function Lines(): JuiElement {
 function Side(): JuiElement {
   return (
     <At name="side" x={174} y={112} w={82} h={60} layer={1}>
-      <stack_panel name="rows" orientation="vertical" size={[82, 60]}>
+      <StackPanel name="rows" orientation="vertical" size={[82, 60]}>
         <Line name="r15" caption="15 raw" size={[82, 12]} captionW={30}>
           <SlotText name="v" slot="color" raw size={[52, 12]} scale={0.7} color={GRAY} layer={3} />
         </Line>
@@ -182,7 +182,7 @@ function Side(): JuiElement {
         <Line name="p15" caption="15 path" size={[82, 30]} captionW={30}>
           <PathText name="v" slot="color" size={[52, 30]} />
         </Line>
-      </stack_panel>
+      </StackPanel>
     </At>
   );
 }
@@ -190,15 +190,15 @@ function Side(): JuiElement {
 /** 고른 칸의 큰 아이콘과 이름(원본 detail). */
 function Detail(i: number): JuiElement {
   return (
-    <panel name="d" size={[80, 86]} anchor_from="top_left" anchor_to="top_left">
-      <panel name="frame" size={[52, 52]} anchor_from="top_left" anchor_to="top_left">
-        <image name="bg" texture="textures/ui/cell_image" size={FULL} />
+    <Panel name="d" size={[80, 86]} anchor_from="top_left" anchor_to="top_left">
+      <Panel name="frame" size={[52, 52]} anchor_from="top_left" anchor_to="top_left">
+        <Image name="bg" texture="textures/ui/cell_image" size={FULL} />
         <SlotIcon name="big" slot="cells" index={i} size={[44, 44]} />
-      </panel>
+      </Panel>
       <At name="nm" x={0} y={56}>
         <SlotText name="name" slot="cells" index={i} raw size={[80, 30]} scale={0.7} color={GRAY} layer={3} />
       </At>
-    </panel>
+    </Panel>
   );
 }
 
@@ -218,7 +218,7 @@ const menuLab: JuiElement = (
     </At>
     <At name="press_at" x={8} y={172} w={144} h={18} layer={1}>
       <QuickButton name="press" slot="press" size={[144, 18]} face="dark" layer={2}>
-        <label name="label" layer={2} localize={false} color={[1, 1, 1]} shadow font_scale_factor={0.8} text="Press: rename slot 12" />
+        <LowLabel name="label" layer={2} localize={false} color={[1, 1, 1]} shadow font_scale_factor={0.8} text="Press: rename slot 12" />
       </QuickButton>
     </At>
   </EntityScreen>

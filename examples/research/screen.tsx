@@ -1,12 +1,7 @@
 // 연구 화면(FFR) 전체 조립: 슬롯 배치, 시각 정의(faces.json), 코드로 만드는 정의, 라우터, 서버 폼 훅.
 import { readFileSync } from "node:fs";
-import type { JsonObject, JuiElement } from "../../src/types.ts";
-import { render, toEntry } from "../../src/render.ts";
-import { createPack, type Pack } from "../../src/pack.ts";
-import { createSlots, type Slots, type SlotLayout } from "../../src/slots.ts";
-import { ScreenRouter } from "../../src/components/router.tsx";
-import { TabBar, radioToggleBody } from "../../src/components/toggle.tsx";
-import { collection, details, global, view } from "../../src/bind.ts";
+import { Panel, StackPanel, Image, Use, render, toEntry, createPack, createSlots, ScreenRouter, TabBar, radioToggleBody, collection, details, global, view } from "json-ui-react";
+import type { JsonObject, JuiElement, Pack, Slots, SlotLayout } from "json-ui-react";
 import { defineItems, type ItemsText } from "./items.tsx";
 
 const faces = JSON.parse(readFileSync(new URL("./faces.json", import.meta.url), "utf8")) as Record<string, JsonObject | string>;
@@ -105,20 +100,20 @@ export function defineResearch(pack: Pack, slots: Slots, opts: ResearchOptions =
   const code: Record<string, () => void> = {
     root: () =>
       ns.define("root", (
-        <panel name="root" size={["100%", "100%"]}>
-          <panel name="vanilla" size={["100%", "100%"]} bindings={[global("#title_text"), view(gate, "#visible")]}>
-            <use name="content" def="server_form.main_screen_content" />
-          </panel>
-          <use name="list_gate" def="ffr.list_gate" />
-          <use name="screen_router" def="ffr.screen_router" />
-        </panel>
+        <Panel name="root" size={["100%", "100%"]}>
+          <Panel name="vanilla" size={["100%", "100%"]} bindings={[global("#title_text"), view(gate, "#visible")]}>
+            <Use name="content" def="server_form.main_screen_content" />
+          </Panel>
+          <Use name="list_gate" def="ffr.list_gate" />
+          <Use name="screen_router" def="ffr.screen_router" />
+        </Panel>
       )),
     tab_toggle: () =>
       ns.define("tab_toggle", {
         ...radioToggleBody({ group: "ffr_tabs", size: [96, 22], forcedIndex: "$tab_index", defaultSelected: "$tab", extra: { layer: 1 } }),
         "$on_def|default": "ffr.tab_face_on",
         "$tab|default": 0,
-        controls: entries(<><use name="on" def="$on_def" /><use name="off" def="ffr.tab_face" /><use name="off_hover" def="ffr.tab_face_hover" /></>),
+        controls: entries(<><Use name="on" def="$on_def" /><Use name="off" def="ffr.tab_face" /><Use name="off_hover" def="ffr.tab_face_hover" /></>),
       }),
     tabs_toggle: () =>
       ns.define("tabs_toggle", (
@@ -132,23 +127,23 @@ export function defineResearch(pack: Pack, slots: Slots, opts: ResearchOptions =
         }),
         controls: entries(
           <>
-            <use name="on" def="ffr.item_chosen" />
-            <use name="off" def="ffr.item_face" />
-            <use name="off_hover" def="ffr.item_face" $slot_bg="textures/ui/ffr/button_hover" />
+            <Use name="on" def="ffr.item_chosen" />
+            <Use name="off" def="ffr.item_face" />
+            <Use name="off_hover" def="ffr.item_face" $slot_bg="textures/ui/ffr/button_hover" />
           </>,
         ),
       }),
     item_chosen: () =>
       ns.define("item_chosen", (
-        <panel name="item_chosen" size={["100%", "100%"]}>
-          <use name="face" def="ffr.item_face" $slot_bg="textures/ui/ffr/slot_chosen" />
-          <image name="sel" layer={4} texture="textures/ui/focus_border_white" size={["100%", "100%"]} color={[1, 0.85, 0.1]} />
-          <use name="detail" def="$detail_def" layer={20} anchor_from="top_left" anchor_to="top_left" offset="$detail_offset" />
-        </panel>
+        <Panel name="item_chosen" size={["100%", "100%"]}>
+          <Use name="face" def="ffr.item_face" $slot_bg="textures/ui/ffr/slot_chosen" />
+          <Image name="sel" layer={4} texture="textures/ui/focus_border_white" size={["100%", "100%"]} color={[1, 0.85, 0.1]} />
+          <Use name="detail" def="$detail_def" layer={20} anchor_from="top_left" anchor_to="top_left" offset="$detail_offset" />
+        </Panel>
       )),
     lazy_detail: () =>
       ns.define("lazy_detail", (
-        <stack_panel
+        <StackPanel
           name="lazy_detail"
           size={[158, 136]}
           visible={true}
@@ -160,36 +155,36 @@ export function defineResearch(pack: Pack, slots: Slots, opts: ResearchOptions =
       )),
     "progress_button@common.button": () =>
       ns.define("progress_button@common.button", (
-        <use
+        <Use
           name="progress_button"
           size={[150, 18]}
           $focus_enabled={false}
           $pressed_button_name="button.form_button_click"
           bindings={[details("form_buttons", "always")]}
         >
-          <use name="default" def="ffr.progress_face" />
-          <use name="hover" def="ffr.progress_face" $slot_bg="textures/ui/ffr/button_hover" />
-          <use name="pressed" def="ffr.progress_face" $slot_bg="textures/ui/ffr/button_pressed" />
-        </use>
+          <Use name="default" def="ffr.progress_face" />
+          <Use name="hover" def="ffr.progress_face" $slot_bg="textures/ui/ffr/button_hover" />
+          <Use name="pressed" def="ffr.progress_face" $slot_bg="textures/ui/ffr/button_pressed" />
+        </Use>
       )),
     pager_row: () =>
       ns.define("pager_row", (
-        <stack_panel name="pager_row" orientation="horizontal" size={[144, 18]} collection_name="form_buttons">
-          <use name="prev" def="ffr.pager" collection_index="$i_prev" $arrow_tex="textures/ui/arrowLeft" />
-          <panel name="gap" size={["fill", 18]} />
-          <use name="next" def="ffr.pager" collection_index="$i_next" $arrow_tex="textures/ui/arrowRight" />
-        </stack_panel>
+        <StackPanel name="pager_row" orientation="horizontal" size={[144, 18]} collection_name="form_buttons">
+          <Use name="prev" def="ffr.pager" collection_index="$i_prev" $arrow_tex="textures/ui/arrowLeft" />
+          <Panel name="gap" size={["fill", 18]} />
+          <Use name="next" def="ffr.pager" collection_index="$i_next" $arrow_tex="textures/ui/arrowRight" />
+        </StackPanel>
       )),
     pagers_tabs: () =>
       ns.define("pagers_tabs", (
-        <panel name="pagers_tabs" size={[144, 18]}>
-          <use name="p0" def="ffr.pager_row" $i_prev={p0} $i_next={p0 + 1} bindings={[view("#toggle_state", "#visible", { condition: "always", control: "ffr_t0" })]} />
-          <use name="p1" def="ffr.pager_row" $i_prev={p1} $i_next={p1 + 1} bindings={[view("#toggle_state", "#visible", { condition: "always", control: "ffr_t1" })]} />
-        </panel>
+        <Panel name="pagers_tabs" size={[144, 18]}>
+          <Use name="p0" def="ffr.pager_row" $i_prev={p0} $i_next={p0 + 1} bindings={[view("#toggle_state", "#visible", { condition: "always", control: "ffr_t0" })]} />
+          <Use name="p1" def="ffr.pager_row" $i_prev={p1} $i_next={p1 + 1} bindings={[view("#toggle_state", "#visible", { condition: "always", control: "ffr_t1" })]} />
+        </Panel>
       )),
     "list_slot@ffr.slot_view": () =>
       ns.define("list_slot@ffr.slot_view", (
-        <use
+        <Use
           name="list_slot"
           bindings={[
             collection("#form_button_text", "form_buttons", "always"),
@@ -199,9 +194,9 @@ export function defineResearch(pack: Pack, slots: Slots, opts: ResearchOptions =
       )),
     text_item: () =>
       ns.define("text_item", (
-        <panel name="text_item" size={["100%", 10]}>
-          <use name="label" def="ffr.text_label" size={["100%", "default"]} anchor_from="left_middle" anchor_to="left_middle" />
-        </panel>
+        <Panel name="text_item" size={["100%", 10]}>
+          <Use name="label" def="ffr.text_label" size={["100%", "default"]} anchor_from="left_middle" anchor_to="left_middle" />
+        </Panel>
       )),
     screen_router: () => {
       if (opts.router === false) return;

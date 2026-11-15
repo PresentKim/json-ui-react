@@ -1,8 +1,6 @@
 // 엔티티 2048: 원본 gen-ui.mjs가 만들던 JSON을 TSX 반복문으로 표현한다.
 // 칸 지도(243칸): 1-16 움직임 층, 17-32 결과 층, 33 점수, 34 상태, 36-40 U D L R New 버튼.
-import { EntityScreen, At, SlotText, useEntity } from "json-ui-react";
-import { render, toBody } from "../../src/render.ts";
-import { QuickButton, KeyedCell, anim } from "../../src/entity/interact.tsx";
+import { EntityScreen, At, SlotText, useEntity, Panel, StackPanel, Image, LowLabel, render, toBody, QuickButton, KeyedCell, anim } from "json-ui-react";
 import type { JuiElement } from "json-ui-react";
 import type { Anchor } from "json-ui-react/controls/common.ts";
 
@@ -54,9 +52,9 @@ function tileDefs(codes: string[]): void {
     const anims = tileAnims(code);
     for (let v = 1; v <= VALUES; v++) {
       const tile = (
-        <panel name="ft" size={[CELL, CELL]}>
-          <image name="tile" size={[TILE, TILE]} layer={1} texture={`${TEX}/t${v}`} anims={anims} />
-        </panel>
+        <Panel name="ft" size={[CELL, CELL]}>
+          <Image name="tile" size={[TILE, TILE]} layer={1} texture={`${TEX}/t${v}`} anims={anims} />
+        </Panel>
       );
       ctx.ns.define(`ft_${code}_${v}`, toBody(render(tile)[0]!));
     }
@@ -90,19 +88,19 @@ function Setup(): null {
 function Layer(p: { name: string; slot: string; codes: string[]; layer: number }): JuiElement {
   const v = variants(p.codes);
   return (
-    <panel name={p.name} size={[CELL * SIZE, CELL * SIZE]} offset={[2, 2]} anchor_from="top_left" anchor_to="top_left" layer={p.layer}>
+    <Panel name={p.name} size={[CELL * SIZE, CELL * SIZE]} offset={[2, 2]} anchor_from="top_left" anchor_to="top_left" layer={p.layer}>
       {Array.from({ length: SIZE }, (_, r) => (
-        <stack_panel name={`r${r}`} orientation="horizontal" size={[CELL * SIZE, CELL]} offset={[0, r * CELL]} anchor_from="top_left" anchor_to="top_left">
+        <StackPanel name={`r${r}`} orientation="horizontal" size={[CELL * SIZE, CELL]} offset={[0, r * CELL]} anchor_from="top_left" anchor_to="top_left">
           {Array.from({ length: SIZE }, (_, c) => (
             <KeyedCell name={`c${r}${c}`} slot={p.slot} index={r * SIZE + c} size={[CELL, CELL]} variants={v} />
           ))}
-        </stack_panel>
+        </StackPanel>
       ))}
-    </panel>
+    </Panel>
   );
 }
 
-const arrow = (tex: string) => <image name="arrow" layer={2} texture={tex} size={[14, 14]} />;
+const arrow = (tex: string) => <Image name="arrow" layer={2} texture={tex} size={[14, 14]} />;
 
 /** 방향 버튼 4개. 두 개를 놓아도 같은 U/D/L/R 버튼 칸에 묶인다. */
 function Dpad(p: { name: string; anchor: Anchor; offset: [number, number] }): JuiElement {
@@ -113,15 +111,15 @@ function Dpad(p: { name: string; anchor: Anchor; offset: [number, number] }): Ju
     ["R", "right_middle", "gameTipArrow_right"],
   ];
   return (
-    <panel name={p.name} size={[PAD * 3, PAD * 3]} anchor_from={p.anchor} anchor_to={p.anchor} offset={p.offset} layer={2}>
+    <Panel name={p.name} size={[PAD * 3, PAD * 3]} anchor_from={p.anchor} anchor_to={p.anchor} offset={p.offset} layer={2}>
       {spots.map(([b, anchor, tex]) => (
-        <panel name={`pos_${b}`} size={[PAD, PAD]} anchor_from={anchor} anchor_to={anchor}>
+        <Panel name={`pos_${b}`} size={[PAD, PAD]} anchor_from={anchor} anchor_to={anchor}>
           <QuickButton name={b} slot={b} size={[PAD, PAD]} face="light">
             {arrow(`textures/ui/${tex}`)}
           </QuickButton>
-        </panel>
+        </Panel>
       ))}
-    </panel>
+    </Panel>
   );
 }
 
@@ -134,17 +132,17 @@ const e2048: JuiElement = (
     <At name="status_at" x={(WINDOW[0] - 200) / 2} y={BOARD + 30} w={200} h={10} layer={3}>
       <SlotText name="status" slot="status" color={[0.25, 0.25, 0.25]} scale={0.8} />
     </At>
-    <image name="board" texture={`${TEX}/board`} size={[BOARD, BOARD]} layer={2} anchor_from="top_middle" anchor_to="top_middle" offset={[0, 22]}>
+    <Image name="board" texture={`${TEX}/board`} size={[BOARD, BOARD]} layer={2} anchor_from="top_middle" anchor_to="top_middle" offset={[0, 22]}>
       <Layer name="movers" slot="mover" codes={MOVER_CODES} layer={5} />
       <Layer name="finals" slot="final" codes={FINAL_CODES} layer={10} />
-    </image>
+    </Image>
     <Dpad name="pad_left" anchor="left_middle" offset={[8, -8]} />
     <Dpad name="pad_right" anchor="right_middle" offset={[-8, -8]} />
-    <panel name="new_at" size={[PAD * 3, 20]} anchor_from="bottom_right" anchor_to="bottom_right" offset={[-8, -6]} layer={2}>
+    <Panel name="new_at" size={[PAD * 3, 20]} anchor_from="bottom_right" anchor_to="bottom_right" offset={[-8, -6]} layer={2}>
       <QuickButton name="New" slot="New" size={[PAD * 3, 20]} face="light">
-        <label name="text" layer={2} text="New" localize={false} color={[0.2, 0.2, 0.2]} />
+        <LowLabel name="text" layer={2} text="New" localize={false} color={[0.2, 0.2, 0.2]} />
       </QuickButton>
-    </panel>
+    </Panel>
   </EntityScreen>
 );
 
