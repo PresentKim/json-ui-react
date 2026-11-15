@@ -1,0 +1,17 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "[json-ui-react]entity-examples-rp",
+    "description": "json-ui-react entity inventory host examples (resources)",
+    "uuid": "04c96346-aff2-45f8-a757-9e514f50652b",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 90]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "53071cf6-a58b-4234-897f-463a3c846ac1",
+      "version": [1, 0, 0]
+    }
+  ]
+}

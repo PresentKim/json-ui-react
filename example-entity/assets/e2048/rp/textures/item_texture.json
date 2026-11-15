@@ -1,0 +1,7 @@
+{
+  "resource_pack_name": "jure_e2048",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "jure_e2048": { "textures": "textures/ui/e2048/t11" }
+  }
+}

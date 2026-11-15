@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "[json-ui-react]entity-examples-bp",
+    "description": "json-ui-react entity inventory host examples (menu lab, research, 2048, matchmaking). Use the launcher items from the creative inventory.",
+    "uuid": "a3040390-52f2-4dae-aca3-6aa34a552a46",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 90]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "ae1d8ddf-da05-48ef-831b-3496d72c54a8",
+      "version": [1, 0, 0]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "269ead75-d6c0-40fc-9b1d-4e481787bbef",
+      "entry": "scripts/main.js",
+      "version": [1, 0, 0]
+    }
+  ],
+  "dependencies": [
+    { "uuid": "04c96346-aff2-45f8-a757-9e514f50652b", "version": [1, 0, 0] },
+    { "module_name": "@minecraft/server", "version": "2.0.0" },
+    { "module_name": "@minecraft/server-ui", "version": "2.0.0" }
+  ]
+}
