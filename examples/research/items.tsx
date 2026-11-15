@@ -1,6 +1,7 @@
 // 연구 화면(FFR) 항목 정의: 방식 E(직접 상세)와 방식 F(지연 상세)의 항목 패널.
 // 버튼 번호는 모두 slots 배치에서 읽는다(숫자 직접 기입 없음).
 import type { JuiElement } from "../../src/types.ts";
+import type { Size1 } from "../../src/controls/common.ts";
 import type { Pack } from "../../src/pack.ts";
 import type { Slots, SlotLayout } from "../../src/slots.ts";
 import { SlotGrid } from "../../src/components/grid.tsx";
@@ -31,7 +32,7 @@ function blockAt(layout: SlotLayout, name: string) {
   };
 }
 
-const Gap = (p: { name: string; h: number | string; w?: number | string }): JuiElement => (
+const Gap = (p: { name: string; h: Size1; w?: Size1 }): JuiElement => (
   <panel name={p.name} size={[p.w ?? "100%", p.h]} />
 );
 

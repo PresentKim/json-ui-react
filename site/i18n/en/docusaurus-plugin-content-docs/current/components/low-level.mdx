@@ -1,0 +1,70 @@
+---
+title: "Typed low-level controls"
+description: "PascalCase components and JSX intrinsic elements with a property type per vanilla control type, plus the binding, expression and animation builders (bind, E, animation, chain)."
+sidebar_position: 10
+sources:
+  - json-ui-react
+  - bedrock-research
+---
+
+# Typed low-level controls
+
+`json-ui-react` has a property type for every vanilla control type. You can use lowercase tags (`<stack_panel>`) and PascalCase components (`<StackPanel>`), and properties that break a rule are rejected **at compile time**.
+
+## Type error examples
+
+```tsx
+import { Label, Toggle, Panel } from "json-ui-react";
+
+// COL-02: label cannot take collection_index
+// @ts-expect-error
+<label text="a" collection_index={0} />;
+
+// COL-01: collection_name is only for stack_panel, grid and collection_panel
+// @ts-expect-error
+<panel collection_name="x" />;
+
+// INP-10: a toggle needs all 8 state keys (checked_control … unchecked_locked_hover_control)
+// @ts-expect-error
+<toggle toggle_name="t" checked_control="a" />;
+```
+
+Low-level components that clash with high-level names get a `Low` prefix, such as `LowScreen` and `LowLabel`.
+
+## Binding builder
+
+```ts
+import { bind, checkBindings } from "json-ui-react";
+
+const list = [
+  bind.global("#title_text"),
+  bind.view("(#hover_text = 'a')", "#visible"),
+  bind.collection("#item_name", "container_items", { condition: "once" }),
+  bind.details("container_items"),
+];
+checkBindings(list, "controls.0.bindings"); // diagnostics carrying rule IDs
+```
+
+## Expression builder
+
+```ts
+import { E, checkExpr } from "json-ui-react";
+
+E.prop("#count").gt(0).and(E.prop("#name").neq(E.str("x"))).toString();
+E.num(0.5).toString(); // ".5" (EXP-27: no leading zero)
+checkExpr("(#a > 0.5)", "bindings.0"); // EXP-27 diagnostic
+```
+
+## Animation builder
+
+```ts
+import { animation, chain } from "json-ui-react";
+
+animation({ anim_type: "alpha", from: 0, to: 1, duration: 0.3, easing: "linear" });
+chain("fx", {
+  a: { anim_type: "alpha", from: 0, to: 1, duration: 0.2 },
+  b: { anim_type: "alpha", from: 1, to: 0, duration: 0.2 },
+}, ["a", "b"], { loop: true }); // a.next = "@fx.b", b.next = "@fx.a"
+```
+
+A `duration` of 0 or less, or a `flip_book` without `frame_count`, throws an error carrying the rule ID. For rule lookup see the [Rules API](../reference/rules-api.mdx).

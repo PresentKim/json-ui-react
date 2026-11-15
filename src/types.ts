@@ -1,3 +1,5 @@
+import type { IntrinsicElementsMap } from "./controls/elements.ts";
+
 // 공유 데이터 타입: JSON 값, 컨트롤 트리, JSX 요소/노드.
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
@@ -20,8 +22,6 @@ export interface JuiElement {
 export type JuiNode = JuiElement | JuiNode[] | string | null | false | undefined;
 
 export namespace JSX {
-  interface IntrinsicElements {
-    [tag: string]: any;
-  }
+  interface IntrinsicElements extends IntrinsicElementsMap {}
   type Element = JuiElement;
 }

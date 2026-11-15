@@ -5,6 +5,7 @@
 //
 // 글자 주의(EXP-30/44): 칸 이름(#hover_text)이 숫자로 시작하면 식이 숫자로 읽어 버린다.
 // 서버가 숫자로 시작하는 글자 앞에 색 접두사(`§r` 등)를 붙여야 하며, 런타임 도우미 text()가 `§r`을 붙인다.
+import type { ElementProps } from "../controls/elements.ts";
 import type { ControlNode, JsonObject, JuiElement, JuiNode } from "../types.ts";
 import { render } from "../render.ts";
 import { lit, lacks } from "../expr.ts";
@@ -73,7 +74,7 @@ export function At(p: AtProps): JuiElement {
   const size = p.w !== undefined || p.h !== undefined ? [p.w ?? "100%", p.h ?? "100%"] : undefined;
   const anchor = p.anchor ?? "top_left";
   return (
-    <panel {...defined({ name: p.name, size, offset: [p.x, p.y], anchor_from: anchor, anchor_to: anchor, layer: p.layer })}>
+    <panel {...(defined({ name: p.name, size, offset: [p.x, p.y], anchor_from: anchor, anchor_to: anchor, layer: p.layer }) as ElementProps<"panel">)}>
       {p.children}
     </panel>
   );
@@ -159,7 +160,7 @@ export function SlotCount(p: SlotCountProps): JuiElement {
     ...defined({ size: p.size === undefined ? undefined : toSize(p.size), layer: p.layer }),
     bindings: [{ ...collect("#inventory_stack_count"), binding_name_override: "#text" }],
   };
-  return reader(<label {...props} />, slot);
+  return reader(<label {...(props as ElementProps<"label">)} />, slot);
 }
 
 // ---------------------------------------------------------------- 그림
@@ -176,14 +177,14 @@ export function SlotIcon(p: SlotIconProps): JuiElement {
   const slot = pick("SlotIcon", p.slot, p.index);
   return reader(
     <custom
-      {...{
+      {...({
         name: p.name,
         renderer: "inventory_item_renderer",
         size: p.size === undefined ? [16, 16] : toSize(p.size),
         layer: 2,
         property_bag: { "#item_id_aux": 0 },
         bindings: [collect("#item_id_aux")],
-      }}
+      } as ElementProps<"custom">)}
     />,
     slot,
   );
@@ -202,7 +203,7 @@ export interface SlotTextureProps {
 export function SlotTexture(p: SlotTextureProps): JuiElement {
   const slot = pick("SlotTexture", p.slot, p.index);
   return reader(
-    <image {...{ name: p.name, size: toSize(p.size), bindings: [collect("#hover_text"), view(`(${lit(p.prefix)} + ${CLEAN})`, "#texture")] }} />,
+    <image {...({ name: p.name, size: toSize(p.size), bindings: [collect("#hover_text"), view(`(${lit(p.prefix)} + ${CLEAN})`, "#texture")] } as ElementProps<"image">)} />,
     slot,
   );
 }
@@ -239,7 +240,7 @@ export function SlotBar(p: SlotBarProps): JuiElement {
     ? [collect("#item_durability_current_amount"), view(`(1 - (#item_durability_current_amount * ${m}))`, "#clip_ratio")]
     : [collect("#hover_text"), view(`(1 - (${CLEAN} * ${m}))`, "#clip_ratio")];
   return reader(
-    <image {...{ name: p.name, size: toSize(p.size), ...defined({ texture: p.texture, color: p.color }), clip_direction: "left", clip_pixelperfect: false, bindings }} />,
+    <image {...({ name: p.name, size: toSize(p.size), ...defined({ texture: p.texture, color: p.color }), clip_direction: "left", clip_pixelperfect: false, bindings } as ElementProps<"image">)} />,
     slot,
   );
 }

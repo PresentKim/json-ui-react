@@ -13,10 +13,13 @@ describe("render", () => {
     expect(out[0].children.map((c) => c.name)).toEqual(["a", "b", "c"]);
   });
   it("test_missing_name_throws", () => {
+    // @ts-expect-error 의도적으로 잘못된 JSX (name 누락/비바닐라 키)
     expect(() => render(<label text="x" />)).toThrow(/label/);
+    // @ts-expect-error 의도적으로 잘못된 JSX (name 누락/비바닐라 키)
     expect(() => render(<use def="a.b" />)).toThrow(/use/);
   });
   it("test_props_order_kept", () => {
+    // @ts-expect-error 의도적으로 잘못된 JSX (name 누락/비바닐라 키)
     const [n] = render(<panel z={1} name="p" a={2} m={3} />);
     expect(Object.keys(n.props)).toEqual(["type", "z", "a", "m"]);
   });
@@ -33,6 +36,7 @@ describe("render", () => {
     expect(Object.keys(toBody(n))).toEqual(["type", "size", "controls"]);
   });
   it("drops undefined props and no controls when empty", () => {
+    // @ts-expect-error 의도적으로 잘못된 JSX (name 누락/비바닐라 키)
     const [n] = render(<panel name="p" x={undefined} />);
     expect(toBody(n)).toEqual({ type: "panel" });
   });

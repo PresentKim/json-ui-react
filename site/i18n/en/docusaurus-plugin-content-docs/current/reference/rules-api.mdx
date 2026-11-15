@@ -1,0 +1,59 @@
+---
+title: "Rules API (getRule, listRules, diag)"
+description: "The rule registry API that looks up all 446 JSON UI rules from bedrock-research by ID, text, evidence, sources, wiki link and enforcement stage, with a per-stage count table."
+sidebar_label: "Rules API"
+sidebar_position: 6
+sources:
+  - json-ui-react
+  - bedrock-research
+---
+
+# Rules API (getRule, listRules, diag)
+
+`json-ui-react` exposes every bedrock-research JSON UI rule in code. Each rule carries an ID, Korean and English text, evidence, sources, a wiki link and an **enforcement stage**.
+
+## Enforcement stages
+
+| Stage | Meaning |
+| --- | --- |
+| `type` | TypeScript rejects it at compile time |
+| `rewrite` | The build fixes it and reports info |
+| `forbid` | The build reports an error or warning |
+| `doc` | Cannot be checked; text and link only |
+
+Each rule also has a `status`: `enforced` when code in this repo really checks it, otherwise `planned`.
+
+## Counts per stage
+
+| Stage | Rules | enforced | planned |
+| --- | ---: | ---: | ---: |
+| `type` | 37 | 0 | 37 |
+| `rewrite` | 8 | 5 | 3 |
+| `forbid` | 70 | 5 | 65 |
+| `doc` | 331 | 0 | 331 |
+| Total | 446 | 10 | 436 |
+
+The table was counted with `listRules` when this page was written. Recount with `listRules({ stage, status }).length` after code changes.
+
+## Usage
+
+```ts
+import { getRule, listRules, ruleUrl, diag, RULE_IDS, STAGES } from "json-ui-react";
+
+const r = getRule("INP-10");
+r.title.en;   // rule text
+r.stage;      // "type" | "rewrite" | "forbid" | "doc"
+r.url;        // wiki link (ko); r.urlEn is the English one
+
+ruleUrl("COL-01", "en");                       // English wiki link
+listRules({ category: "COL", stage: "type" }); // filtered lookup
+listRules({ status: "enforced" });             // rules that are really checked
+
+// Build a diagnostic: the message defaults to the rule text.
+const d = diag("BND-05", "error", "controls.0.bindings.1");
+d.url; // the wiki link comes along
+```
+
+- `RULE_IDS` is the sorted list of IDs, `RULE_INFO` the raw info per ID, `STAGES` the stage table.
+- `RuleId` is a literal union of all IDs, so typos fail at compile time.
+- A rule missing from the stage table counts as `{ stage: "doc", status: "planned" }`.

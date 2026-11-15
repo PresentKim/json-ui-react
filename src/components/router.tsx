@@ -27,7 +27,7 @@ export function ScreenRouter(props: {
     <collection_panel
       name={props.name}
       size={["100%", "100%"]}
-      factory={{ name: props.factory, control_ids: controlIds }}
+      factory={{ name: props.factory, control_ids: controlIds as { [k: string]: string } }}
       property_bag={bag}
       bindings={[
         { binding_name: "#title_text" },

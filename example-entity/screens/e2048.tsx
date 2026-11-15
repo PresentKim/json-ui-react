@@ -4,6 +4,7 @@ import { EntityScreen, At, SlotText, useEntity } from "json-ui-react";
 import { render, toBody } from "../../src/render.ts";
 import { QuickButton, KeyedCell, anim } from "../../src/entity/interact.tsx";
 import type { JuiElement } from "json-ui-react";
+import type { Anchor } from "json-ui-react/controls/common.ts";
 
 const CELL = 30; // 칸 한 변
 const TILE = 28; // 타일 그림 한 변
@@ -104,8 +105,8 @@ function Layer(p: { name: string; slot: string; codes: string[]; layer: number }
 const arrow = (tex: string) => <image name="arrow" layer={2} texture={tex} size={[14, 14]} />;
 
 /** 방향 버튼 4개. 두 개를 놓아도 같은 U/D/L/R 버튼 칸에 묶인다. */
-function Dpad(p: { name: string; anchor: string; offset: [number, number] }): JuiElement {
-  const spots: [string, string, string][] = [
+function Dpad(p: { name: string; anchor: Anchor; offset: [number, number] }): JuiElement {
+  const spots: [string, Anchor, string][] = [
     ["U", "top_middle", "gameTipArrow_up"],
     ["D", "bottom_middle", "gameTipArrow_down"],
     ["L", "left_middle", "gameTipArrow_left"],

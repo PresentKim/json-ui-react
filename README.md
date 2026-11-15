@@ -127,6 +127,12 @@ TSX 화면(`<Screen>`) → `buildScreens` → 자체 JSX 런타임 → ControlNo
 | COL-47 | warn | 라우터 아래 컬렉션 바인딩에는 `binding_condition: "always"`가 필요하다 |
 | COL-49 | warn | `maximum_grid_items`가 2000을 넘으면 칸이 겹쳐 그려진다 |
 
+## 규칙 API와 타입이 붙은 저수준 컨트롤
+
+bedrock-research의 JSON UI 규칙 446개를 코드로 조회한다. `getRule(id)`, `listRules({ category, stage, status })`, `ruleUrl(id, lang)`, `diag(id, level, path)`, `RULE_IDS`, `STAGES`를 `json-ui-react`에서 가져온다. 규칙마다 강제 단계(`type`, `rewrite`, `forbid`, `doc`)와 상태(`enforced`, `planned`)가 있다.
+
+바닐라 컨트롤 타입마다 속성 타입이 있어 `<stack_panel>`, `<StackPanel>` 같은 JSX가 COL-01, COL-02, INP-10을 컴파일 때 거절한다. 고수준과 이름이 겹치는 부품은 `LowScreen`, `LowLabel`처럼 `Low` 접두로 낸다. 빌더는 `bind.*`와 `checkBindings`, `E`와 `checkExpr`, `animation`과 `chain`이다. 자세한 설명은 문서의 규칙 API와 타입이 붙은 저수준 컨트롤 쪽을 본다.
+
 ## 빌드 방법
 
 요구 사항: Node 22 이상.

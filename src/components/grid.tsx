@@ -1,5 +1,6 @@
 // 그리드 컴포넌트: 고정 칸 슬롯 그리드(COL-38, COL-50)와 바인딩 가상 목록(COL-49).
 import type { JsonObject, JuiElement } from "../types.ts";
+import type { ElementProps } from "../controls/elements.ts";
 
 export interface SlotGridProps {
   name: string;
@@ -37,7 +38,7 @@ export function SlotGrid(p: SlotGridProps): JuiElement {
   const attrs: Record<string, unknown> = { name: p.name, orientation: "vertical", size: p.size };
   if (p.props) Object.assign(attrs, p.props);
   if (p.bindings) attrs.bindings = p.bindings;
-  return <stack_panel {...attrs}>{rows}</stack_panel>;
+  return <stack_panel {...(attrs as unknown as ElementProps<"stack_panel">)}>{rows}</stack_panel>;
 }
 
 export interface VirtualListProps {

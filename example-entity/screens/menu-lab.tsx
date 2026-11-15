@@ -5,13 +5,15 @@
 import { EntityScreen, At, Label, SlotText, SlotIcon, SlotTexture, SlotBar, ShowWhen, useEntity } from "json-ui-react";
 import { QuickButton, SelectCells } from "json-ui-react";
 import type { JuiElement, JuiNode } from "json-ui-react";
+import type { BindingObj, Color, Size } from "json-ui-react/controls/common.ts";
+import type { ElementProps } from "json-ui-react/controls/elements.ts";
 
-const GRAY = [0.2, 0.2, 0.2];
-const CAPTION = [0.35, 0.35, 0.35];
-const FULL: [string, string] = ["100%", "100%"];
+const GRAY: Color = [0.2, 0.2, 0.2];
+const CAPTION: Color = [0.35, 0.35, 0.35];
+const FULL: Size = ["100%", "100%"];
 const WORLD_PREFIX = "textures/blocks/wool_colored_";
 const CLEAN = "(#hover_text - '§o' - '§f' - '§r')";
-const collect = { binding_type: "collection", binding_collection_name: "container_items", binding_name: "#hover_text", binding_condition: "always" };
+const collect: BindingObj = { binding_type: "collection", binding_collection_name: "container_items", binding_name: "#hover_text", binding_condition: "always" };
 
 /** 원본 칸 번호에 맞춰 미리 잡는다(스크립트는 생성된 ScreenInfo로만 읽는다). */
 function Claims(): null {
@@ -51,7 +53,7 @@ interface ConstBarProps {
   expr?: string;
   fillSize?: [number, number];
   pixel?: boolean;
-  dir?: string;
+  dir?: "left" | "right" | "up" | "down";
   size?: [number, number];
 }
 
@@ -60,7 +62,7 @@ interface ConstBarProps {
  * 솔버가 ENT-CLIP 로 알리며, buildEntityScreens({ strict: false })에서 경고로 내려간다.
  */
 function ConstBar(p: ConstBarProps): JuiElement {
-  const fill = {
+  const fill: ElementProps<"image"> & { $$slot?: number } = {
     name: "fill",
     texture: "textures/ui/White",
     size: p.fillSize ?? FULL,
@@ -102,7 +104,7 @@ function PathText(p: { name: string; slot: string; size: [number, number] }): Ju
 
 /** 14번 칸 문구에 따라 ON/OFF 점과 글자 중 하나만 보인다(원본 flag). */
 function Flag(): JuiElement {
-  const part = (name: string, when: { contains: string } | { lacks: string }, color: number[], word: string) => (
+  const part = (name: string, when: { contains: string } | { lacks: string }, color: Color, word: string) => (
     <At name={`${name}_box`} x={0} y={0} w={40} h={8}>
       <ShowWhen name={name} slot="state" when={when}>
         <image name="dot" texture="textures/ui/White" size={[8, 8]} layer={3} color={color} anchor_from="left_middle" anchor_to="left_middle" />

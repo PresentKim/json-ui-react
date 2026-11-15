@@ -1,6 +1,7 @@
 // 엔티티 호스트 상호작용 컴포넌트: 빠른 이동 버튼, 라디오 칸, 서버 선택 격자, 탭, 쪽 넘김, 키 공장 칸, 애니메이션.
 // 칸을 읽는 노드는 readsSlot으로 표시만 하고, collection_name 감싸기는 placeEntityTree가 맡는다.
 import type { JsonObject, JsonValue, JuiElement, JuiNode } from "../types.ts";
+import type { Size } from "../controls/common.ts";
 import { render, toBody } from "../render.ts";
 import { radioToggleBody } from "../components/toggle.tsx";
 import { fromNode } from "../high/components.tsx";
@@ -9,8 +10,8 @@ import { readsSlot } from "./solver.ts";
 
 const COLLECTION = "container_items";
 const CLEAN = "(#hover_text - '§o' - '§f' - '§r')";
-const hoverText = { binding_type: "collection", binding_collection_name: COLLECTION, binding_name: "#hover_text", binding_condition: "always" };
-const FULL: [string, string] = ["100%", "100%"];
+const hoverText = { binding_type: "collection", binding_collection_name: COLLECTION, binding_name: "#hover_text", binding_condition: "always" } as const;
+const FULL: Size = ["100%", "100%"];
 
 const view = (source: string, target: string): JsonObject => ({ binding_type: "view", source_property_name: source, target_property_name: target });
 
